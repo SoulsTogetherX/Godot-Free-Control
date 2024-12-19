@@ -1,13 +1,13 @@
 @tool
 class_name AnimatableControl extends Container
-## A control to be used for free transformation within a UI
+## A container to be used for free transformation within a UI.
 
 var _mount : AnimatableMount
 var _min_size : Vector2
 
-## A more portable method of editing the [member pivot_offset] via a ratio
+## A more portable method of editing the [member pivot_offset] via a ratio.
 ## [br][br]
-## An input of [code]Vector2(0.5, 0.5)[/code] will put the [member pivot_offset] in the middle of the object
+## An input of [code]Vector2(0.5, 0.5)[/code] will put the [member pivot_offset] in the middle of the object.
 @export var pivot_ratio : Vector2 = Vector2(0.5, 0.5):
 	get:
 		return pivot_offset / size
@@ -31,7 +31,6 @@ func _ready() -> void:
 		tree_entered.connect(_on_tree_enter, CONNECT_PERSIST)
 	if !tree_exited.is_connected(_on_tree_exit):
 		tree_exited.connect(_on_tree_exit, CONNECT_PERSIST)
-	
 	_on_tree_enter()
 
 func _on_tree_enter() -> void:

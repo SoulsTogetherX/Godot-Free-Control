@@ -1,36 +1,50 @@
 @tool
 class_name ProportionalContainer extends Container
+## A container that preserves the proportions of its [member ancher] size.
 
 enum PROPORTION_MODE {
-	NONE = 0b00,
-	WIDTH = 0b01,
-	HEIGHT = 0b10,
-	BOTH = 0b11
+	NONE = 0b00, ## No action. Minimum size will be set at [constant Vector2.ZERO].
+	WIDTH = 0b01, ## Sets the minimum width to be equal to the [member ancher] width multipled by [member horizontal_ratio].
+	HEIGHT = 0b10, ## Sets the minimum height to be equal to the [member ancher] height multipled by [member vertical_ratio].
+	BOTH = 0b11 ## Sets the minimum size to be equal to the [member ancher] size multipled by [member horizontal_ratio] and [member vertical_ratio] respectively.
 }
 
-@export var ancher_to_parent : bool:
+@export_group("Ancher")
+## If [code]true[/code], the ancher will automatically be assumed as this node's parent.[br]
+## If [code]false[/code], the ancher will be dependant on [member ancher].
+## [br][br]
+## Related: [method Control.get_parent_control].
+@export var ancher_to_parent : bool = true:
 	set(val):
 		if ancher_to_parent != val:
 			ancher_to_parent = val
 			notify_property_list_changed()
 			queue_sort()
+## The ancher node this container proportions itself to. Is used if [member ancher_to_parent] is [code]false[/code].
+## [br][br]
+## If [code]null[/code], then this container proportions itself to screen size.
 @export var ancher : Control:
 	set(val):
 		if ancher != val:
 			ancher = val
 			queue_sort()
+
+@export_group("Proportion Mode")
+## The proportion mode used to scale itself to the [member ancher].
 @export var mode : PROPORTION_MODE = PROPORTION_MODE.NONE:
 	set(val):
 		if mode != val:
 			mode = val
 			notify_property_list_changed()
 			queue_sort()
-@export_range(0., 1.) var horizontal_ratio : float = 1.:
+## The multiplicative of this node's width to the [member ancher] width.
+@export_range(0., 1., 0.001, "or_greater") var horizontal_ratio : float = 1.:
 	set(val):
 		if horizontal_ratio != val:
 			horizontal_ratio = val
 			queue_sort()
-@export_range(0., 1.) var vertical_ratio : float = 1.:
+## The multiplicative of this node's height to the [member ancher] height.
+@export_range(0., 1., 0.001, "or_greater") var vertical_ratio : float = 1.:
 	set(val):
 		if vertical_ratio != val:
 			vertical_ratio = val
@@ -72,11 +86,11 @@ func _handel_resize() -> void:
 	var ancher_size : Vector2;
 	if ancher:
 		ancher_size = ancher.size
-	elif ancher_to_parent && get_parent() && get_parent() is Control:
-		ancher_size = get_parent().size
+	elif ancher_to_parent && get_parent_control():
+		ancher_size = get_parent_control().size
 	elif Engine.is_editor_hint():
 		var edited_scene_root := get_tree().get_edited_scene_root()
-		var scene_root_parent := edited_scene_root if edited_scene_root.get_parent() else null
+		var scene_root_parent := edited_scene_root if edited_scene_root.get_parent_control() else null
 		
 		if scene_root_parent && get_viewport() == scene_root_parent.get_viewport():
 			ancher_size = Vector2(
@@ -102,6 +116,5 @@ func _fit_children() -> void:
 	for child in get_children(true):
 		if child is Control:
 			fit_child_in_rect(child, Rect2(Vector2.ZERO, _min_size))
-
 func _get_minimum_size() -> Vector2:
 	return _min_size

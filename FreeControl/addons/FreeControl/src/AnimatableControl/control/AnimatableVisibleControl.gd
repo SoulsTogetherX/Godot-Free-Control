@@ -1,33 +1,33 @@
 @tool
 class_name AnimatableVisibleControl extends AnimatableScrollControl
-## A [Control] to be used for free transformation, within a UI, depending on if the node is visible in a [ScrollContainer] scroll
+## A container to be used for free transformation, within a UI, depending on if the node is visible in a [ScrollContainer] scroll.
 
-## Emitted when requested threshold has been entered
+## Emitted when requested threshold has been entered.
 signal entered_threshold
-## Emitted when requested threshold has been exited
+## Emitted when requested threshold has been exited.
 signal exited_threshold
-## Emitted when this node's [AnimatableMount]'s rect entered visible range
+## Emitted when this node's [AnimatableMount]'s rect entered visible range.
 signal entered_screen
-## Emitted when this node's [AnimatableMount]'s rect exited visible range
+## Emitted when this node's [AnimatableMount]'s rect exited visible range.
 signal exited_screen
 
-## Modes of threshold type checking
+## Modes of threshold type checking.
 enum CHECK_MODE {
-	NONE = 0b000, ## No behavior
-	HORIZONTAL = 0b001, ## Only checks horizontally using [member threshold_horizontal]
-	VERTICAL = 0b010, ## Only checks vertically using [member threshold_vertical]
-	BOTH = 0b011 ## Checks horizontally and vertically
+	NONE = 0b000, ## No behavior.
+	HORIZONTAL = 0b001, ## Only checks horizontally using [member threshold_horizontal].
+	VERTICAL = 0b010, ## Only checks vertically using [member threshold_vertical].
+	BOTH = 0b011 ## Checks horizontally and vertically.
 }
 
-## Color for inner highlighting - Indicates when visiblity is required to met threshold
+## Color for inner highlighting - Indicates when visiblity is required to met threshold.
 const HIGHLIGHT_COLOR := Color(Color.RED, 0.3)
-## Color for overlap highlighting - Indicates when visiblity is required, starting from the far end, to met threshold
+## Color for overlap highlighting - Indicates when visiblity is required, starting from the far end, to met threshold.
 const ANTI_HIGHLIGHT_COLOR := Color(Color.DARK_CYAN, 1)
-## Color for helpful lines to make highlighting for clear
+## Color for helpful lines to make highlighting for clear.
 const INTERSECT_HIGHLIGHT_COLOR := Color(Color.RED, 0.8)
 
 @export_group("Mode")
-## Sets the mode of threshold type checking
+## Sets the mode of threshold type checking.
 @export var check_mode: CHECK_MODE = CHECK_MODE.NONE:
 	set(val):
 		if check_mode != val:
@@ -36,14 +36,14 @@ const INTERSECT_HIGHLIGHT_COLOR := Color(Color.RED, 0.8)
 			queue_redraw()
 
 @export_group("Threshold")
-## The minimum horizontal percentage this node's [AnimatableMount]'s rect must be visible in [member scroll] for this node to be consistered visible
+## The minimum horizontal percentage this node's [AnimatableMount]'s rect must be visible in [member scroll] for this node to be consistered visible.
 @export_range(0, 1) var threshold_horizontal : float = 0.5:
 	set(val):
 		if threshold_horizontal != val:
 			threshold_horizontal = val
 			_scrolled_horizontal(0)
 			queue_redraw()
-## The minimum vertical percentage this node's [AnimatableMount]'s rect must be visible in [member scroll] for this node to be consistered visible
+## The minimum vertical percentage this node's [AnimatableMount]'s rect must be visible in [member scroll] for this node to be consistered visible.
 @export_range(0, 1) var threshold_vertical : float = 0.5:
 	set(val):
 		if threshold_vertical != val:
@@ -55,9 +55,9 @@ var _last_threshold_vertical : float
 var _last_visible : bool
 
 @export_group("Indicator")
-## [b]Editor usage only[/b]
+## [b]Editor usage only.[/b]
 ## [br]
-## Shows or hides the helpful threshold highlighter
+## Shows or hides the helpful threshold highlighter.
 @export var hide_indicator : bool = false:
 	set(val):
 		if hide_indicator != val:
@@ -232,20 +232,20 @@ func _draw_highlight(
 	# Bottom
 	draw_rect(Rect2(Vector2(left, bottom), Vector2(right - left, size.y - bottom)), ANTI_HIGHLIGHT_COLOR)
 
-## Returns the rect [threshold_horizontal] and [threshold_vertical] create
+## Returns the rect [threshold_horizontal] and [threshold_vertical] create.
 func get_threshold_rect(consider_mode : bool = false) -> Rect2:
 	if !consider_mode || check_mode == CHECK_MODE.BOTH:
 		return Rect2(Vector2(threshold_horizontal, threshold_vertical) * size, Vector2(1.0 - threshold_horizontal, 1.0 - threshold_vertical) * size)
 	
 	return Rect2(Vector2(threshold_horizontal, threshold_vertical) * size, Vector2(1.0 - threshold_horizontal, 1.0 - threshold_vertical) * size)
 
-## An abstract function that is called when this node's visible threshold has been met
+## An abstract function that is called when this node's visible threshold has been met.
 func _on_visible_enter() -> void:
 	push_warning("Abstract method 'on_visible_enter' called without overloading")
-## An abstract function that is called when this node's visible threshold is no longer met
+## An abstract function that is called when this node's visible threshold is no longer met.
 func _on_visible_exit() -> void:
 	push_warning("Abstract method 'on_visible_exit' called without overloading")
-## An abstract function that is called while this node's visible threshold is met. Is called after each scroll of [member scroll]
+## An abstract function that is called while this node's visible threshold is met. Is called after each scroll of [member scroll].
 ## [br][br]
 ## Paramter [param intersect] is the current threshold value met.
 func _while_visible(intersect : float) -> void:
