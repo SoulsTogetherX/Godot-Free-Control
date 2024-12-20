@@ -239,14 +239,11 @@ func get_threshold_rect(consider_mode : bool = false) -> Rect2:
 	
 	return Rect2(Vector2(threshold_horizontal, threshold_vertical) * size, Vector2(1.0 - threshold_horizontal, 1.0 - threshold_vertical) * size)
 
-## An abstract function that is called when this node's visible threshold has been met.
-func _on_visible_enter() -> void:
-	push_warning("Abstract method 'on_visible_enter' called without overloading")
-## An abstract function that is called when this node's visible threshold is no longer met.
-func _on_visible_exit() -> void:
-	push_warning("Abstract method 'on_visible_exit' called without overloading")
-## An abstract function that is called while this node's visible threshold is met. Is called after each scroll of [member scroll].
+## A virtual function that is called when this node's visible threshold has been met.
+func _on_visible_enter() -> void: pass
+## A virtual function that is called when this node's visible threshold is no longer met.
+func _on_visible_exit() -> void: pass
+## A virtual function that is called while this node's visible threshold is met. Is called after each scroll of [member scroll].
 ## [br][br]
 ## Paramter [param intersect] is the current threshold value met.
-func _while_visible(intersect : float) -> void:
-	push_warning("Abstract method 'while_visible' called without overloading")
+func _while_visible(intersect : float) -> void: pass

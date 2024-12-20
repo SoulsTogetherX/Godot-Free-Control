@@ -18,7 +18,10 @@ var _max_size := -Vector2.ONE
 		_handle_resize()
 
 func _ready() -> void:
-	resized.connect(_handle_resize)
+	if !resized.is_connected(_handle_resize):
+		resized.connect(_handle_resize)
+	if !sort_children.is_connected(_handle_resize):
+		sort_children.connect(_handle_resize)
 	_handle_resize()
 func _get_minimum_size() -> Vector2:
 	var max_min_child_size : Vector2 = Vector2.ZERO;
@@ -38,19 +41,38 @@ func _resize_childrend() -> void:
 		if x is Control:
 			_resize_child(x)
 func _resize_child(child : Control):
-	if (_max_size.x < 0.0 && _max_size.y < 0.0) || is_zero_approx(size.x) || is_zero_approx(size.y ):
-		fit_child_in_rect(child, Rect2(Vector2.ZERO, size))
-		return
-	
-	var minsize := child.get_minimum_size()
+	var child_min_size := child.get_minimum_size()
 	var result_size := Vector2.ZERO
-	
 	result_size = Vector2(
-		maxf(size.x if _max_size.x < 0 else minf(size.x, _max_size.x), minsize.x),
-		maxf(size.y if _max_size.y < 0 else minf(size.y, _max_size.y), minsize.y),
+		maxf(size.x if _max_size.x < 0 else minf(size.x, _max_size.x), child_min_size.x),
+		maxf(size.y if _max_size.y < 0 else minf(size.y, _max_size.y), child_min_size.y),
 	)
 	
-	if use_top_left:
-		fit_child_in_rect(child, Rect2(Vector2.ZERO, result_size))
-	else:
-		fit_child_in_rect(child, Rect2((size - result_size) * 0.5, result_size))
+	var set_pos : Vector2
+	match size_flags_horizontal:
+		SIZE_FILL:
+			set_pos.x = 0
+			result_size.x = max(result_size.x, size.x)
+		SIZE_SHRINK_BEGIN:
+			set_pos.x = 0
+		SIZE_SHRINK_CENTER:
+			set_pos.x = (size.x - result_size.x) * 0.5
+		SIZE_SHRINK_END:
+			set_pos.x = size.x - result_size.x
+	match size_flags_vertical:
+		SIZE_FILL:
+			set_pos.y = 0
+			result_size.y = max(result_size.y, size.y)
+		SIZE_SHRINK_BEGIN:
+			set_pos.y = 0
+		SIZE_SHRINK_CENTER:
+			set_pos.y = (size.y - result_size.y) * 0.5
+		SIZE_SHRINK_END:
+			set_pos.y = size.y - result_size.y
+	
+	fit_child_in_rect(child, Rect2(set_pos, result_size))
+
+func _get_allowed_size_flags_horizontal() -> PackedInt32Array:
+	return [SIZE_FILL, SIZE_SHRINK_BEGIN, SIZE_SHRINK_CENTER, SIZE_SHRINK_END]
+func _get_allowed_size_flags_vertical() -> PackedInt32Array:
+	return [SIZE_FILL, SIZE_SHRINK_BEGIN, SIZE_SHRINK_CENTER, SIZE_SHRINK_END]

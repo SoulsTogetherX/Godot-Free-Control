@@ -75,6 +75,8 @@ func _validate_property(property: Dictionary) -> void:
 	elif property.name == "vertical_ratio":
 		if !(mode & PROPORTION_MODE.HEIGHT):
 			property.usage |= PROPERTY_USAGE_READ_ONLY
+func _get_minimum_size() -> Vector2:
+	return _min_size
 
 func _handel_resize() -> void:
 	if !is_inside_tree(): return
@@ -102,10 +104,8 @@ func _handel_resize() -> void:
 	else:
 		ancher_size = get_viewport().get_visible_rect().size
 	
-	var container_size : Vector2 = size
 	if mode & PROPORTION_MODE.WIDTH > 0:
 		ancher_size.x = ancher_size.x * horizontal_ratio
-	
 	if mode & PROPORTION_MODE.HEIGHT > 0:
 		ancher_size.y = ancher_size.y * vertical_ratio
 	
@@ -113,8 +113,42 @@ func _handel_resize() -> void:
 	update_minimum_size()
 	_fit_children()
 func _fit_children() -> void:
-	for child in get_children(true):
-		if child is Control:
-			fit_child_in_rect(child, Rect2(Vector2.ZERO, _min_size))
-func _get_minimum_size() -> Vector2:
-	return _min_size
+	for child: Control in get_children(true):
+		if child:_fit_child(child)
+func _fit_child(child : Control) -> void:
+	var child_size := child.get_minimum_size()
+	var set_pos : Vector2
+	
+	var ancher_size : Vector2 = size
+	if mode & PROPORTION_MODE.WIDTH > 0:
+		ancher_size.x = ancher_size.x * horizontal_ratio
+	if mode & PROPORTION_MODE.HEIGHT > 0:
+		ancher_size.y = ancher_size.y * vertical_ratio
+	
+	match size_flags_horizontal:
+		SIZE_FILL:
+			set_pos.x = 0
+			child_size.x = max(child_size.x, ancher_size.x)
+		SIZE_SHRINK_BEGIN:
+			set_pos.x = 0
+		SIZE_SHRINK_CENTER:
+			set_pos.x = (ancher_size.x - child_size.x) * 0.5
+		SIZE_SHRINK_END:
+			set_pos.x = ancher_size.x - child_size.x
+	match size_flags_vertical:
+		SIZE_FILL:
+			set_pos.y = 0
+			child_size.y = max(child_size.y, ancher_size.y)
+		SIZE_SHRINK_BEGIN:
+			set_pos.y = 0
+		SIZE_SHRINK_CENTER:
+			set_pos.y = (ancher_size.y - child_size.y) * 0.5
+		SIZE_SHRINK_END:
+			set_pos.y = ancher_size.y - child_size.y
+	
+	fit_child_in_rect(child, Rect2(set_pos, child_size))
+
+func _get_allowed_size_flags_horizontal() -> PackedInt32Array:
+	return [SIZE_FILL, SIZE_SHRINK_BEGIN, SIZE_SHRINK_CENTER, SIZE_SHRINK_END]
+func _get_allowed_size_flags_vertical() -> PackedInt32Array:
+	return [SIZE_FILL, SIZE_SHRINK_BEGIN, SIZE_SHRINK_CENTER, SIZE_SHRINK_END]

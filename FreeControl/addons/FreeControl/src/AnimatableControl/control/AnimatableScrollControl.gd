@@ -16,16 +16,14 @@ class_name AnimatableScrollControl extends AnimatableControl
 				val.get_h_scroll_bar().value_changed.connect(_scrolled_horizontal)
 				val.get_v_scroll_bar().value_changed.connect(_scrolled_vertical)
 
-## An abstract function that is called when [member scroll] is horizontally scrolled.
+## A virtual function that is called when [member scroll] is horizontally scrolled.
 ## [br][br]
 ## Paramter [param scroll] is the current horizontal progress of the scroll.
-func _scrolled_horizontal(scroll : float) -> void:
-	push_warning("Abstract method '_scrolled_horizontal' called without overloading")
-## An abstract function that is called when [member scroll] is vertically scrolled.
+func _scrolled_horizontal(scroll : float) -> void: pass
+## A virtual function that is called when [member scroll] is vertically scrolled.
 ## [br][br]
 ## Paramter [param scroll] is the current vertical progress of the scroll.
-func _scrolled_vertical(scroll : float) -> void:
-	push_warning("Abstract method '_scrolled_vertical' called without overloading")
+func _scrolled_vertical(scroll : float) -> void: pass
 
 ## Returns the global difference between this node's [AnimatableMount] and [member scroll] positions.
 func get_origin_offset() -> Vector2:

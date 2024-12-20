@@ -144,3 +144,9 @@ func _get_property_info(property: StringName) -> Array:
 			if 0 <= idx && idx < _container_angles.size():
 				return [idx, strs[0]]
 	return []
+
+
+func _get_allowed_size_flags_horizontal() -> PackedInt32Array:
+	return []
+func _get_allowed_size_flags_vertical() -> PackedInt32Array:
+	return []
