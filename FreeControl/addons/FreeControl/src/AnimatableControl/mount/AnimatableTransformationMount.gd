@@ -8,17 +8,13 @@ class_name AnimatableTransformationMount extends AnimatableMount
 		if val != adjust_scale:
 			adjust_scale = val
 			queue_minimum_size_update()
-## If [code]true[/code] this node will adjust it's size to fit its children's rotations.[br][br]
-## [b]BUG:[/b] currently if [member adjust_scale] is true, editing [member Control.pivot_offset] and
-## [member Control.scale] together will not follow expected behavior.
+## If [code]true[/code] this node will adjust it's size to fit its children's rotations.
 @export var adjust_rotate : bool:
 	set(val):
 		if val != adjust_rotate:
 			adjust_rotate = val
 			queue_minimum_size_update()
-## If [code]true[/code] this node adjust to fit its children's positions inside it's size.[br][br]
-## If this node is a child to a [Container], it will bound all children to be inside of it's existing size.[br]
-## Otherwise, this node will expand to the bottom-right until all children are fully inside of it's size.
+## If [code]true[/code] this node adjust to fit its children's positions inside it's size.
 @export var adjust_position : bool:
 	set(val):
 		if val != adjust_position:
@@ -32,13 +28,17 @@ func _update_children_minimum_size() -> void:
 	_min_size = Vector2.ZERO
 	_child_min_size = Vector2.ZERO
 	
+	var children_info: Array[Array] = []
+	
 	for child : AnimatableControl in get_children():
 		if child:
 			var child_size : Vector2
 			var child_offset : Vector2
 			
-			if adjust_scale: child_size = child.get_combined_minimum_size() * child.scale
-			else: child_size = child.get_combined_minimum_size()
+			if adjust_scale:
+				child_size = child.get_combined_minimum_size() * child.scale
+			else:
+				child_size = child.get_combined_minimum_size()
 			_child_min_size = _child_min_size.max(child_size)
 			
 			if adjust_rotate:
@@ -46,29 +46,47 @@ func _update_children_minimum_size() -> void:
 				if adjust_scale: child_pivot * child.scale
 				
 				var bb_rect := _get_rotated_rect_bounding_box(
-					Rect2(Vector2.ZERO, child_size),
-					child_pivot,
+					Rect2(Vector2.ZERO, child.get_combined_minimum_size()),
+					child.pivot_offset,
 					child.rotation
 				)
+				if adjust_scale:
+					bb_rect.size *= child.scale
+					bb_rect.position *= child.scale
+				
 				child_size = bb_rect.size
 				child_offset = bb_rect.position
-				
-			if adjust_position:
-				var piv_offset : Vector2
-				if adjust_rotate:
-					piv_offset = -child.pivot_offset.rotated(rotation)
-				else:
-					piv_offset = -child.pivot_offset
-				if adjust_scale:
-					piv_offset *= (child.scale - Vector2.ONE)
-
-				var parent_size := size - child_size - child_offset - piv_offset
-				var new_pos := child.position.clamp(-piv_offset - child_offset, parent_size)
-				
-				if child.position != new_pos: child.position = new_pos
+			
+			children_info.append([child, child_size, child_offset])
 			_min_size = _min_size.max(child_size)
+	
 	if _old_min_size != _min_size:
 		update_minimum_size()
+	if adjust_position:
+		if get_parent_control() is Container:
+			get_parent_control().sort_children.connect(_adjust_children_positions.bind(children_info), CONNECT_ONE_SHOT)
+		else:
+			call_deferred("_adjust_children_positions", children_info)
+func _adjust_children_positions(children_info: Array[Array]) -> void:
+	for child_info : Array in children_info:
+		var child : AnimatableControl = child_info[0]
+		var child_size : Vector2 = child_info[1]
+		var child_offset : Vector2 = child_info[2]
+		
+		var piv_offset : Vector2
+		if adjust_rotate:
+			piv_offset = -child.pivot_offset.rotated(rotation)
+		else:
+			piv_offset = -child.pivot_offset
+		if adjust_scale:
+			piv_offset *= (child.scale - Vector2.ONE)
+		
+		var parent_size := size - child_size - child_offset - piv_offset
+		var new_pos := child.position.min(parent_size).max(-piv_offset - child_offset)
+		
+		if child.position != new_pos: child.position = new_pos
+	
+
 func _get_rotated_rect_bounding_box(rect : Rect2, pivot : Vector2, angle : float) -> Rect2:
 	var pos := rect.position
 	var sze := rect.size
@@ -87,14 +105,6 @@ func _get_rotated_rect_bounding_box(rect : Rect2, pivot : Vector2, angle : float
 	var bb_pos := (full - bb_size) * 0.5
 	
 	return Rect2(bb_pos, bb_size)
-func _get_rotated_vector(vec : Vector2, pivot : Vector2, angle : float) -> Vector2:
-	var trig := Vector2(cos(angle), sin(angle))
-	vec -= pivot
-	
-	return Vector2(
-		trig.x * vec.x - trig.y * vec.y,
-		trig.y * vec.x - trig.x * vec.y
-	) + pivot
 
 func _on_mount(control : AnimatableControl) -> void:
 	control.transformation_changed.connect(queue_minimum_size_update, CONNECT_DEFERRED)
