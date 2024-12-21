@@ -14,7 +14,7 @@ class_name AnimatableTransformationMount extends AnimatableMount
 		if val != adjust_rotate:
 			adjust_rotate = val
 			queue_minimum_size_update()
-## If [code]true[/code] this node adjust to fit its children's positions inside it's size.
+## If [code]true[/code] this node adjust its children's positions inside it's size.
 @export var adjust_position : bool:
 	set(val):
 		if val != adjust_position:
@@ -60,13 +60,13 @@ func _update_children_minimum_size() -> void:
 			children_info.append([child, child_size, child_offset])
 			_min_size = _min_size.max(child_size)
 	
-	if _old_min_size != _min_size:
-		update_minimum_size()
 	if adjust_position:
-		if get_parent_control() is Container:
+		if get_parent_control() is Container && _old_min_size != _min_size:
 			get_parent_control().sort_children.connect(_adjust_children_positions.bind(children_info), CONNECT_ONE_SHOT)
 		else:
 			call_deferred("_adjust_children_positions", children_info)
+	if _old_min_size != _min_size:
+		update_minimum_size()
 func _adjust_children_positions(children_info: Array[Array]) -> void:
 	for child_info : Array in children_info:
 		var child : AnimatableControl = child_info[0]
@@ -85,7 +85,6 @@ func _adjust_children_positions(children_info: Array[Array]) -> void:
 		var new_pos := child.position.min(parent_size).max(-piv_offset - child_offset)
 		
 		if child.position != new_pos: child.position = new_pos
-	
 
 func _get_rotated_rect_bounding_box(rect : Rect2, pivot : Vector2, angle : float) -> Rect2:
 	var pos := rect.position
@@ -105,6 +104,11 @@ func _get_rotated_rect_bounding_box(rect : Rect2, pivot : Vector2, angle : float
 	var bb_pos := (full - bb_size) * 0.5
 	
 	return Rect2(bb_pos, bb_size)
+
+func _ready() -> void:
+	super()
+	if !size_flags_changed.is_connected(queue_minimum_size_update):
+		size_flags_changed.connect(queue_minimum_size_update, CONNECT_DEFERRED)
 
 func _on_mount(control : AnimatableControl) -> void:
 	control.transformation_changed.connect(queue_minimum_size_update, CONNECT_DEFERRED)
