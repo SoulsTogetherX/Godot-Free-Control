@@ -3,6 +3,7 @@ class_name AnimatableMount extends Control
 ## Used as a mount for size consistency between children [AnimatableControl] nodes.
 
 var _min_size : Vector2
+var _update_queued : bool
 
 func _get_configuration_warnings() -> PackedStringArray:
 	for child : AnimatableControl in get_children():
@@ -17,6 +18,15 @@ func _ready() -> void:
 func _handle_resize() -> void:
 	for child : AnimatableControl in get_children():
 		if child: child._bound_size()
+
+func queue_minimum_size_update() -> void:
+	if _update_queued: return
+	_update_queued = true
+	
+	call_deferred("call_deferred", "_update_children_minimum_size")
+	if is_inside_tree(): await get_tree().process_frame.connect(_relase_queue, CONNECT_ONE_SHOT)
+	else: call_deferred("_relase_queue")
+func _relase_queue() -> void: _update_queued = false
 
 func _update_children_minimum_size() -> void:
 	var _old_min_size := _min_size
