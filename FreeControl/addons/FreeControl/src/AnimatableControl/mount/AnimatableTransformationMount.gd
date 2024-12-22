@@ -8,7 +8,8 @@ class_name AnimatableTransformationMount extends AnimatableMount
 		if val != adjust_scale:
 			adjust_scale = val
 			queue_minimum_size_update()
-## If [code]true[/code] this node will adjust it's size to fit its children's rotations.
+## If [code]true[/code] this node will adjust it's size to fit its children's rotations.[br]
+## [b]NOTE[/b]: A large [member pivot_offset] can cause floating point precision issues.
 @export var adjust_rotate : bool:
 	set(val):
 		if val != adjust_rotate:
@@ -35,24 +36,24 @@ func _update_children_minimum_size() -> void:
 			var child_size : Vector2
 			var child_offset : Vector2
 			
+			# Scale child size, if needed
 			if adjust_scale:
 				child_size = child.get_combined_minimum_size() * child.scale
 			else:
 				child_size = child.get_combined_minimum_size()
 			_child_min_size = _child_min_size.max(child_size)
 			
+			# Rotates child size, if needed.
 			if adjust_rotate:
-				var child_pivot : Vector2 = child.pivot_offset
-				if adjust_scale: child_pivot * child.scale
+				child_offset = child.pivot_offset
+				if adjust_scale: child_offset *= child.scale
 				
+				# Gets the bounding box of the rect, when rotated around a pivot
 				var bb_rect := _get_rotated_rect_bounding_box(
-					Rect2(Vector2.ZERO, child.get_combined_minimum_size()),
-					child.pivot_offset,
+					Rect2(Vector2.ZERO, child_size),
+					child_offset,
 					child.rotation
 				)
-				if adjust_scale:
-					bb_rect.size *= child.scale
-					bb_rect.position *= child.scale
 				
 				child_size = bb_rect.size
 				child_offset = bb_rect.position
@@ -60,12 +61,20 @@ func _update_children_minimum_size() -> void:
 			children_info.append([child, child_size, child_offset])
 			_min_size = _min_size.max(child_size)
 	
+	# Leaves position adjusts after so size, after calculating min-size of children, can be used 
 	if adjust_position:
-		if get_parent_control() is Container && _old_min_size != _min_size:
-			get_parent_control().sort_children.connect(_adjust_children_positions.bind(children_info), CONNECT_ONE_SHOT)
+		if _old_min_size != _min_size:
+			# If in Container, and min_size changed, update after the container as resorted children
+			if get_parent_control() is Container:
+				get_parent_control().sort_children.connect(_adjust_children_positions.bind(children_info), CONNECT_ONE_SHOT)
+			else:
+				# Otherwise, if min_size changed still, update after minimum_size_changed changed
+				minimum_size_changed.connect(_adjust_children_positions.bind(children_info), CONNECT_ONE_SHOT | CONNECT_DEFERRED)
+			update_minimum_size()
 		else:
+			# If min_size did not change, deffer children position changes
 			call_deferred("_adjust_children_positions", children_info)
-	if _old_min_size != _min_size:
+	elif _old_min_size != _min_size:
 		update_minimum_size()
 func _adjust_children_positions(children_info: Array[Array]) -> void:
 	for child_info : Array in children_info:
@@ -74,41 +83,47 @@ func _adjust_children_positions(children_info: Array[Array]) -> void:
 		var child_offset : Vector2 = child_info[2]
 		
 		var piv_offset : Vector2
+		# Rotates pivot, if needed
 		if adjust_rotate:
 			piv_offset = -child.pivot_offset.rotated(rotation)
 		else:
 			piv_offset = -child.pivot_offset
+		# If adjusts the pivot by scale, if needed
 		if adjust_scale:
 			piv_offset *= (child.scale - Vector2.ONE)
 		
-		var parent_size := size - child_size - child_offset - piv_offset
-		var new_pos := child.position.min(parent_size).max(-piv_offset - child_offset)
+		# Not clamp, because min should have priorty
+		# max_size_adjusted_for_child_size = size - child_size - child_offset - piv_offset
+		# min_size_adjusted_for_child_size = -piv_offset - child_offset
+		var new_pos := child.position.min(size - child_size - child_offset - piv_offset).max(-piv_offset - child_offset)
 		
+		# Changes position, if needed
 		if child.position != new_pos: child.position = new_pos
 
 func _get_rotated_rect_bounding_box(rect : Rect2, pivot : Vector2, angle : float) -> Rect2:
+	# Base Values
 	var pos := rect.position
 	var sze := rect.size
-	
 	var trig := Vector2(cos(angle), sin(angle))
-	var full := Vector2(
-		trig.x * (sze.x - 2 * pivot.x) - trig.y * (sze.y - 2 * pivot.y) + 2 * (pivot.x + pos.x),
-		trig.y * (sze.x - 2 * pivot.x) + trig.x * (sze.y - 2 * pivot.y) + 2 * (pivot.y + pos.y)
-	)
 	
+	# Simplified equation for centerPoint - bb_size*0.5
+	var bb_pos := Vector2(
+		(sze.x * (trig.x - abs(trig.x)) - sze.y * (trig.y + abs(trig.y))) * 0.5 + pivot.x * (1 - trig.x) + trig.y * pivot.y + pos.x,
+		(sze.x * (trig.y - abs(trig.y)) + sze.y * (trig.x - abs(trig.x))) * 0.5 + pivot.y * (1 - trig.x) - trig.y * pivot.x + pos.y
+	)
 	trig = trig.abs()
+	## Finds the fix of the bounding box of the rotated rectangle
 	var bb_size := Vector2(
 		sze.x * trig.x + sze.y * trig.y,
 		sze.x * trig.y + sze.y * trig.x
 	)
-	var bb_pos := (full - bb_size) * 0.5
 	
 	return Rect2(bb_pos, bb_size)
 
 func _ready() -> void:
-	super()
 	if !size_flags_changed.is_connected(queue_minimum_size_update):
 		size_flags_changed.connect(queue_minimum_size_update, CONNECT_DEFERRED)
+	super()
 
 func _on_mount(control : AnimatableControl) -> void:
 	control.transformation_changed.connect(queue_minimum_size_update, CONNECT_DEFERRED)
