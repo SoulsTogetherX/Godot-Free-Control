@@ -1,3 +1,4 @@
+# Made by Savier Alvarez. A part of the "FreeControl" Godot addon.
 @tool
 class_name AnimatableMount extends Control
 ## Used as a mount for size consistency between children [AnimatableControl] nodes.
@@ -55,3 +56,5 @@ func _on_unmount(control : AnimatableControl) -> void: pass
 ## A helper function that should be used when creating your own mounts.[br]
 ## Returns size of this mount.
 func get_relative_size(control : AnimatableControl) -> Vector2: return size
+
+# Made by Savier Alvarez. A part of the "FreeControl" Godot addon.

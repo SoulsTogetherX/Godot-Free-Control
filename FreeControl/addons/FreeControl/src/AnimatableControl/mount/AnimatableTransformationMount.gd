@@ -1,3 +1,4 @@
+# Made by Savier Alvarez. A part of the "FreeControl" Godot addon.
 @tool
 class_name AnimatableTransformationMount extends AnimatableMount
 ## An [AnimatableMount] that adjusts for it's children 2D transformations: Rotation, Position, and Scale.
@@ -135,3 +136,5 @@ func get_relative_size(control : AnimatableControl) -> Vector2:
 	if adjust_scale:
 		return _child_min_size / control.scale
 	return _child_min_size
+
+# Made by Savier Alvarez. A part of the "FreeControl" Godot addon.
