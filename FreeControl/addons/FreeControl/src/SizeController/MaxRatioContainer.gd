@@ -1,3 +1,4 @@
+# Made by Savier Alvarez. A part of the "FreeControl" Godot addon.
 @tool
 class_name MaxRatioContainer extends MaxSizeContainer
 ## A container that limits an axis of it's size, to a maximum value, relative to the value of it's other axis.
@@ -57,3 +58,5 @@ func _before_resize_children() -> void:
 	if _max_size.y >= 0:
 		newSize.y = _max_size.y
 	size = newSize
+
+# Made by Savier Alvarez. A part of the "FreeControl" Godot addon.

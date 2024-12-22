@@ -1,11 +1,12 @@
+# Made by Savier Alvarez. A part of the "FreeControl" Godot addon.
 @tool
 extends EditorPlugin
 
 const SCRIPT_FOLDER := "res://addons/FreeControl/src/"
-const ICON_FOLDER := "res://addons/FreeControl/assets/icons/"
+const ICON_FOLDER := "res://addons/FreeControl/assets/icons/CustomType/"
 
 func _enter_tree() -> void:
-	# AnimatableControl
+	# AnimatableControls
 		# Control
 	add_custom_type(
 		"AnimatableControl",
@@ -55,7 +56,7 @@ func _enter_tree() -> void:
 		load(ICON_FOLDER + "ProportionalContainer.svg")
 	)
 	
-	# SizeController
+	# SizeControllers
 	add_custom_type(
 		"MaxSizeContainer",
 		"Container",
@@ -70,7 +71,7 @@ func _enter_tree() -> void:
 	)
 
 func _exit_tree() -> void:
-	# AnimatableControl
+	# AnimatableControls
 		# Control
 	remove_custom_type("AnimatableControl")
 	remove_custom_type("AnimatableScrollControl")
@@ -85,6 +86,6 @@ func _exit_tree() -> void:
 	# ProportionalContainer
 	remove_custom_type("ProportionalContainer")
 	
-	# SizeController
+	# SizeControllers
 	remove_custom_type("MaxRatioContainer")
 	remove_custom_type("MaxSizeContainer")

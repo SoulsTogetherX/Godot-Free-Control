@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://c7mimypbwfnrm"
-path="res://.godot/imported/AnimatableScrollControl.svg-9065b9b0a137abd0d9329ae6d44ef8f0.ctex"
+uid="uid://dk6yigjs5tvab"
+path="res://.godot/imported/MaxSizeContainer.svg-c449fe736ac19e4da4954b352d7a4bc0.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://addons/FreeControl/assets/icons/AnimatableScrollControl.svg"
-dest_files=["res://.godot/imported/AnimatableScrollControl.svg-9065b9b0a137abd0d9329ae6d44ef8f0.ctex"]
+source_file="res://addons/FreeControl/assets/icons/CustomType/MaxSizeContainer.svg"
+dest_files=["res://.godot/imported/MaxSizeContainer.svg-c449fe736ac19e4da4954b352d7a4bc0.ctex"]
 
 [params]
 

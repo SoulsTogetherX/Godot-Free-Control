@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://d4gf7yk1oacw8"
-path="res://.godot/imported/ProportionalContainer.svg-9857a0ba310b6ab83116e65f1cb268f8.ctex"
+uid="uid://hgqgdnx7pr6h"
+path="res://.godot/imported/MaxRatioContainer.svg-69252897895331776d794bb3e7d4450a.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://addons/FreeControl/assets/icons/ProportionalContainer.svg"
-dest_files=["res://.godot/imported/ProportionalContainer.svg-9857a0ba310b6ab83116e65f1cb268f8.ctex"]
+source_file="res://addons/FreeControl/assets/icons/CustomType/MaxRatioContainer.svg"
+dest_files=["res://.godot/imported/MaxRatioContainer.svg-69252897895331776d794bb3e7d4450a.ctex"]
 
 [params]
 

@@ -1,3 +1,4 @@
+# Made by Savier Alvarez. A part of the "FreeControl" Godot addon.
 @tool
 class_name AnimatableVisibleControl extends AnimatableScrollControl
 ## A container to be used for free transformation, within a UI, depending on if the node is visible in a [ScrollContainer] scroll.
@@ -278,3 +279,5 @@ func _on_threshold_exit() -> void: pass
 ## [br][br]
 ## Paramter [param intersect] is the current threshold value met.
 func _while_threshold(intersect : float) -> void: pass
+
+# Made by Savier Alvarez. A part of the "FreeControl" Godot addon.

@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://4mjs24rqyyau"
-path="res://.godot/imported/AnimatableControl.svg-333e9025ea63a88dedcd158017968b82.ctex"
+uid="uid://02y2ekutbpga"
+path="res://.godot/imported/CircularContainer.svg-1dd941875614a9abaf152e4d2a3a686b.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://addons/FreeControl/assets/icons/AnimatableControl.svg"
-dest_files=["res://.godot/imported/AnimatableControl.svg-333e9025ea63a88dedcd158017968b82.ctex"]
+source_file="res://addons/FreeControl/assets/icons/CustomType/CircularContainer.svg"
+dest_files=["res://.godot/imported/CircularContainer.svg-1dd941875614a9abaf152e4d2a3a686b.ctex"]
 
 [params]
 

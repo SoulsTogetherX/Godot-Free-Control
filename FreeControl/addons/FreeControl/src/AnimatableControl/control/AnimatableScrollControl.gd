@@ -1,3 +1,4 @@
+# Made by Savier Alvarez. A part of the "FreeControl" Godot addon.
 @tool
 class_name AnimatableScrollControl extends AnimatableControl
 ## A container to be used for free transformation, within a UI, depended on a [ScrollContainer]'s scroll progress.
@@ -46,3 +47,5 @@ func get_visible_horizontal_percent() -> float:
 func get_visible_vertical_percent() -> float:
 	if !_mount || !scroll: return 0
 	return (min(_mount.global_position.y + _mount.size.y, scroll.global_position.y + scroll.size.y) -  max(_mount.global_position.y, scroll.global_position.y)) / scroll.size.y
+
+# Made by Savier Alvarez. A part of the "FreeControl" Godot addon.

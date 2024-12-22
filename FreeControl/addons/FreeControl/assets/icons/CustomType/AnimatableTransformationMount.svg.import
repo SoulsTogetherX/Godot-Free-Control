@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://b6d074x5xqmn1"
-path="res://.godot/imported/AnimatableMount.svg-fb3398b5dc654c16ae1b31c5ea4bb8b4.ctex"
+uid="uid://t0p5h0fb01kv"
+path="res://.godot/imported/AnimatableTransformationMount.svg-3384cfe8cf7ff650173fe5f295bf32bd.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://addons/FreeControl/assets/icons/AnimatableMount.svg"
-dest_files=["res://.godot/imported/AnimatableMount.svg-fb3398b5dc654c16ae1b31c5ea4bb8b4.ctex"]
+source_file="res://addons/FreeControl/assets/icons/CustomType/AnimatableTransformationMount.svg"
+dest_files=["res://.godot/imported/AnimatableTransformationMount.svg-3384cfe8cf7ff650173fe5f295bf32bd.ctex"]
 
 [params]
 

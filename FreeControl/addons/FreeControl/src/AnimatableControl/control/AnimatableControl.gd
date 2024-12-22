@@ -1,3 +1,4 @@
+# Made by Savier Alvarez. A part of the "FreeControl" Godot addon.
 @tool
 class_name AnimatableControl extends Container
 ## A container to be used for free transformation within a UI.
@@ -119,3 +120,5 @@ func _bound_size() -> void:
 ## If this node is not a child to any [AnimatableMount] nodes, this returns [code]null[/code] instead.
 func get_mount() -> AnimatableMount:
 	return _mount
+
+# Made by Savier Alvarez. A part of the "FreeControl" Godot addon.

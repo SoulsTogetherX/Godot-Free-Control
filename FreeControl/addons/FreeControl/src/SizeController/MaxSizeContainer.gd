@@ -1,3 +1,4 @@
+# Made by Savier Alvarez. A part of the "FreeControl" Godot addon.
 @tool
 class_name MaxSizeContainer extends Container
 ## A container that limits it's size to a maximum value.
@@ -82,3 +83,5 @@ func _get_allowed_size_flags_horizontal() -> PackedInt32Array:
 	return [SIZE_FILL, SIZE_SHRINK_BEGIN, SIZE_SHRINK_CENTER, SIZE_SHRINK_END]
 func _get_allowed_size_flags_vertical() -> PackedInt32Array:
 	return [SIZE_FILL, SIZE_SHRINK_BEGIN, SIZE_SHRINK_CENTER, SIZE_SHRINK_END]
+
+# Made by Savier Alvarez. A part of the "FreeControl" Godot addon.

@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dlbsdaqi63spv"
-path="res://.godot/imported/PanelContainer.svg-9a3e3a50ffd1f261db32995c246cb4ab.ctex"
+uid="uid://b6d074x5xqmn1"
+path="res://.godot/imported/AnimatableMount.svg-c55e9d75134e187a953286234a72f1d8.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://addons/FreeControl/assets/icons/PanelContainer.svg"
-dest_files=["res://.godot/imported/PanelContainer.svg-9a3e3a50ffd1f261db32995c246cb4ab.ctex"]
+source_file="res://addons/FreeControl/assets/icons/CustomType/AnimatableMount.svg"
+dest_files=["res://.godot/imported/AnimatableMount.svg-c55e9d75134e187a953286234a72f1d8.ctex"]
 
 [params]
 
