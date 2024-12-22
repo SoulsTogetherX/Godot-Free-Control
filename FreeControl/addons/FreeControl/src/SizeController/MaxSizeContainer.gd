@@ -30,17 +30,23 @@ func _get_minimum_size() -> Vector2:
 			max_min_child_size = max_min_child_size.max(c.get_minimum_size())
 	return max_min_child_size
 
+## A helper function that should be called whenever this node's size needs to be changed, or when it's children are changed.
 func _handle_resize() -> void:
 	if !is_node_ready(): return
+	
+	# Handles everything needed to change max_size and rebound all children
 	update_minimum_size()
 	_before_resize_children()
-	_resize_childrend()
+	_update_childrend()
+
+## A virtual helper function that should be used when creating your own MaxSizeContainers.[br]
+## Is called when [method _handle_resize] is called. The minimum_size of this node will be calculated first, before this is called.
 func _before_resize_children() -> void: pass
-func _resize_childrend() -> void:
+func _update_childrend() -> void:
 	for x in get_children():
 		if x is Control:
-			_resize_child(x)
-func _resize_child(child : Control):
+			_update_child(x)
+func _update_child(child : Control):
 	var child_min_size := child.get_minimum_size()
 	var result_size := Vector2.ZERO
 	result_size = Vector2(

@@ -15,13 +15,13 @@ func _enter_tree() -> void:
 	)
 	add_custom_type(
 		"AnimatableScrollControl",
-		"AnimatableControl",
+		"Container",
 		load(SCRIPT_FOLDER + "AnimatableControl/control/AnimatableScrollControl.gd"), 
 		load(ICON_FOLDER + "AnimatableScrollControl.svg")
 	)
 	add_custom_type(
 		"AnimatableVisibleControl",
-		"AnimatableScrollControl",
+		"Container",
 		load(SCRIPT_FOLDER + "AnimatableControl/control/AnimatableVisibleControl.gd"), 
 		load(ICON_FOLDER + "AnimatableVisibleControl.svg")
 	)
@@ -34,7 +34,7 @@ func _enter_tree() -> void:
 	)
 	add_custom_type(
 		"AnimatableTransformationMount",
-		"AnimatableMount",
+		"Control",
 		load(SCRIPT_FOLDER + "AnimatableControl/mount/AnimatableTransformationMount.gd"), 
 		load(ICON_FOLDER + "AnimatableTransformationMount.svg")
 	)

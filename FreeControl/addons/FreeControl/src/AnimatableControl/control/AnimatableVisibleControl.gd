@@ -67,45 +67,67 @@ var _last_visible : bool
 func _scrolled_horizontal(_scroll : float) -> void:
 	if !(check_mode & CHECK_MODE.HORIZONTAL): return
 	
-	if is_visible_percent() > 0:
+	var val : float = is_visible_percent()
+	# Checks if visible
+	if val > 0:
+		# If visible, but wasn't visible last scroll, then it entered visible area
 		if !_last_visible:
+			_on_visible_enter()
 			entered_screen.emit()
 			_last_visible = true
+		# Calls the while function
+		_while_visible(val)
+	# Else, if visible last frame, then it exited visible area
 	elif _last_visible:
+		_on_visible_exit()
 		exited_screen.emit()
 		_last_visible = false
 	
-	var val : float = get_visible_horizontal_percent()
-	
+	val = get_visible_horizontal_percent()
+	# Checks if in threshold
 	if val >= threshold_horizontal:
+		# If in  threshold, but not last frame, then it entered threshold area
 		if _last_threshold_horizontal < threshold_horizontal:
-			_on_visible_enter()
+			_on_threshold_enter()
 			entered_threshold.emit()
-		_while_visible(val)
+		# Calls the while function
+		_while_threshold(val)
+	# If in threshold, but not last frame, then it entered threshold area
 	elif _last_threshold_horizontal > threshold_horizontal:
-		_on_visible_exit()
+		_on_threshold_exit()
 		exited_threshold.emit()
 	_last_threshold_horizontal = val
 func _scrolled_vertical(_scroll : float) -> void:
 	if !(check_mode & CHECK_MODE.VERTICAL): return
 	
-	if is_visible_percent() > 0:
+	var val : float = is_visible_percent()
+	# Checks if visible
+	if val > 0:
+		# If visible, but wasn't visible last scroll, then it entered visible area
 		if !_last_visible:
+			_on_visible_enter()
 			entered_screen.emit()
 			_last_visible = true
+		# Calls the while function
+		_while_visible(val)
+	# Else, if visible last frame, then it exited visible area
 	elif _last_visible:
+		_on_visible_exit()
 		exited_screen.emit()
 		_last_visible = false
 	
-	var val : float = get_visible_vertical_percent()
-	
+	val = get_visible_vertical_percent()
+	# Checks if in threshold
 	if val >= threshold_vertical:
+		# If in  threshold, but not last frame, then it entered threshold area
 		if _last_threshold_vertical < threshold_vertical:
-			_on_visible_enter()
+			_on_threshold_enter()
 			entered_threshold.emit()
-		_while_visible(val)
+		# Calls the while function
+		_while_threshold(val)
+	# If in threshold, but not last frame, then it entered threshold area
 	elif _last_threshold_vertical > threshold_vertical:
-		_on_visible_exit()
+		_on_threshold_exit()
 		exited_threshold.emit()
 	_last_threshold_vertical = val
 
@@ -120,9 +142,9 @@ func _validate_property(property: Dictionary) -> void:
 				property.usage |= PROPERTY_USAGE_READ_ONLY
 
 func _ready() -> void:
-	super()
 	if !item_rect_changed.is_connected(queue_redraw) && Engine.is_editor_hint():
 		item_rect_changed.connect(queue_redraw)
+	super()
 func _draw() -> void:
 	if !_mount || !Engine.is_editor_hint() || hide_indicator: return
 	
@@ -223,13 +245,14 @@ func _draw_highlight(
 	if draw_middle:
 		draw_rect(Rect2(Vector2(left, top), Vector2(right - left, bottom - top)), HIGHLIGHT_COLOR)
 		return
-	# Left
+	# Outer
+		# Left
 	draw_rect(Rect2(Vector2(0, 0), Vector2(left, size.y)), ANTI_HIGHLIGHT_COLOR)
-	# Right
+		# Right
 	draw_rect(Rect2(Vector2(right, 0), Vector2(size.x - right, size.y)), ANTI_HIGHLIGHT_COLOR)
-	# Top
+		# Top
 	draw_rect(Rect2(Vector2(left, 0), Vector2(right - left, top)), ANTI_HIGHLIGHT_COLOR)
-	# Bottom
+		# Bottom
 	draw_rect(Rect2(Vector2(left, bottom), Vector2(right - left, size.y - bottom)), ANTI_HIGHLIGHT_COLOR)
 
 ## Returns the rect [threshold_horizontal] and [threshold_vertical] create.
@@ -239,11 +262,19 @@ func get_threshold_rect(consider_mode : bool = false) -> Rect2:
 	
 	return Rect2(Vector2(threshold_horizontal, threshold_vertical) * size, Vector2(1.0 - threshold_horizontal, 1.0 - threshold_vertical) * size)
 
-## A virtual function that is called when this node's visible threshold has been met.
+## A virtual function that is called when this node entered the visible area of it's scroll
 func _on_visible_enter() -> void: pass
-## A virtual function that is called when this node's visible threshold is no longer met.
+## A virtual function that is called when this node left the visible area of it's scroll
 func _on_visible_exit() -> void: pass
+## A virtual function that is called while this node is in the visible  area of it's scroll. Is called after each scroll of [member scroll].
+## [br][br]
+## Paramter [param intersect] is the current visible percent.
+func _while_visible(intersect : float) -> void: pass
+## A virtual function that is called when this node's visible threshold has been met.
+func _on_threshold_enter() -> void: pass
+## A virtual function that is called when this node's visible threshold is no longer met.
+func _on_threshold_exit() -> void: pass
 ## A virtual function that is called while this node's visible threshold is met. Is called after each scroll of [member scroll].
 ## [br][br]
 ## Paramter [param intersect] is the current threshold value met.
-func _while_visible(intersect : float) -> void: pass
+func _while_threshold(intersect : float) -> void: pass

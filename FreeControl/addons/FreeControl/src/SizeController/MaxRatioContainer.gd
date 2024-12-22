@@ -36,7 +36,9 @@ func _get_children_minimum_size() -> Vector2:
 			min_size = min_size.max(child_min)
 	return min_size
 
+## Updates the _max_size according to the ratio mode and current dimentions
 func _before_resize_children() -> void:
+	# Adjusts max_size itself accouring to the ratio mode and current dimentions
 	match mode:
 		MAX_RATIO_MODE.NONE:
 			_max_size = Vector2(-1, -1)

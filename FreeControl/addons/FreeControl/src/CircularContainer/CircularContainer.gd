@@ -58,20 +58,24 @@ func _fix_child(child : Control, index : int) -> void:
 	if _container_angles.is_empty(): return
 	child.reset_size()
 	
+	# Calculates child position
 	var child_size := child.get_combined_minimum_size()
 	var child_pos := -(child_size * 0.5) + (Vector2(origin_x, origin_y) + (Vector2(xRadius, yRadius) * Vector2(cos(_container_angles[index]), sin(_container_angles[index])))) * size
 	
+	# Keeps children in the rect's top-left boundards
 	if child_pos.x < 0:
 		child_pos.x = 0
 	if child_pos.y < 0:
 		child_pos.y = 0
 	
+	# Keeps children in the rect's bottom-right boundards
 	if child_pos.x + child_size.x > size.x:
 		child_pos.x += size.x - (child_pos.x + child_size.x)
 	if child_pos.y + child_size.y > size.y:
 		child_pos.y += size.y - (child_pos.y + child_size.y)
 	if child_pos.y + child_size.y > size.y:
 		child_size.y = size.y - child_pos.y
+	
 	fit_child_in_rect(child, Rect2(child_pos, child_size))
 
 func _get_property_list() -> Array[Dictionary]:
@@ -144,7 +148,6 @@ func _get_property_info(property: StringName) -> Array:
 			if 0 <= idx && idx < _container_angles.size():
 				return [idx, strs[0]]
 	return []
-
 
 func _get_allowed_size_flags_horizontal() -> PackedInt32Array:
 	return []

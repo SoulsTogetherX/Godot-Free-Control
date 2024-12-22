@@ -2,6 +2,7 @@
 class_name AnimatableControl extends Container
 ## A container to be used for free transformation within a UI.
 
+## This signal emits when one of the following properties change: scale, position, rotation, pivot_offset
 signal transformation_changed
 
 enum SIZE_MODE {
@@ -31,7 +32,7 @@ func _validate_property(property: Dictionary) -> void:
 func _set(property: StringName, value: Variant) -> bool:
 	if property in ["scale", "position", "rotation", "pivot_offset"]:
 		transformation_changed.emit()
-		if _mount: call_deferred("_bound_size")
+		if _mount: _bound_size()
 	return false
 
 func _ready() -> void:
@@ -59,7 +60,7 @@ func _on_tree_exit() -> void:
 	if _mount:
 		if resized.is_connected(_bound_size):
 			resized.disconnect(_bound_size)
-		_mount._update_children_minimum_size()
+		_mount.queue_minimum_size_update()
 		_mount._on_unmount(self)
 		_mount = null
 
@@ -71,7 +72,7 @@ func _get_children_minimum_size() -> void:
 	
 	if _min_size != _old_min_size:
 		update_minimum_size()
-		if _mount: _mount._update_children_minimum_size()
+		if _mount: _mount.queue_minimum_size_update()
 		call_deferred("_resize_childrend")
 	else: _resize_childrend()
 func _resize_childrend() -> void:

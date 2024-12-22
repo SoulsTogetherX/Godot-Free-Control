@@ -10,26 +10,16 @@ enum PROPORTION_MODE {
 }
 
 @export_group("Ancher")
-## If [code]true[/code], the ancher will automatically be assumed as this node's parent.[br]
-## If [code]false[/code], the ancher will be dependant on [member ancher].
-## [br][br]
-## Related: [method Control.get_parent_control].
-@export var ancher_to_parent : bool = true:
-	set(val):
-		if ancher_to_parent != val:
-			ancher_to_parent = val
-			notify_property_list_changed()
-			queue_sort()
 ## The ancher node this container proportions itself to. Is used if [member ancher_to_parent] is [code]false[/code].
 ## [br][br]
-## If [code]null[/code], then this container proportions itself to screen size.
+## If [code]null[/code], then this container proportions itself to it's parent control size.
 @export var ancher : Control:
 	set(val):
 		if ancher != val:
 			ancher = val
 			queue_sort()
 
-@export_group("Proportion Mode")
+@export_group("Proportion")
 ## The proportion mode used to scale itself to the [member ancher].
 @export var mode : PROPORTION_MODE = PROPORTION_MODE.NONE:
 	set(val):
@@ -66,9 +56,6 @@ func _validate_property(property: Dictionary) -> void:
 		"pivot_offset"
 	]:
 		property.usage |= PROPERTY_USAGE_READ_ONLY
-	elif property.name == "ancher":
-		if ancher_to_parent:
-			property.usage |= PROPERTY_USAGE_READ_ONLY
 	elif property.name == "horizontal_ratio":
 		if !(mode & PROPORTION_MODE.WIDTH):
 			property.usage |= PROPERTY_USAGE_READ_ONLY
@@ -85,25 +72,8 @@ func _handel_resize() -> void:
 		update_minimum_size()
 		return
 	
-	var ancher_size : Vector2;
-	if ancher:
-		ancher_size = ancher.size
-	elif ancher_to_parent && get_parent_control():
-		ancher_size = get_parent_control().size
-	elif Engine.is_editor_hint():
-		var edited_scene_root := get_tree().get_edited_scene_root()
-		var scene_root_parent := edited_scene_root if edited_scene_root.get_parent_control() else null
-		
-		if scene_root_parent && get_viewport() == scene_root_parent.get_viewport():
-			ancher_size = Vector2(
-				ProjectSettings.get_setting("display/window/size/viewport_width"),
-				ProjectSettings.get_setting("display/window/size/viewport_height")
-			)
-		else:
-			ancher_size = get_viewport().get_visible_rect().size
-	else:
-		ancher_size = get_viewport().get_visible_rect().size
-	
+	# Sets the min size according to it's dimentions and proportion mode
+	var ancher_size : Vector2 = ancher.size if ancher else get_parent_area_size()
 	if mode & PROPORTION_MODE.WIDTH > 0:
 		ancher_size.x = ancher_size.x * horizontal_ratio
 	if mode & PROPORTION_MODE.HEIGHT > 0:
@@ -120,11 +90,13 @@ func _fit_child(child : Control) -> void:
 	var set_pos : Vector2
 	
 	var ancher_size : Vector2 = size
+	# Gets the ancher_size according to this node's dimentions and proportion mode
 	if mode & PROPORTION_MODE.WIDTH > 0:
 		ancher_size.x = ancher_size.x * horizontal_ratio
 	if mode & PROPORTION_MODE.HEIGHT > 0:
 		ancher_size.y = ancher_size.y * vertical_ratio
 	
+	# Expands or repositions child, according to ancher and size flages
 	match size_flags_horizontal:
 		SIZE_FILL:
 			set_pos.x = 0
