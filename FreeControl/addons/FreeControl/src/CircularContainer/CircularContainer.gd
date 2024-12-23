@@ -49,7 +49,13 @@ enum BOUND_BEHAVIOR {
 			manual = val
 			notify_property_list_changed()
 			
-			if !manual: _calculate_angles()
+			if !manual:
+				_calculate_angles()
+				if !child_order_changed.is_connected(_calculate_angles):
+					child_order_changed.connect(_calculate_angles)
+			else:
+				if child_order_changed.is_connected(_calculate_angles):
+					child_order_changed.disconnect(_calculate_angles)
 
 ## The behavior this node will have if the angle exceeds the max set angle in auto-mode.
 ## [br][br]
