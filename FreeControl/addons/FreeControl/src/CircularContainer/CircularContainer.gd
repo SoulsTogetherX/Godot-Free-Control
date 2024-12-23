@@ -4,10 +4,10 @@ class_name CircularContainer extends Container
 ## A container that positions children in a ellipse within the bounds of this node.
 
 enum BOUND_BEHAVIOR {
-	NONE,
-	STOP,
-	LOOP,
-	MIRRIOR
+	NONE, ## No end bound for angles
+	STOP, ## Angles, if exceeding the max, will be hard stopped at the max.
+	LOOP, ## Angles, if exceeding the max, will loop back to the begining.
+	MIRRIOR ## Angles, if exceeding the max, will bounce back and forth between the min and max angles.
 }
 
 ## The horizontal offset of the ellipse's center.
@@ -41,6 +41,8 @@ enum BOUND_BEHAVIOR {
 		_fix_childrend()
 
 @export_group("Angles")
+## If [code]false[/code], the node will automatically write the angles of children.[br]
+## If [code]true[/code], you will be required to manually input angles for each child.
 @export var manual : bool = false:
 	set(val):
 		if manual != val:
@@ -49,6 +51,9 @@ enum BOUND_BEHAVIOR {
 			
 			if !manual: _calculate_angles()
 
+## The behavior this node will have if the angle exceeds the max set angle in auto-mode.
+## [br][br]
+## See [member manual] and [member angle_end], 
 var bound_behavior : BOUND_BEHAVIOR:
 	set(val):
 		if bound_behavior != val:
@@ -56,6 +61,9 @@ var bound_behavior : BOUND_BEHAVIOR:
 			notify_property_list_changed()
 			
 			_calculate_angles()
+## If true, the nodes will be equal-distantantly placed from each on, between the start and end angles.
+## [br][br]
+## See [member manual], [member bound_behavior], [member angle_start], and [member angle_end].
 var equal_distant : bool:
 	set(val):
 		if equal_distant != val:
@@ -64,16 +72,25 @@ var equal_distant : bool:
 			
 			_calculate_angles()
 
+## The angle auto-mode will increment from.
+## [br][br]
+## See [member manual], [member bound_behavior], [member angle_start], and [member angle_end].
 var angle_start : float = 0:
 	set(val):
 		if angle_start != val:
 			angle_start = val
 			_calculate_angles()
+## The angle auto-mode will increment with.
+## [br][br]
+## See [member manual].
 var angle_step : float = 10:
 	set(val):
 		if angle_step != val:
 			angle_step = val
 			_calculate_angles()
+## The angle auto-mode will increment to.
+## [br][br]
+## See [member manual] and [member bound_behavior].
 var angle_end : float = 360:
 	set(val):
 		if angle_end != val:
@@ -81,6 +98,7 @@ var angle_end : float = 360:
 			_calculate_angles()
 
 @export_storage var _container_angles : PackedFloat32Array
+## The list of angles this ndoe uses to position each child, within the order they are positions in the tree.
 var angles : PackedFloat32Array:
 	set(val):
 		_container_angles.resize(max(_get_control_children().size(), val.size()))
