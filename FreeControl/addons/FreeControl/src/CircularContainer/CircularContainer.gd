@@ -124,8 +124,10 @@ var angles : PackedFloat32Array:
 		return ret
 
 func _ready() -> void:
-	resized.connect(_fix_childrend)
-	child_order_changed.connect(_childrend_changed)
+	if !resized.is_connected(_fix_childrend):
+		resized.connect(_fix_childrend, CONNECT_PERSIST)
+	if !child_order_changed.is_connected(_childrend_changed):
+		child_order_changed.connect(_childrend_changed, CONNECT_PERSIST)
 	_childrend_changed()
 	_fix_childrend()
 

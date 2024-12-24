@@ -7,8 +7,8 @@ var _min_size : Vector2
 var _update_queued : bool
 
 func _get_configuration_warnings() -> PackedStringArray:
-	for child : AnimatableControl in get_children():
-		if child: return []
+	for child : Node in get_children():
+		if child is AnimatableControl: return []
 	return ["This node has no 'AnimatableControl' nodes as children"]
 func _get_minimum_size() -> Vector2:
 	return _min_size
@@ -17,19 +17,21 @@ func _update_children_minimum_size() -> void:
 	_min_size = Vector2.ZERO
 	
 	# Ensures size is the same as the largest size (of both axis) of children
-	for child : AnimatableControl in get_children():
-		if child: _min_size = _min_size.max(child.get_combined_minimum_size())
+	for child : Node in get_children():
+		if child is AnimatableControl:
+			_min_size = _min_size.max(child.get_combined_minimum_size())
 	
 	if _old_min_size != _min_size:
 		update_minimum_size()
 
 func _ready() -> void:
 	if !resized.is_connected(_handle_resize):
-		resized.connect(_handle_resize)
+		resized.connect(_handle_resize, CONNECT_PERSIST)
 	queue_minimum_size_update()
 func _handle_resize() -> void:
-	for child : AnimatableControl in get_children():
-		if child: child._bound_size()
+	for child : Node in get_children():
+		if child is AnimatableControl:
+			child._bound_size()
 
 ## Queues This mount to update it's size, size min, and all children, within the frame.[br]
 ## Cannot be called more than once in a single frame. Will be finished at the end of the frame.

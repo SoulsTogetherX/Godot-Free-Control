@@ -32,8 +32,8 @@ func _update_children_minimum_size() -> void:
 	
 	var children_info: Array[Array] = []
 	
-	for child : AnimatableControl in get_children():
-		if child:
+	for child : Node in get_children():
+		if child is AnimatableControl:
 			var child_size : Vector2
 			var child_offset : Vector2
 			
@@ -123,7 +123,7 @@ func _get_rotated_rect_bounding_box(rect : Rect2, pivot : Vector2, angle : float
 
 func _ready() -> void:
 	if !size_flags_changed.is_connected(queue_minimum_size_update):
-		size_flags_changed.connect(queue_minimum_size_update, CONNECT_DEFERRED)
+		size_flags_changed.connect(queue_minimum_size_update, CONNECT_DEFERRED | CONNECT_PERSIST)
 	super()
 
 func _on_mount(control : AnimatableControl) -> void:

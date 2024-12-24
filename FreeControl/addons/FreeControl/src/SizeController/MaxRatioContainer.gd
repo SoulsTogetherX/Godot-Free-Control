@@ -31,7 +31,7 @@ func _get_minimum_size() -> Vector2:
 	return _max_size
 func _get_children_minimum_size() -> Vector2:
 	var min_size : Vector2 = Vector2.ZERO
-	for child in get_children():
+	for child : Node in get_children():
 		if child is Control:
 			var child_min : Vector2 = child.get_combined_minimum_size()
 			min_size = min_size.max(child_min)

@@ -20,13 +20,13 @@ var _max_size := -Vector2.ONE
 
 func _ready() -> void:
 	if !resized.is_connected(_handle_resize):
-		resized.connect(_handle_resize)
+		resized.connect(_handle_resize, CONNECT_PERSIST)
 	if !sort_children.is_connected(_handle_resize):
-		sort_children.connect(_handle_resize)
+		sort_children.connect(_handle_resize, CONNECT_PERSIST)
 	_handle_resize()
 func _get_minimum_size() -> Vector2:
 	var max_min_child_size : Vector2 = Vector2.ZERO;
-	for c in get_children(true):
+	for c : Node in get_children(true):
 		if c is Control:
 			max_min_child_size = max_min_child_size.max(c.get_minimum_size())
 	return max_min_child_size
@@ -44,7 +44,7 @@ func _handle_resize() -> void:
 ## Is called when [method _handle_resize] is called. The minimum_size of this node will be calculated first, before this is called.
 func _before_resize_children() -> void: pass
 func _update_childrend() -> void:
-	for x in get_children():
+	for x : Node in get_children():
 		if x is Control:
 			_update_child(x)
 func _update_child(child : Control):

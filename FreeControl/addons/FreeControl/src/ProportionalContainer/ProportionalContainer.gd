@@ -45,7 +45,8 @@ var _min_size : Vector2
 
 func _ready() -> void:
 	layout_mode = 0
-	sort_children.connect(_handel_resize)
+	if !sort_children.is_connected(_handel_resize):
+		sort_children.connect(_handel_resize, CONNECT_PERSIST)
 	_handel_resize()
 func _validate_property(property: Dictionary) -> void:
 	if property.name in [

@@ -18,7 +18,12 @@ enum SIZE_MODE {
 	set(val):
 		if size_mode != val:
 			size_mode = val
-			if _mount: _bound_size()
+			_bound_size()
+@export var pivot_ratio : Vector2 = Vector2.ZERO:
+	set(val):
+		if pivot_ratio != val:
+			pivot_ratio = val
+			pivot_offset = size * val
 
 var _mount : AnimatableMount
 var _min_size : Vector2
@@ -32,30 +37,49 @@ func _validate_property(property: Dictionary) -> void:
 		property.usage |= PROPERTY_USAGE_READ_ONLY
 func _set(property: StringName, value: Variant) -> bool:
 	if property in ["scale", "position", "rotation", "pivot_offset"]:
+		match property:
+			"scale":
+				if scale == value: return true 
+			"position":
+				if position == value: return true 
+			"rotation":
+				if rotation == value: return true 
+			"pivot_offset":
+				if pivot_offset == value: return true 
+				
+				var new_ratio = pivot_offset / size
+				if is_nan(new_ratio.x):
+					new_ratio.x = 0
+				if is_nan(new_ratio.y):
+					new_ratio.y = 0
+				if pivot_ratio != new_ratio:
+					pivot_ratio = new_ratio
 		transformation_changed.emit()
-		if _mount: _bound_size()
+		_bound_size()
 	return false
 
 func _ready() -> void:
 	if !sort_children.is_connected(_get_children_minimum_size):
-		sort_children.connect(_get_children_minimum_size)
+		sort_children.connect(_get_children_minimum_size, CONNECT_PERSIST)
 	if !tree_exited.is_connected(_on_tree_exit):
-		tree_exited.connect(_on_tree_exit)
+		tree_exited.connect(_on_tree_exit, CONNECT_PERSIST)
 	if !tree_entered.is_connected(_on_tree_enter):
-		tree_entered.connect(_on_tree_enter)
+		tree_entered.connect(_on_tree_enter, CONNECT_PERSIST)
 	if !item_rect_changed.is_connected(transformation_changed.emit):
-		item_rect_changed.connect(transformation_changed.emit)
+		item_rect_changed.connect(transformation_changed.emit, CONNECT_PERSIST)
 	_on_tree_enter()
 func _on_tree_enter() -> void:
 	_mount = (get_parent() as AnimatableMount)
 	if _mount:
-		if _mount.is_node_ready():
-			_bound_size()
-		else:
+		if _mount.is_node_ready(): _bound_size()
+		elif !_mount.ready.is_connected(_bound_size):
 			_mount.ready.connect(_bound_size, CONNECT_DEFERRED | CONNECT_ONE_SHOT)
+		
 		if !resized.is_connected(_bound_size):
 			resized.connect(_bound_size)
 		_mount._on_mount(self)
+	elif resized.is_connected(_bound_size):
+		resized.disconnect(_bound_size)
 	_get_children_minimum_size()
 func _on_tree_exit() -> void:
 	if _mount:
@@ -68,8 +92,9 @@ func _on_tree_exit() -> void:
 func _get_children_minimum_size() -> void:
 	var _old_min_size := _min_size
 	_min_size = Vector2.ZERO
-	for child : Control in get_children():
-		if child: _min_size = _min_size.max(child.get_combined_minimum_size())
+	for child : Node in get_children():
+		if child is Control:
+			_min_size = _min_size.max(child.get_combined_minimum_size())
 	
 	if _min_size != _old_min_size:
 		update_minimum_size()
@@ -77,8 +102,9 @@ func _get_children_minimum_size() -> void:
 		call_deferred("_resize_childrend")
 	else: _resize_childrend()
 func _resize_childrend() -> void:
-	for child : Control in get_children():
-		if child: _resize_child(child)
+	for child : Node in get_children():
+		if child is Control:
+			_resize_child(child)
 func _resize_child(child : Control) -> void:
 	var child_size := child.get_minimum_size()
 	var set_pos : Vector2
@@ -109,12 +135,15 @@ func _get_minimum_size() -> Vector2:
 	return _min_size
 
 func _bound_size() -> void:
+	pivot_offset = size * pivot_ratio
+	if !_mount : return
+	
 	if size_mode == SIZE_MODE.MAX:
-		size = _mount.get_relative_size(self).min(size)
+		set_deferred("size", _mount.get_relative_size(self).min(size))
 	elif size_mode == SIZE_MODE.MIN:
-		size = _mount.get_relative_size(self).max(size)
+		set_deferred("size", _mount.get_relative_size(self).max(size))
 	elif size_mode == SIZE_MODE.EXACT:
-		size = _mount.get_relative_size(self)
+		set_deferred("size", _mount.get_relative_size(self))
 
 ## Gets the mount this node is currently a child to.[br]
 ## If this node is not a child to any [AnimatableMount] nodes, this returns [code]null[/code] instead.
