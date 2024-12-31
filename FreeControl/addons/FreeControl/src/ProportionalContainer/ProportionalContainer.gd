@@ -47,6 +47,7 @@ func _ready() -> void:
 	layout_mode = 0
 	if !sort_children.is_connected(_handel_resize):
 		sort_children.connect(_handel_resize, CONNECT_PERSIST)
+	
 	_handel_resize()
 func _validate_property(property: Dictionary) -> void:
 	if property.name in [
@@ -75,56 +76,84 @@ func _handel_resize() -> void:
 		return
 	
 	# Sets the min size according to it's dimentions and proportion mode
-	var ancher_size : Vector2 = ancher.size if ancher else get_parent_area_size()
-	if mode & PROPORTION_MODE.WIDTH > 0:
-		ancher_size.x = ancher_size.x * horizontal_ratio
-	if mode & PROPORTION_MODE.HEIGHT > 0:
-		ancher_size.y = ancher_size.y * vertical_ratio
+	var ancher_size : Vector2 = get_parent_area_size()
+	if ancher:
+		if !ancher.is_node_ready():
+			await ancher.ready
+			await get_tree().process_frame
+		ancher_size = ancher.size
+	var child_min_size := _get_children_min_size()
+	var _old_min_size := _min_size
 	
-	_min_size = ancher_size
-	update_minimum_size()
+	if mode & PROPORTION_MODE.WIDTH != 0:
+		_min_size.x = ancher_size.x * horizontal_ratio
+	else:
+		_min_size.x = child_min_size.x
+	if mode & PROPORTION_MODE.HEIGHT != 0:
+		_min_size.y = ancher_size.y * vertical_ratio
+	else:
+		_min_size.y = child_min_size.y
+	
+	if _min_size != _old_min_size:
+		update_minimum_size()
 	_fit_children()
+
 func _fit_children() -> void:
 	for child: Control in get_children(true):
 		if child:_fit_child(child)
 func _fit_child(child : Control) -> void:
 	var child_size := child.get_minimum_size()
+	var ancher_size : Vector2 = ancher.size if ancher else get_parent_area_size()
 	var set_pos : Vector2
 	
-	var ancher_size : Vector2 = size
 	# Gets the ancher_size according to this node's dimentions and proportion mode
 	if mode & PROPORTION_MODE.WIDTH > 0:
 		ancher_size.x = ancher_size.x * horizontal_ratio
+		
+		# Expands or repositions child, according to ancher and size flages
+		match child.size_flags_horizontal & ~SIZE_EXPAND:
+			SIZE_FILL:
+				child_size.x = ancher_size.x
+				set_pos.x =  max((size.x - ancher_size.x) * 0.5, 0)
+			SIZE_SHRINK_BEGIN:
+				child_size.x = max(child_size.x, ancher_size.x)
+				set_pos.x = 0
+			SIZE_SHRINK_CENTER:
+				child_size.x = max(child_size.x, ancher_size.x)
+				set_pos.x = max((ancher_size.x - child_size.x) * 0.5, 0)
+			SIZE_SHRINK_END:
+				child_size.x = max(child_size.x, ancher_size.x)
+				set_pos.x = max(ancher_size.x - child_size.x, 0)
+	
+	# Gets the ancher_size according to this node's dimentions and proportion mode
 	if mode & PROPORTION_MODE.HEIGHT > 0:
 		ancher_size.y = ancher_size.y * vertical_ratio
-	
-	# Expands or repositions child, according to ancher and size flages
-	match size_flags_horizontal:
-		SIZE_FILL:
-			set_pos.x = 0
-			child_size.x = max(child_size.x, ancher_size.x)
-		SIZE_SHRINK_BEGIN:
-			set_pos.x = 0
-		SIZE_SHRINK_CENTER:
-			set_pos.x = (ancher_size.x - child_size.x) * 0.5
-		SIZE_SHRINK_END:
-			set_pos.x = ancher_size.x - child_size.x
-	match size_flags_vertical:
-		SIZE_FILL:
-			set_pos.y = 0
-			child_size.y = max(child_size.y, ancher_size.y)
-		SIZE_SHRINK_BEGIN:
-			set_pos.y = 0
-		SIZE_SHRINK_CENTER:
-			set_pos.y = (ancher_size.y - child_size.y) * 0.5
-		SIZE_SHRINK_END:
-			set_pos.y = ancher_size.y - child_size.y
+		
+		# Expands or repositions child, according to ancher and size flages
+		match child.size_flags_vertical & ~SIZE_EXPAND:
+			SIZE_FILL:
+				child_size.y = ancher_size.y
+				set_pos.y = max((size.y - ancher_size.y) * 0.5, 0)
+			SIZE_SHRINK_BEGIN:
+				child_size.y = max(child_size.y, ancher_size.y)
+				set_pos.y = 0
+			SIZE_SHRINK_CENTER:
+				child_size.y = max(child_size.y, ancher_size.y)
+				set_pos.y = max((size.y - child_size.y) * 0.5, 0)
+			SIZE_SHRINK_END:
+				child_size.y = max(child_size.y, ancher_size.y)
+				set_pos.y = max(size.y - child_size.y, 0)
 	
 	fit_child_in_rect(child, Rect2(set_pos, child_size))
-
+func _get_children_min_size() -> Vector2:
+	var ret := Vector2.ZERO
+	for child : Node in get_children(true):
+		if child is Control:
+			ret = ret.max(child.get_combined_minimum_size())
+	return ret
+	
 func _get_allowed_size_flags_horizontal() -> PackedInt32Array:
 	return [SIZE_FILL, SIZE_SHRINK_BEGIN, SIZE_SHRINK_CENTER, SIZE_SHRINK_END]
 func _get_allowed_size_flags_vertical() -> PackedInt32Array:
 	return [SIZE_FILL, SIZE_SHRINK_BEGIN, SIZE_SHRINK_CENTER, SIZE_SHRINK_END]
-
 # Made by Savier Alvarez. A part of the "FreeControl" Godot addon.

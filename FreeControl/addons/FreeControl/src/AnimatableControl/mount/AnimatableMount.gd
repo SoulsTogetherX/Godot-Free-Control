@@ -3,8 +3,11 @@
 class_name AnimatableMount extends Control
 ## Used as a mount for size consistency between children [AnimatableControl] nodes.
 
+signal pre_sort_children
+signal sort_children
+
 var _min_size : Vector2
-var _update_queued : bool
+var _update_queued : bool = false
 
 func _get_configuration_warnings() -> PackedStringArray:
 	for child : Node in get_children():
@@ -27,26 +30,30 @@ func _update_children_minimum_size() -> void:
 func _ready() -> void:
 	if !resized.is_connected(_handle_resize):
 		resized.connect(_handle_resize, CONNECT_PERSIST)
+	if !size_flags_changed.is_connected(_handle_resize):
+		size_flags_changed.connect(_handle_resize, CONNECT_PERSIST)
+	
 	queue_minimum_size_update()
 func _handle_resize() -> void:
+	pre_sort_children.emit()
 	for child : Node in get_children():
 		if child is AnimatableControl:
 			child._bound_size()
+	sort_children.emit()
 
 ## Queues This mount to update it's size, size min, and all children, within the frame.[br]
 ## Cannot be called more than once in a single frame. Will be finished at the end of the frame.
 func queue_minimum_size_update() -> void:
 	# Aquires lock
 	if _update_queued: return
-	_update_queued = true
-	
 	# Does nothing if not inside tree.
 	if is_inside_tree(): 
+		_update_queued = true
 		# Updates children size
 		call_deferred("call_deferred", "_update_children_minimum_size")
 	
 		# Releases lock at the start of next frame
-		if is_inside_tree(): await get_tree().process_frame.connect(_relase_queue, CONNECT_ONE_SHOT)
+		get_tree().process_frame.connect(_relase_queue, CONNECT_ONE_SHOT)
 func _relase_queue() -> void: _update_queued = false
 
 ## A virtual helper function that should be used when creating your own mounts.[br]

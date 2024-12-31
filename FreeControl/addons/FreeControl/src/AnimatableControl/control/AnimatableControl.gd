@@ -36,24 +36,11 @@ func _validate_property(property: Dictionary) -> void:
 	if property.name in ["size", "layout_mode", "anchors_preset"]:
 		property.usage |= PROPERTY_USAGE_READ_ONLY
 func _set(property: StringName, value: Variant) -> bool:
-	if property in ["scale", "position", "rotation", "pivot_offset"]:
-		match property:
-			"scale":
-				if scale == value: return true 
-			"position":
-				if position == value: return true 
-			"rotation":
-				if rotation == value: return true 
-			"pivot_offset":
-				if pivot_offset == value: return true 
-				
-				var new_ratio = pivot_offset / size
-				if is_nan(new_ratio.x):
-					new_ratio.x = 0
-				if is_nan(new_ratio.y):
-					new_ratio.y = 0
-				if pivot_ratio != new_ratio:
-					pivot_ratio = new_ratio
+	if property in ["scale", "position", "rotation"]:
+		transformation_changed.emit()
+		_bound_size()
+	elif property == "pivot_offset":
+		pivot_ratio = pivot_offset / size
 		transformation_changed.emit()
 		_bound_size()
 	return false

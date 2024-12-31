@@ -65,9 +65,17 @@ func _enter_tree() -> void:
 	)
 	add_custom_type(
 		"MaxRatioContainer",
-		"MaxSizeContainer",
+		"Container",
 		load(SCRIPT_FOLDER + "SizeController/MaxRatioContainer.gd"), 
 		load(ICON_FOLDER + "MaxRatioContainer.svg")
+	)
+	
+	# Typography
+	add_custom_type(
+		"Typography",
+		"Label",
+		load(SCRIPT_FOLDER + "Typography/Typography.gd"), 
+		load(ICON_FOLDER + "Typography.svg")
 	)
 
 func _exit_tree() -> void:
@@ -89,3 +97,6 @@ func _exit_tree() -> void:
 	# SizeControllers
 	remove_custom_type("MaxRatioContainer")
 	remove_custom_type("MaxSizeContainer")
+	
+	# Typography
+	remove_custom_type("Typography")
