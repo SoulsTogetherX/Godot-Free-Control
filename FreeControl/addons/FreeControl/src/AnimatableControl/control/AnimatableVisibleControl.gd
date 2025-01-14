@@ -80,6 +80,7 @@ func _scrolled_horizontal(_scroll_hor : float) -> void:
 		_while_visible(val)
 	# Else, if visible last frame, then it exited visible area
 	elif _last_visible:
+		_while_visible(0)
 		_on_visible_exit()
 		exited_screen.emit()
 		_last_visible = false
@@ -95,6 +96,7 @@ func _scrolled_horizontal(_scroll_hor : float) -> void:
 		_while_threshold(val)
 	# If in threshold, but not last frame, then it entered threshold area
 	elif _last_threshold_horizontal > threshold_horizontal:
+		_while_threshold(0)
 		_on_threshold_exit()
 		exited_threshold.emit()
 	_last_threshold_horizontal = val
@@ -113,6 +115,7 @@ func _scrolled_vertical(_scroll_ver : float) -> void:
 		_while_visible(val)
 	# Else, if visible last frame, then it exited visible area
 	elif _last_visible:
+		_while_visible(0)
 		_on_visible_exit()
 		exited_screen.emit()
 		_last_visible = false
@@ -128,6 +131,7 @@ func _scrolled_vertical(_scroll_ver : float) -> void:
 		_while_threshold(val)
 	# If in threshold, but not last frame, then it entered threshold area
 	elif _last_threshold_vertical > threshold_vertical:
+		_while_threshold(0)
 		_on_threshold_exit()
 		exited_threshold.emit()
 	_last_threshold_vertical = val
