@@ -12,11 +12,11 @@ class_name Typography extends Label
 			_update_variant(val)
 		notify_property_list_changed()
 ## The text color
-@export var fontColor : Color = Color.WHITE:
+@export var font_color : Color = Color.WHITE:
 	get:
 		return get_theme_color("font_color")
 	set(val):
-		if fontColor != val:
+		if font_color != val:
 			add_theme_color_override("font_color", val)
 
 @export_group("Font Custom")

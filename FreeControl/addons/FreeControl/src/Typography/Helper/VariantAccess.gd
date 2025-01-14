@@ -55,8 +55,8 @@ const FONT_SETTINGS = {
 		"caps": false
 	},
 	FONT_VARIANT.header4: {
-		"size": 20,
-		"weight": FONT_WEIGHT.SemiBold,
+		"size": 25,
+		"weight": FONT_WEIGHT.Regular,
 		"isItalic": false,
 		"caps": false
 	},

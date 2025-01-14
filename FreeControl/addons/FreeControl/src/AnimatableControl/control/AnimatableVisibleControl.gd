@@ -65,7 +65,7 @@ var _last_visible : bool
 			hide_indicator = val
 			queue_redraw()
 
-func _scrolled_horizontal(_scroll : float) -> void:
+func _scrolled_horizontal(_scroll_hor : float) -> void:
 	if !(check_mode & CHECK_MODE.HORIZONTAL): return
 	
 	var val : float = is_visible_percent()
@@ -98,7 +98,7 @@ func _scrolled_horizontal(_scroll : float) -> void:
 		_on_threshold_exit()
 		exited_threshold.emit()
 	_last_threshold_horizontal = val
-func _scrolled_vertical(_scroll : float) -> void:
+func _scrolled_vertical(_scroll_ver : float) -> void:
 	if !(check_mode & CHECK_MODE.VERTICAL): return
 	
 	var val : float = is_visible_percent()
@@ -149,7 +149,7 @@ func _ready() -> void:
 func _draw() -> void:
 	if !_mount || !Engine.is_editor_hint() || hide_indicator: return
 	
-	draw_set_transform(-position, 0, Vector2.ONE)
+	draw_set_transform(-position)
 	draw_rect(Rect2(Vector2.ZERO, size), Color.CORAL, false)
 	
 	match check_mode:
@@ -267,7 +267,7 @@ func get_threshold_rect(consider_mode : bool = false) -> Rect2:
 func _on_visible_enter() -> void: pass
 ## A virtual function that is called when this node left the visible area of it's scroll
 func _on_visible_exit() -> void: pass
-## A virtual function that is called while this node is in the visible  area of it's scroll. Is called after each scroll of [member scroll].
+## A virtual function that is called while this node is in the visible area of it's scroll. Is called after each scroll of [member scroll].
 ## [br][br]
 ## Paramter [param intersect] is the current visible percent.
 func _while_visible(intersect : float) -> void: pass

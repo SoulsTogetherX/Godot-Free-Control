@@ -21,6 +21,12 @@ func _enter_tree() -> void:
 		load(ICON_FOLDER + "AnimatableScrollControl.svg")
 	)
 	add_custom_type(
+		"AnimatablePercentControl",
+		"Container",
+		load(SCRIPT_FOLDER + "AnimatableControl/control/AnimatablePercentControl.gd"), 
+		load(ICON_FOLDER + "AnimatablePercentControl.svg")
+	)
+	add_custom_type(
 		"AnimatableVisibleControl",
 		"Container",
 		load(SCRIPT_FOLDER + "AnimatableControl/control/AnimatableVisibleControl.gd"), 
@@ -83,6 +89,7 @@ func _exit_tree() -> void:
 		# Control
 	remove_custom_type("AnimatableControl")
 	remove_custom_type("AnimatableScrollControl")
+	remove_custom_type("AnimatablePercentControl")
 	remove_custom_type("AnimatableVisibleControl")
 		# Mount
 	remove_custom_type("AnimatableMount")

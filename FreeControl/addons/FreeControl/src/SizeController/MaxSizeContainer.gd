@@ -11,12 +11,12 @@ var _max_size := -Vector2.ONE
 	get: return _max_size
 	set(val):
 		_max_size = val
-		_handle_resize()
+		queue_sort()
 ## If [code]true[/code], positions children relative to the container's top left corner.
 @export var use_top_left : bool = false:
 	set(val):
 		use_top_left = val
-		_handle_resize()
+		queue_sort()
 
 func _ready() -> void:
 	if !resized.is_connected(_handle_resize):
@@ -25,11 +25,15 @@ func _ready() -> void:
 		sort_children.connect(_handle_resize, CONNECT_PERSIST)
 	_handle_resize()
 func _get_minimum_size() -> Vector2:
-	var max_min_child_size : Vector2 = Vector2.ZERO;
+	var min_size : Vector2 = Vector2.ZERO
 	for c : Node in get_children(true):
 		if c is Control:
-			max_min_child_size = max_min_child_size.max(c.get_minimum_size())
-	return max_min_child_size
+			min_size = min_size.max(c.get_minimum_size())
+	return min_size
+func _set(property: StringName, value: Variant) -> bool:
+	if property == "size":
+		return true
+	return false
 
 ## A helper function that should be called whenever this node's size needs to be changed, or when it's children are changed.
 func _handle_resize() -> void:

@@ -39,18 +39,20 @@ func _get_children_minimum_size() -> Vector2:
 
 ## Updates the _max_size according to the ratio mode and current dimentions
 func _before_resize_children() -> void:
+	var parent := get_parent_area_size()
+	
 	# Adjusts max_size itself accouring to the ratio mode and current dimentions
 	match mode:
 		MAX_RATIO_MODE.NONE:
 			_max_size = Vector2(-1, -1)
 		MAX_RATIO_MODE.WIDTH:
-			_max_size = Vector2(-1, size.x * ratio)
+			_max_size = Vector2(-1, minf(size.x * ratio, parent.y))
 		MAX_RATIO_MODE.WIDTH_PROPORTION:
-			_max_size = Vector2(-1, minf(size.x * ratio, _get_children_minimum_size().y))
+			_max_size = Vector2(-1, min(size.x * ratio, _get_children_minimum_size().y, parent.y))
 		MAX_RATIO_MODE.HEIGHT:
-			_max_size = Vector2(size.y * ratio, -1)
+			_max_size = Vector2(minf(size.y * ratio, parent.x), -1)
 		MAX_RATIO_MODE.HEIGHT_PROPORTION:
-			_max_size = Vector2(minf(size.y * ratio, _get_children_minimum_size().x), -1)
+			_max_size = Vector2(min(size.y * ratio, _get_children_minimum_size().x, parent.x), -1)
 	
 	var newSize := size
 	if _max_size.x >= 0:
