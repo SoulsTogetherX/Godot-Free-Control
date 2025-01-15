@@ -38,7 +38,7 @@ const HIGHLIGHT_COLOR := Color(Color.RED, 0.3)
 ## Horizontal and vertical axis are consistered differently.
 ## [br][br]
 ## See [enum ZONE_EDITOR_DIMS], [member zone_horizontal], and [member zone_vertical].
-var zone_point_pixel = 0:
+var zone_point_pixel : int = 0:
 	set(val):
 		if (zone_point_pixel ^ val) & ZONE_EDITOR_DIMS.Horizontal:
 			_scrolled_horizontal(get_scroll_offset().x)
@@ -80,7 +80,7 @@ var zone_vertical : float = 0.5:
 ## Horizontal and vertical axis are consistered differently.
 ## [br][br]
 ## See [enum ZONE_EDITOR_DIMS], [member zone_horizontal], and [member zone_vertical].
-var zone_range_by_pixel = 0:
+var zone_range_by_pixel : int = 0:
 	set(val):
 		if (zone_point_pixel ^ val) & ZONE_EDITOR_DIMS.Horizontal:
 			_scrolled_horizontal(get_scroll_offset().x)
@@ -241,7 +241,7 @@ func _property_get_revert(property: StringName) -> Variant:
 		return false
 	return null
 
-func _scrolled_horizontal(_scroll_hor : float) -> void:
+func _scrolled_horizontal(scroll_hor : float) -> void:
 	if !(check_mode & CHECK_MODE.HORIZONTAL) || !scroll: return
 	
 	var overlapped := is_overlaped_with_activate_zone()
@@ -249,7 +249,7 @@ func _scrolled_horizontal(_scroll_hor : float) -> void:
 		if !_last_overlapped:
 			_on_zone_enter()
 			_last_overlapped = overlapped
-		_while_in_zone(in_zone_percent())
+		_while_in_zone(zone_local_scroll().x)
 	elif _last_overlapped:
 		_while_in_zone(0)
 		_on_zone_exit()
@@ -261,7 +261,7 @@ func _scrolled_vertical(scroll_ver : float) -> void:
 		if !_last_overlapped:
 			_on_zone_enter()
 			_last_overlapped = overlapped
-		_while_in_zone(in_zone_percent())
+		_while_in_zone(zone_local_scroll().y)
 	elif _last_overlapped:
 		_while_in_zone(0)
 		_on_zone_exit()
@@ -269,9 +269,8 @@ func _scrolled_vertical(scroll_ver : float) -> void:
 ## A virtual function that is called while this node is in the zone area. Is called
 ## after each scroll of [member scroll].
 ## [br][br]
-## Paramter [param intersect] is the current percentage of this node's mount
-## intersecting the zone area.
-func _while_in_zone(_intersect : float) -> void: pass
+## Paramter [param _scroll] is the local scroll within the zone.
+func _while_in_zone(_scroll : float) -> void: pass
 ## A virtual function that is called when this node entered the zone area.
 func _on_zone_enter() -> void: pass
 ## A virtual function that is called when this node exited the zone area.
@@ -359,3 +358,11 @@ func get_zone_global_rect() -> Rect2:
 func in_zone_percent() -> float:
 	if !_mount: return 0
 	return (_mount.get_global_rect().intersection(get_zone_global_rect()).get_area()) / (_mount.size.x * _mount.size.y)
+## The local scroll within the zone zone. Returns [code]0[/code] if this node's
+## mount is not inside the zone area.
+## [br][br]
+## Also see [method get_zone_rect], [method get_zone_global_rect].
+func zone_local_scroll() -> Vector2:
+	var zone := get_zone_global_rect()
+	var mount := _mount.get_global_rect()
+	return (_mount.global_position - zone.position + mount.size) / (zone.size + mount.size)

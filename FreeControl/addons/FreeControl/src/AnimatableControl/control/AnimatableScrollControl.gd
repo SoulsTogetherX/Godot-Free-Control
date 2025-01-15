@@ -43,10 +43,10 @@ func get_scroll_offset() -> Vector2:
 	return Vector2(scroll.scroll_horizontal, scroll.scroll_vertical)
 ## Gets the closet parent [ScrollContainer] in the tree.
 func get_parent_scroll() -> ScrollContainer:
-	var ret : Control = get_parent()
+	var ret : Control = (get_parent() as Control)
 	while ret != null:
 		if ret is ScrollContainer: return ret
-		ret = ret.get_parent()
+		ret = (ret.get_parent() as Control)
 	return null
 
 ## Returns a percentage of how visible this node's [AnimatableMount] is, within
