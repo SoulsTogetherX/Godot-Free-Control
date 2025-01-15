@@ -21,10 +21,10 @@ func _enter_tree() -> void:
 		load(ICON_FOLDER + "AnimatableScrollControl.svg")
 	)
 	add_custom_type(
-		"AnimatablePercentControl",
+		"AnimatableZoneControl",
 		"Container",
-		load(SCRIPT_FOLDER + "AnimatableControl/control/AnimatablePercentControl.gd"), 
-		load(ICON_FOLDER + "AnimatablePercentControl.svg")
+		load(SCRIPT_FOLDER + "AnimatableControl/control/AnimatableZoneControl.gd"), 
+		load(ICON_FOLDER + "AnimatableZoneControl.svg")
 	)
 	add_custom_type(
 		"AnimatableVisibleControl",

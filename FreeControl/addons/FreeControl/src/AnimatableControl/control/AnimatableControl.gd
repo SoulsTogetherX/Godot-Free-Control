@@ -3,9 +3,11 @@
 class_name AnimatableControl extends Container
 ## A container to be used for free transformation within a UI.
 
-## This signal emits when one of the following properties change: scale, position, rotation, pivot_offset
+## This signal emits when one of the following properties change: scale, position,
+## rotation, pivot_offset
 signal transformation_changed
 
+## The size mode this node's size will be bounded by.
 enum SIZE_MODE {
 	NONE, ## This node's size is not bounded
 	MIN,  ## This node's size will be greater than or equal to this node's mount size

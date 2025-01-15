@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://nfxlgct0ueqp"
-path="res://.godot/imported/AnimatablePercentControl.svg-b9df5668265dde869607dadf17a2b60c.ctex"
+path="res://.godot/imported/AnimatableZoneControl.svg-52fb2c5380b72522d734b8b9ba5fc752.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://addons/FreeControl/assets/icons/CustomType/AnimatablePercentControl.svg"
-dest_files=["res://.godot/imported/AnimatablePercentControl.svg-b9df5668265dde869607dadf17a2b60c.ctex"]
+source_file="res://addons/FreeControl/assets/icons/CustomType/AnimatableZoneControl.svg"
+dest_files=["res://.godot/imported/AnimatableZoneControl.svg-52fb2c5380b72522d734b8b9ba5fc752.ctex"]
 
 [params]
 

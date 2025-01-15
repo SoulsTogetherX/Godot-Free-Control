@@ -1,7 +1,8 @@
 # Made by Savier Alvarez. A part of the "FreeControl" Godot addon.
 @tool
 class_name AnimatableVisibleControl extends AnimatableScrollControl
-## A container to be used for free transformation, within a UI, depending on if the node is visible in a [ScrollContainer] scroll.
+## A container to be used for free transformation, within a UI, depending on if
+## the node is visible in a [ScrollContainer] scroll.
 
 ## Emitted when requested threshold has been entered.
 signal entered_threshold
@@ -20,9 +21,19 @@ enum CHECK_MODE {
 	BOTH = 0b011 ## Checks horizontally and vertically.
 }
 
-## Color for inner highlighting - Indicates when visiblity is required to met threshold.
+## Modes of threshold size.
+enum THRESHOLD_EDITOR_DIMS {
+	None = 0b00, ## Both horizontal and vertical axis are based on ratio.
+	Horizontal = 0b01, ## Horizontal axis is based on exact pixel and vertical on ratio.
+	Vertical = 0b10, ## Horizontal axis is based on ratio and vertical on exact pixel.
+	Both = 0b11, ## Both horizontal and vertical axis are based on exact pixel.
+}
+
+## Color for inner highlighting - Indicates when visiblity is required to met
+## threshold.
 const HIGHLIGHT_COLOR := Color(Color.RED, 0.3)
-## Color for overlap highlighting - Indicates when visiblity is required, starting from the far end, to met threshold.
+## Color for overlap highlighting - Indicates when visiblity is required, starting
+## from the far end, to met threshold.
 const ANTI_HIGHLIGHT_COLOR := Color(Color.DARK_CYAN, 1)
 ## Color for helpful lines to make highlighting for clear.
 const INTERSECT_HIGHLIGHT_COLOR := Color(Color.RED, 0.8)
@@ -36,132 +47,166 @@ const INTERSECT_HIGHLIGHT_COLOR := Color(Color.RED, 0.8)
 			notify_property_list_changed()
 			queue_redraw()
 
-@export_group("Threshold")
-## The minimum horizontal percentage this node's [AnimatableMount]'s rect must be visible in [member scroll] for this node to be consistered visible.
-@export_range(0, 1) var threshold_horizontal : float = 0.5:
+## A flag variable used to distinguish if the threshold amount is described by
+## a ratio of the size of the [member AnimatableScrollControl.scroll] value, or
+## by a const pixel value.[br]
+## Horizontal and vertical axis are consistered differently.
+## [br][br]
+## See [enum THRESHOLD_EDITOR_DIMS], [member threshold_horizontal], and [member threshold_vertical].
+var threshold_pixel : int:
+	set(val):
+		if (threshold_pixel ^ val) & THRESHOLD_EDITOR_DIMS.Horizontal:
+			_scrolled_horizontal(get_scroll_offset().x)
+		if (threshold_pixel ^ val) & THRESHOLD_EDITOR_DIMS.Vertical:
+			_scrolled_vertical(get_scroll_offset().y)
+		threshold_pixel = val
+		notify_property_list_changed()
+		queue_redraw()
+## The minimum horizontal percentage this node's [AnimatableMount]'s rect must be
+## visible in [member scroll] for this node to be consistered visible.
+var threshold_horizontal : float = 0.5:
 	set(val):
 		if threshold_horizontal != val:
 			threshold_horizontal = val
 			_scrolled_horizontal(0)
 			queue_redraw()
-## The minimum vertical percentage this node's [AnimatableMount]'s rect must be visible in [member scroll] for this node to be consistered visible.
-@export_range(0, 1) var threshold_vertical : float = 0.5:
+## The minimum vertical percentage this node's [AnimatableMount]'s rect must be
+## visible in [member scroll] for this node to be consistered visible.
+var threshold_vertical : float = 0.5:
 	set(val):
 		if threshold_vertical != val:
 			threshold_vertical = val
 			_scrolled_vertical(0)
 			queue_redraw()
-var _last_threshold_horizontal : float
-var _last_threshold_vertical : float
-var _last_visible : bool
-
-@export_group("Indicator")
-## [b]Editor usage only.[/b]
-## [br]
-## Shows or hides the helpful threshold highlighter.
-@export var hide_indicator : bool = false:
+## [b]Editor usage only.[/b] Shows or hides the helpful threshold highlighter.
+var hide_indicator : bool = false:
 	set(val):
 		if hide_indicator != val:
 			hide_indicator = val
 			queue_redraw()
 
-func _scrolled_horizontal(_scroll_hor : float) -> void:
-	if !(check_mode & CHECK_MODE.HORIZONTAL): return
-	
-	var val : float = is_visible_percent()
-	# Checks if visible
-	if val > 0:
-		# If visible, but wasn't visible last scroll, then it entered visible area
-		if !_last_visible:
-			_on_visible_enter()
-			entered_screen.emit()
-			_last_visible = true
-		# Calls the while function
-		_while_visible(val)
-	# Else, if visible last frame, then it exited visible area
-	elif _last_visible:
-		_while_visible(0)
-		_on_visible_exit()
-		exited_screen.emit()
-		_last_visible = false
-	
-	val = get_visible_horizontal_percent()
-	# Checks if in threshold
-	if val >= threshold_horizontal:
-		# If in  threshold, but not last frame, then it entered threshold area
-		if _last_threshold_horizontal < threshold_horizontal:
-			_on_threshold_enter()
-			entered_threshold.emit()
-		# Calls the while function
-		_while_threshold(val)
-	# If in threshold, but not last frame, then it entered threshold area
-	elif _last_threshold_horizontal > threshold_horizontal:
-		_while_threshold(0)
-		_on_threshold_exit()
-		exited_threshold.emit()
-	_last_threshold_horizontal = val
-func _scrolled_vertical(_scroll_ver : float) -> void:
-	if !(check_mode & CHECK_MODE.VERTICAL): return
-	
-	var val : float = is_visible_percent()
-	# Checks if visible
-	if val > 0:
-		# If visible, but wasn't visible last scroll, then it entered visible area
-		if !_last_visible:
-			_on_visible_enter()
-			entered_screen.emit()
-			_last_visible = true
-		# Calls the while function
-		_while_visible(val)
-	# Else, if visible last frame, then it exited visible area
-	elif _last_visible:
-		_while_visible(0)
-		_on_visible_exit()
-		exited_screen.emit()
-		_last_visible = false
-	
-	val = get_visible_vertical_percent()
-	# Checks if in threshold
-	if val >= threshold_vertical:
-		# If in  threshold, but not last frame, then it entered threshold area
-		if _last_threshold_vertical < threshold_vertical:
-			_on_threshold_enter()
-			entered_threshold.emit()
-		# Calls the while function
-		_while_threshold(val)
-	# If in threshold, but not last frame, then it entered threshold area
-	elif _last_threshold_vertical > threshold_vertical:
-		_while_threshold(0)
-		_on_threshold_exit()
-		exited_threshold.emit()
-	_last_threshold_vertical = val
+var _last_threshold_horizontal : float
+var _last_threshold_vertical : float
+var _last_visible : bool
 
-func _validate_property(property: Dictionary) -> void:
-	super(property)
-	match property.name:
-		"threshold_horizontal":
-			if !(check_mode & CHECK_MODE.HORIZONTAL):
-				property.usage |= PROPERTY_USAGE_READ_ONLY
-		"threshold_vertical":
-			if !(check_mode & CHECK_MODE.VERTICAL):
-				property.usage |= PROPERTY_USAGE_READ_ONLY
+func _get_property_list() -> Array[Dictionary]:
+	var ret : Array[Dictionary] = []
+	var horizontal : int = 0 if check_mode & CHECK_MODE.HORIZONTAL else PROPERTY_USAGE_READ_ONLY
+	var vertical : int = 0 if check_mode & CHECK_MODE.VERTICAL else PROPERTY_USAGE_READ_ONLY
+	var either : int = horizontal & vertical
+	
+	var options : String
+	if !horizontal: options = "Horizontal:1,"
+	if !vertical: options += "Vertical:2"
+	
+	ret.append({
+		"name": "Threshold",
+		"type": TYPE_NIL,
+		"usage": PROPERTY_USAGE_GROUP,
+		"hint_string": ""
+	})
+	ret.append({
+		"name": "threshold_pixel",
+		"type": TYPE_INT,
+		"hint": PROPERTY_HINT_FLAGS,
+		"hint_string": options,
+		"usage": PROPERTY_USAGE_DEFAULT | either
+	})
+	ret.append({
+		"name": "threshold_horizontal",
+		"type": TYPE_FLOAT,
+		"usage": PROPERTY_USAGE_DEFAULT | horizontal
+	}.merged({} if threshold_pixel & 1 else {
+		"hint": PROPERTY_HINT_RANGE,
+		"hint_string": "0,1,0.01"
+	}))
+	ret.append({
+		"name": "threshold_vertical",
+		"type": TYPE_FLOAT,
+		"usage": PROPERTY_USAGE_DEFAULT | vertical
+	}.merged({} if threshold_pixel & 2 else {
+		"hint": PROPERTY_HINT_RANGE,
+		"hint_string": "0,1,0.01"
+	}))
+	
+	ret.append({
+		"name": "Indicator",
+		"type": TYPE_NIL,
+		"usage": PROPERTY_USAGE_GROUP,
+		"hint_str": ""
+	})
+	ret.append({
+		"name": "hide_indicator",
+		"type": TYPE_BOOL,
+		"usage": PROPERTY_USAGE_DEFAULT
+	})
+	
+	return ret
+func _property_can_revert(property: StringName) -> bool:
+	if property == "threshold_pixel":
+		if self[property] != 0: return true
+	elif property in ["threshold_horizontal", "threshold_vertical"]:
+		if self[property] != 0.5: return true
+	elif property == "hide_indicator":
+		return hide_indicator
+	return false
+func _property_get_revert(property: StringName) -> Variant:
+	if property == "threshold_pixel":
+		return 0
+	elif property in ["threshold_horizontal", "threshold_vertical"]:
+		return 0.5
+	elif property == "hide_indicator":
+		return false
+	return null
 
 func _ready() -> void:
 	if !item_rect_changed.is_connected(queue_redraw) && Engine.is_editor_hint():
 		item_rect_changed.connect(queue_redraw)
 	super()
+
+func _get_threshold_size() -> Array[Vector2]:
+	var ratio_thr : Vector2
+	var full_thr : Vector2
+	
+	if is_zero_approx(_mount.size.x):
+		ratio_thr.x = 1
+		full_thr.x = _mount.size.x
+	elif threshold_pixel & THRESHOLD_EDITOR_DIMS.Horizontal:
+		var hor := clamp(threshold_horizontal, 0, _mount.size.x)
+		ratio_thr.x = hor / _mount.size.x
+		full_thr.x = hor
+	else:
+		var hor := clamp(threshold_horizontal, 0, 1)
+		ratio_thr.x = hor
+		full_thr.x = hor * _mount.size.x
+	
+	if is_zero_approx(_mount.size.y):
+		ratio_thr.y = 1
+		full_thr.y = _mount.size.y
+	elif threshold_pixel & THRESHOLD_EDITOR_DIMS.Vertical:
+		var vec := clamp(threshold_vertical, 0, _mount.size.y)
+		ratio_thr.y = vec / _mount.size.y
+		full_thr.y = vec
+	else:
+		var vec := clamp(threshold_vertical, 0, 1)
+		ratio_thr.y = vec
+		full_thr.y = vec * _mount.size.y
+	
+	return [ratio_thr, full_thr]
 func _draw() -> void:
 	if !_mount || !Engine.is_editor_hint() || hide_indicator: return
+	
+	var threshold_adjust := _get_threshold_size()
 	
 	draw_set_transform(-position)
 	draw_rect(Rect2(Vector2.ZERO, size), Color.CORAL, false)
 	
 	match check_mode:
 		CHECK_MODE.HORIZONTAL:
-			var left := threshold_horizontal * size.x
+			var left := threshold_adjust[1].x
 			var right := size.x - left
 			
-			if threshold_horizontal > 0.5:
+			if threshold_adjust[0].x > 0.5:
 				left = size.x - left
 				right = size.x - right
 			
@@ -170,13 +215,13 @@ func _draw() -> void:
 				0,
 				right,
 				size.y,
-				threshold_horizontal <= 0.5
+				threshold_adjust[0].x < 0.5
 			)
 		CHECK_MODE.VERTICAL:
-			var top := threshold_vertical * size.y
+			var top := threshold_adjust[1].y
 			var bottom := size.y - top
 			
-			if threshold_vertical > 0.5:
+			if threshold_adjust[0].y > 0.5:
 				top = size.y - top
 				bottom = size.y - bottom
 			
@@ -185,20 +230,20 @@ func _draw() -> void:
 				top,
 				size.x,
 				bottom,
-				threshold_vertical <= 0.5
+				threshold_adjust[0].y < 0.5
 			)
 		CHECK_MODE.BOTH:
-			var left := threshold_horizontal * size.x
+			var left := threshold_adjust[1].x
 			var right := size.x - left
-			var top := threshold_vertical * size.y
+			var top := threshold_adjust[1].y
 			var bottom := size.y - top
 			
 			var draw_middle : bool = true
-			if threshold_horizontal > 0.5:
+			if threshold_adjust[0].x >= 0.5:
 				left = size.x - left
 				right = size.x - right
 				draw_middle = false
-			if threshold_vertical > 0.5:
+			if threshold_adjust[0].y >= 0.5:
 				top = size.y - top
 				bottom = size.y - bottom
 				draw_middle = false
@@ -212,8 +257,8 @@ func _draw() -> void:
 			)
 			
 			if !draw_middle:
-				if threshold_horizontal >= 0.5:
-					if threshold_vertical < 0.5:
+				if threshold_adjust[0].x >= 0.5:
+					if threshold_adjust[0].y < 0.5:
 						draw_line(
 							Vector2(left, top),
 							Vector2(right, top),
@@ -226,7 +271,7 @@ func _draw() -> void:
 							INTERSECT_HIGHLIGHT_COLOR,
 							5
 						)	
-				elif threshold_vertical >= 0.5:
+				elif threshold_adjust[0].y >= 0.5:
 					draw_line(
 						Vector2(left, top),
 						Vector2(left, bottom),
@@ -260,26 +305,104 @@ func _draw_highlight(
 		# Bottom
 	draw_rect(Rect2(Vector2(left, bottom), Vector2(right - left, size.y - bottom)), ANTI_HIGHLIGHT_COLOR)
 
+func _scrolled_horizontal(_scroll_hor : float) -> void:
+	if !(check_mode & CHECK_MODE.HORIZONTAL): return
+	
+	var threshold_adjust := _get_threshold_size()
+	var val : float = is_visible_percent()
+	
+	# Checks if visible
+	if val > 0:
+		# If visible, but wasn't visible last scroll, then it entered visible area
+		if !_last_visible:
+			_on_visible_enter()
+			entered_screen.emit()
+			_last_visible = true
+		# Calls the while function
+		_while_visible(val)
+	# Else, if visible last frame, then it exited visible area
+	elif _last_visible:
+		_while_visible(0)
+		_on_visible_exit()
+		exited_screen.emit()
+		_last_visible = false
+	
+	val = get_visible_horizontal_percent()
+	# Checks if in threshold
+	if val >= threshold_adjust[0].x:
+		# If in  threshold, but not last frame, then it entered threshold area
+		if _last_threshold_horizontal < threshold_adjust[0].x:
+			_on_threshold_enter()
+			entered_threshold.emit()
+		# Calls the while function
+		_while_threshold(val)
+	# If in threshold, but not last frame, then it entered threshold area
+	elif _last_threshold_horizontal > threshold_adjust[0].x:
+		_while_threshold(0)
+		_on_threshold_exit()
+		exited_threshold.emit()
+	_last_threshold_horizontal = val
+func _scrolled_vertical(_scroll_ver : float) -> void:
+	if !(check_mode & CHECK_MODE.VERTICAL): return
+	
+	var threshold_adjust := _get_threshold_size()
+	var val : float = is_visible_percent()
+	
+	# Checks if visible
+	if val > 0:
+		# If visible, but wasn't visible last scroll, then it entered visible area
+		if !_last_visible:
+			_on_visible_enter()
+			entered_screen.emit()
+			_last_visible = true
+		# Calls the while function
+		_while_visible(val)
+	# Else, if visible last frame, then it exited visible area
+	elif _last_visible:
+		_while_visible(0)
+		_on_visible_exit()
+		exited_screen.emit()
+		_last_visible = false
+	
+	val = get_visible_vertical_percent()
+	# Checks if in threshold
+	if val >= threshold_adjust[0].y:
+		# If in  threshold, but not last frame, then it entered threshold area
+		if _last_threshold_vertical < threshold_adjust[0].y:
+			_on_threshold_enter()
+			entered_threshold.emit()
+		# Calls the while function
+		_while_threshold(val)
+	# If in threshold, but not last frame, then it entered threshold area
+	elif _last_threshold_vertical > threshold_adjust[0].y:
+		_while_threshold(0)
+		_on_threshold_exit()
+		exited_threshold.emit()
+	_last_threshold_vertical = val
+
 ## Returns the rect [threshold_horizontal] and [threshold_vertical] create.
 func get_threshold_rect(consider_mode : bool = false) -> Rect2:
-	if !consider_mode || check_mode == CHECK_MODE.BOTH:
-		return Rect2(Vector2(threshold_horizontal, threshold_vertical) * size, Vector2(1.0 - threshold_horizontal, 1.0 - threshold_vertical) * size)
-	
-	return Rect2(Vector2(threshold_horizontal, threshold_vertical) * size, Vector2(1.0 - threshold_horizontal, 1.0 - threshold_vertical) * size)
+	var threshold_adjust := _get_threshold_size()
+	return Rect2(threshold_adjust[1], size - threshold_adjust[1])
 
-## A virtual function that is called when this node entered the visible area of it's scroll
+## A virtual function that is called when this node entered the visible area of
+## it's scroll
 func _on_visible_enter() -> void: pass
-## A virtual function that is called when this node left the visible area of it's scroll
+## A virtual function that is called when this node left the visible area of it's
+## scroll
 func _on_visible_exit() -> void: pass
-## A virtual function that is called while this node is in the visible area of it's scroll. Is called after each scroll of [member scroll].
+## A virtual function that is called while this node is in the visible area of it's
+## scroll. Is called after each scroll of [member scroll].
 ## [br][br]
 ## Paramter [param intersect] is the current visible percent.
 func _while_visible(intersect : float) -> void: pass
 ## A virtual function that is called when this node's visible threshold has been met.
 func _on_threshold_enter() -> void: pass
-## A virtual function that is called when this node's visible threshold is no longer met.
+## A virtual function that is called when this node's visible threshold is no longer
+## met.
 func _on_threshold_exit() -> void: pass
-## A virtual function that is called while this node's visible threshold is met. Is called after each scroll of [member scroll].
+## A virtual function that is called while this node's visible threshold is met. Is
+## called after each scroll of [member scroll].
 ## [br][br]
 ## Paramter [param intersect] is the current threshold value met.
 func _while_threshold(intersect : float) -> void: pass
