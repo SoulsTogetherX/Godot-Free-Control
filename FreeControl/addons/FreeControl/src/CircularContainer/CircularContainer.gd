@@ -3,6 +3,7 @@
 class_name CircularContainer extends Container
 ## A container that positions children in a ellipse within the bounds of this node.
 
+## Behavior the auto angle setter will exhibit.
 enum BOUND_BEHAVIOR {
 	NONE, ## No end bound for angles
 	STOP, ## Angles, if exceeding the max, will be hard stopped at the max.

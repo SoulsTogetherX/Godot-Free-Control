@@ -3,6 +3,7 @@
 class_name ProportionalContainer extends Container
 ## A container that preserves the proportions of its [member ancher] size.
 
+## The method this node will change in proportion of its [member ancher] size.
 enum PROPORTION_MODE {
 	NONE = 0b00, ## No action. Minimum size will be set at [constant Vector2.ZERO].
 	WIDTH = 0b01, ## Sets the minimum width to be equal to the [member ancher] width multipled by [member horizontal_ratio].

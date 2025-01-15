@@ -21,6 +21,7 @@ enum SIZE_MODE {
 		if size_mode != val:
 			size_mode = val
 			_bound_size()
+## Auto sets the pivot to be at some position percentage of the size.
 @export var pivot_ratio : Vector2 = Vector2.ZERO:
 	set(val):
 		if pivot_ratio != val:

@@ -1,8 +1,10 @@
 # Made by Savier Alvarez. A part of the "FreeControl" Godot addon.
 @tool
 class_name MaxRatioContainer extends MaxSizeContainer
-## A container that limits an axis of it's size, to a maximum value, relative to the value of it's other axis.
+## A container that limits an axis of it's size, to a maximum value, relative
+## to the value of it's other axis.
 
+## The behavior this node will exhibit based on an axis.
 enum MAX_RATIO_MODE {
 	NONE, ## No maximum value for either axis on this container.
 	WIDTH, ## Sets and expands children height to be proportionate of width.

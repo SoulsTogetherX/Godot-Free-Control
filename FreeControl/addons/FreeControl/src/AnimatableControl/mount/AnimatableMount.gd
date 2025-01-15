@@ -3,7 +3,9 @@
 class_name AnimatableMount extends Control
 ## Used as a mount for size consistency between children [AnimatableControl] nodes.
 
+## Emits before children are sorted
 signal pre_sort_children
+## Emits after children have been sorted
 signal sort_children
 
 var _min_size : Vector2
