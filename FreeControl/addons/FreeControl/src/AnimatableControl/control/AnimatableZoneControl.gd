@@ -248,10 +248,11 @@ func _scrolled_horizontal(scroll_hor : float) -> void:
 	if overlapped:
 		if !_last_overlapped:
 			_on_zone_enter()
-			_last_overlapped = overlapped
+			_last_overlapped = true
 		_while_in_zone(zone_local_scroll().x)
 	elif _last_overlapped:
-		_while_in_zone(0)
+		_last_overlapped = false
+		_while_in_zone(1 if zone_local_scroll().x > 0.5 else 0)
 		_on_zone_exit()
 func _scrolled_vertical(scroll_ver : float) -> void:
 	if !(check_mode & CHECK_MODE.VERTICAL) || !scroll: return
@@ -260,10 +261,11 @@ func _scrolled_vertical(scroll_ver : float) -> void:
 	if overlapped:
 		if !_last_overlapped:
 			_on_zone_enter()
-			_last_overlapped = overlapped
+			_last_overlapped = true
 		_while_in_zone(zone_local_scroll().y)
 	elif _last_overlapped:
-		_while_in_zone(0)
+		_last_overlapped = false
+		_while_in_zone(1 if zone_local_scroll().y > 0.5 else 0)
 		_on_zone_exit()
 
 ## A virtual function that is called while this node is in the zone area. Is called
