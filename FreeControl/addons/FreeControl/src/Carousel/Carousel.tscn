@@ -1,0 +1,59 @@
+[gd_scene load_steps=3 format=3 uid="uid://c3tjgpgc0au7j"]
+
+[ext_resource type="Script" path="res://addons/FreeControl/src/Carousel/Carousel.gd" id="1_f3xir"]
+[ext_resource type="Texture2D" uid="uid://bdenffuc0sdcl" path="res://icon.svg" id="2_w8j6v"]
+
+[node name="Control" type="VBoxContainer"]
+anchors_preset = 13
+anchor_left = 0.5
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -400.0
+offset_right = 400.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Carousel" type="Container" parent="."]
+custom_minimum_size = Vector2(800, 600)
+layout_mode = 2
+size_flags_vertical = 3
+script = ExtResource("1_f3xir")
+starting_index = 1
+item_size = Vector2(800, 600)
+enable_snap = true
+
+[node name="TextureRect3" type="TextureRect" parent="Carousel"]
+custom_minimum_size = Vector2(400, 400)
+layout_mode = 2
+size_flags_vertical = 4
+texture = ExtResource("2_w8j6v")
+
+[node name="TextureRect2" type="TextureRect" parent="Carousel"]
+custom_minimum_size = Vector2(400, 400)
+layout_mode = 2
+size_flags_vertical = 4
+texture = ExtResource("2_w8j6v")
+
+[node name="TextureRect1" type="TextureRect" parent="Carousel"]
+custom_minimum_size = Vector2(400, 400)
+layout_mode = 2
+size_flags_vertical = 4
+texture = ExtResource("2_w8j6v")
+
+[node name="HBoxContainer" type="HBoxContainer" parent="."]
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 2
+theme_override_constants/separation = 50
+
+[node name="Back" type="Button" parent="HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "<"
+
+[node name="Next" type="Button" parent="HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = ">"
+
+[connection signal="pressed" from="HBoxContainer/Back" to="Carousel" method="prev"]
+[connection signal="pressed" from="HBoxContainer/Next" to="Carousel" method="next"]
