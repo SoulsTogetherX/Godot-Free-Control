@@ -315,7 +315,6 @@ func _scrolled_horizontal(_scroll_hor : float) -> void:
 	if val > 0:
 		# If visible, but wasn't visible last scroll, then it entered visible area
 		if !_last_visible:
-			_on_visible_enter()
 			entered_screen.emit()
 			_last_visible = true
 		# Calls the while function
@@ -323,7 +322,6 @@ func _scrolled_horizontal(_scroll_hor : float) -> void:
 	# Else, if visible last frame, then it exited visible area
 	elif _last_visible:
 		_while_visible(0)
-		_on_visible_exit()
 		exited_screen.emit()
 		_last_visible = false
 	
@@ -332,14 +330,12 @@ func _scrolled_horizontal(_scroll_hor : float) -> void:
 	if val >= threshold_adjust[0].x:
 		# If in  threshold, but not last frame, then it entered threshold area
 		if _last_threshold_horizontal < threshold_adjust[0].x:
-			_on_threshold_enter()
 			entered_threshold.emit()
 		# Calls the while function
 		_while_threshold(val)
 	# If in threshold, but not last frame, then it entered threshold area
 	elif _last_threshold_horizontal > threshold_adjust[0].x:
 		_while_threshold(0)
-		_on_threshold_exit()
 		exited_threshold.emit()
 	_last_threshold_horizontal = val
 func _scrolled_vertical(_scroll_ver : float) -> void:
@@ -352,7 +348,6 @@ func _scrolled_vertical(_scroll_ver : float) -> void:
 	if val > 0:
 		# If visible, but wasn't visible last scroll, then it entered visible area
 		if !_last_visible:
-			_on_visible_enter()
 			entered_screen.emit()
 			_last_visible = true
 		# Calls the while function
@@ -360,7 +355,6 @@ func _scrolled_vertical(_scroll_ver : float) -> void:
 	# Else, if visible last frame, then it exited visible area
 	elif _last_visible:
 		_while_visible(0)
-		_on_visible_exit()
 		exited_screen.emit()
 		_last_visible = false
 	
@@ -369,38 +363,33 @@ func _scrolled_vertical(_scroll_ver : float) -> void:
 	if val >= threshold_adjust[0].y:
 		# If in  threshold, but not last frame, then it entered threshold area
 		if _last_threshold_vertical < threshold_adjust[0].y:
-			_on_threshold_enter()
 			entered_threshold.emit()
 		# Calls the while function
 		_while_threshold(val)
 	# If in threshold, but not last frame, then it entered threshold area
 	elif _last_threshold_vertical > threshold_adjust[0].y:
 		_while_threshold(0)
-		_on_threshold_exit()
 		exited_threshold.emit()
 	_last_threshold_vertical = val
+
+
+
+# Public Functions
 
 ## Returns the rect [threshold_horizontal] and [threshold_vertical] create.
 func get_threshold_rect(consider_mode : bool = false) -> Rect2:
 	var threshold_adjust := _get_threshold_size()
 	return Rect2(threshold_adjust[1], size - threshold_adjust[1])
 
-## A virtual function that is called when this node entered the visible area of
-## it's scroll
-func _on_visible_enter() -> void: pass
-## A virtual function that is called when this node left the visible area of it's
-## scroll
-func _on_visible_exit() -> void: pass
+
+
+# Virtual Functions
+
 ## A virtual function that is called while this node is in the visible area of it's
 ## scroll. Is called after each scroll of [member scroll].
 ## [br][br]
 ## Paramter [param intersect] is the current visible percent.
 func _while_visible(intersect : float) -> void: pass
-## A virtual function that is called when this node's visible threshold has been met.
-func _on_threshold_enter() -> void: pass
-## A virtual function that is called when this node's visible threshold is no longer
-## met.
-func _on_threshold_exit() -> void: pass
 ## A virtual function that is called while this node's visible threshold is met. Is
 ## called after each scroll of [member scroll].
 ## [br][br]

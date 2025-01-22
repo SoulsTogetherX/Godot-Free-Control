@@ -20,6 +20,11 @@ enum ZONE_EDITOR_DIMS {
 	Both = 0b11, ## Both horizontal and vertical axis are based on exact pixel.
 }
 
+## Emitted when this node's [AnimatableMount]'s entered the zone area.
+signal entered_zone
+## Emitted when this node's [AnimatableMount]'s exited the zone area.
+signal exited_zone
+
 ## Color for inner highlighting - Indicates when visiblity is required to met threshold.
 const HIGHLIGHT_COLOR := Color(Color.RED, 0.3)
 
@@ -247,36 +252,26 @@ func _scrolled_horizontal(scroll_hor : float) -> void:
 	var overlapped := is_overlaped_with_activate_zone()
 	if overlapped:
 		if !_last_overlapped:
-			_on_zone_enter()
+			entered_zone.emit()
 			_last_overlapped = true
 		_while_in_zone(zone_local_scroll().x)
 	elif _last_overlapped:
 		_last_overlapped = false
 		_while_in_zone(1 if zone_local_scroll().x > 0.5 else 0)
-		_on_zone_exit()
+		exited_zone.emit()
 func _scrolled_vertical(scroll_ver : float) -> void:
 	if !(check_mode & CHECK_MODE.VERTICAL) || !scroll: return
 	
 	var overlapped := is_overlaped_with_activate_zone()
 	if overlapped:
 		if !_last_overlapped:
-			_on_zone_enter()
+			entered_zone.emit()
 			_last_overlapped = true
 		_while_in_zone(zone_local_scroll().y)
 	elif _last_overlapped:
 		_last_overlapped = false
 		_while_in_zone(1 if zone_local_scroll().y > 0.5 else 0)
-		_on_zone_exit()
-
-## A virtual function that is called while this node is in the zone area. Is called
-## after each scroll of [member scroll].
-## [br][br]
-## Paramter [param _scroll] is the local scroll within the zone.
-func _while_in_zone(_scroll : float) -> void: pass
-## A virtual function that is called when this node entered the zone area.
-func _on_zone_enter() -> void: pass
-## A virtual function that is called when this node exited the zone area.
-func _on_zone_exit() -> void: pass
+		exited_zone.emit()
 
 func _get_zone_pos() -> Vector2:
 	var ret := Vector2(zone_horizontal, zone_vertical)
@@ -296,6 +291,10 @@ func _get_zone_range() -> Vector2:
 	elif zone_range_by_pixel == ZONE_EDITOR_DIMS.Horizontal:
 		ret.y *= scroll.size.y
 	return ret
+
+
+
+# Public Functions
 
 ## Returns [code]true[/code] if this node's mount is overlaping the zone area.[br]
 ## This function's value is dependant on the value of [member check_mode].
@@ -368,3 +367,13 @@ func zone_local_scroll() -> Vector2:
 	var zone := get_zone_global_rect()
 	var mount := _mount.get_global_rect()
 	return (_mount.global_position - zone.position + mount.size) / (zone.size + mount.size)
+
+
+
+# Virtual Functions
+
+## A virtual function that is called while this node is in the zone area. Is called
+## after each scroll of [member scroll].
+## [br][br]
+## Paramter [param _scroll] is the local scroll within the zone.
+func _while_in_zone(_scroll : float) -> void: pass

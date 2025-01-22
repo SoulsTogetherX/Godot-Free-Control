@@ -1,42 +1,99 @@
 [gd_scene load_steps=3 format=3 uid="uid://c3tjgpgc0au7j"]
 
-[ext_resource type="Script" path="res://addons/FreeControl/src/Carousel/Carousel.gd" id="1_f3xir"]
+[ext_resource type="Script" path="res://addons/FreeControl/src/Carousel/testcarousel.gd" id="1_3j5jv"]
 [ext_resource type="Texture2D" uid="uid://bdenffuc0sdcl" path="res://icon.svg" id="2_w8j6v"]
 
 [node name="Control" type="VBoxContainer"]
-anchors_preset = 13
-anchor_left = 0.5
-anchor_right = 0.5
+anchors_preset = 15
+anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -400.0
-offset_right = 400.0
 grow_horizontal = 2
 grow_vertical = 2
 
 [node name="Carousel" type="Container" parent="."]
 custom_minimum_size = Vector2(800, 600)
 layout_mode = 2
+size_flags_horizontal = 4
 size_flags_vertical = 3
-script = ExtResource("1_f3xir")
-starting_index = 1
-item_size = Vector2(800, 600)
-enable_snap = true
+script = ExtResource("1_3j5jv")
+snap_behavior = 2
 
-[node name="TextureRect3" type="TextureRect" parent="Carousel"]
+[node name="TextureRect" type="TextureRect" parent="Carousel"]
 custom_minimum_size = Vector2(400, 400)
 layout_mode = 2
-size_flags_vertical = 4
-texture = ExtResource("2_w8j6v")
-
-[node name="TextureRect2" type="TextureRect" parent="Carousel"]
-custom_minimum_size = Vector2(400, 400)
-layout_mode = 2
+size_flags_horizontal = 4
 size_flags_vertical = 4
 texture = ExtResource("2_w8j6v")
 
 [node name="TextureRect1" type="TextureRect" parent="Carousel"]
+modulate = Color(0, 1, 1, 1)
+z_index = -1
 custom_minimum_size = Vector2(400, 400)
 layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+texture = ExtResource("2_w8j6v")
+
+[node name="TextureRect2" type="TextureRect" parent="Carousel"]
+modulate = Color(1, 0, 1, 1)
+z_index = -2
+custom_minimum_size = Vector2(400, 400)
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+texture = ExtResource("2_w8j6v")
+
+[node name="TextureRect3" type="TextureRect" parent="Carousel"]
+modulate = Color(1, 1, 0, 1)
+z_index = -3
+custom_minimum_size = Vector2(400, 400)
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+texture = ExtResource("2_w8j6v")
+
+[node name="TextureRect4" type="TextureRect" parent="Carousel"]
+modulate = Color(0, 0, 1, 1)
+z_index = -4
+custom_minimum_size = Vector2(400, 400)
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+texture = ExtResource("2_w8j6v")
+
+[node name="TextureRect5" type="TextureRect" parent="Carousel"]
+modulate = Color(1, 0, 0, 1)
+z_index = -4
+custom_minimum_size = Vector2(400, 400)
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+texture = ExtResource("2_w8j6v")
+
+[node name="TextureRect6" type="TextureRect" parent="Carousel"]
+modulate = Color(0, 1, 0, 1)
+z_index = -3
+custom_minimum_size = Vector2(400, 400)
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+texture = ExtResource("2_w8j6v")
+
+[node name="TextureRect7" type="TextureRect" parent="Carousel"]
+modulate = Color(0, 0, 0, 1)
+z_index = -2
+custom_minimum_size = Vector2(400, 400)
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+texture = ExtResource("2_w8j6v")
+
+[node name="TextureRect8" type="TextureRect" parent="Carousel"]
+modulate = Color(1, 1, 1, 0.498039)
+z_index = -1
+custom_minimum_size = Vector2(400, 400)
+layout_mode = 2
+size_flags_horizontal = 4
 size_flags_vertical = 4
 texture = ExtResource("2_w8j6v")
 
