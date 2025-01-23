@@ -7,7 +7,11 @@ enum CAROUSEL_ORIENTATION {
 	horizontal = 0b00, ## From Left to Right
 	vertical = 0b01, ## From Top to Bottom
 	horizontal_reversed = 0b10, ## From Right to Left
-	vertical_reversed = 0b11 ## From Bottom to Top
+	vertical_reversed = 0b11, ## From Bottom to Top
+	diagonal = 0b100,
+	diagonal_reversed = 0b101,
+	antidiagonal = 0b110,
+	antidiagonal_reversed = 0b111,
 }
 ## Changes the behavior of how draging scrolls the carousel items. Also see [member snap_carousel_transtion_type], [member snap_carousel_ease_type], and [member paging_requirement].
 enum SNAP_BEHAVIOR {
@@ -223,6 +227,9 @@ func _get_children() -> Array[Control]:
 			ret.append(child)
 	return ret
 func _get_relevant_axis() -> int:
+	if bool(orientation & 0b100):
+		return item_size.length()
+	
 	return (item_size.y if bool(orientation & 0b01) else item_size.x) + item_seperation
 func _get_adjusted_scroll() -> int:
 	var scroll := _scroll_value
@@ -356,6 +363,22 @@ func _adjust_children() -> void:
 					rect.position.x -= local_offset * axis - local_scroll
 				CAROUSEL_ORIENTATION.vertical_reversed:
 					rect.position.y -= local_offset * axis - local_scroll
+				CAROUSEL_ORIENTATION.diagonal:
+					var value := local_offset * axis - local_scroll
+					rect.position.x += value
+					rect.position.y += value
+				CAROUSEL_ORIENTATION.diagonal_reversed:
+					var value := -(local_offset * axis - local_scroll)
+					rect.position.x += value
+					rect.position.y += value
+				CAROUSEL_ORIENTATION.antidiagonal:
+					var value := local_offset * axis - local_scroll
+					rect.position.x += value
+					rect.position.y -= value
+				CAROUSEL_ORIENTATION.antidiagonal_reversed:
+					var value := local_offset * axis - local_scroll
+					rect.position.x -= value
+					rect.position.y += value
 			
 			fit_child_in_rect(item_info.node, rect)
 			item_info.loaded = true
@@ -385,6 +408,22 @@ func _adjust_children() -> void:
 					rect.position.x -= local_index * axis - local_scroll
 				CAROUSEL_ORIENTATION.vertical_reversed:
 					rect.position.y -= local_index * axis - local_scroll
+				CAROUSEL_ORIENTATION.diagonal:
+					var value := local_index * axis - local_scroll
+					rect.position.x += value
+					rect.position.y += value
+				CAROUSEL_ORIENTATION.diagonal_reversed:
+					var value := -(local_index * axis - local_scroll)
+					rect.position.x += value
+					rect.position.y += value
+				CAROUSEL_ORIENTATION.antidiagonal:
+					var value := local_index * axis - local_scroll
+					rect.position.x += value
+					rect.position.y -= value
+				CAROUSEL_ORIENTATION.antidiagonal_reversed:
+					var value := local_index * axis - local_scroll
+					rect.position.x -= value
+					rect.position.y += value
 			
 			fit_child_in_rect(item_info.node, rect)
 			item_info.node.visible = true
@@ -423,9 +462,11 @@ func _ready() -> void:
 		sort_children.connect(_sort_children)
 	if !tree_exiting.is_connected(_end_drag_slowdown):
 		tree_exiting.connect(_end_drag_slowdown)
+	
 	_settup_children()
-	starting_index = posmod(starting_index, _item_count)
-	go_to_index(-starting_index, false)
+	if _item_count > 0:
+		starting_index = posmod(starting_index, _item_count)
+		go_to_index(-starting_index, false)
 func _gui_input(event: InputEvent) -> void:
 	if !can_drag: return
 	
@@ -452,6 +493,30 @@ func _gui_input(event: InputEvent) -> void:
 			CAROUSEL_ORIENTATION.vertical_reversed:
 				_drag_scroll_value += event.relative.y
 				_drag_velocity = event.relative.y
+			CAROUSEL_ORIENTATION.diagonal:
+				var value : float = event.relative.length()
+				if event.relative.x > -event.relative.y:
+					value = -value
+				_drag_scroll_value += value
+				_drag_velocity = value
+			CAROUSEL_ORIENTATION.diagonal_reversed:
+				var value : float = event.relative.length()
+				if event.relative.x < -event.relative.y:
+					value = -value
+				_drag_scroll_value += value
+				_drag_velocity = value
+			CAROUSEL_ORIENTATION.antidiagonal:
+				var value : float = event.relative.length()
+				if event.relative.max_axis_index() == Vector2.AXIS_X:
+					value = -value
+				_drag_scroll_value += value
+				_drag_velocity = value
+			CAROUSEL_ORIENTATION.antidiagonal_reversed:
+				var value : float = event.relative.length()
+				if event.relative.max_axis_index() == Vector2.AXIS_Y:
+					value = -value
+				_drag_scroll_value += value
+				_drag_velocity = value
 		
 		if drag_limit != 0:
 			_drag_scroll_value = clampi(_drag_scroll_value, -drag_limit, drag_limit)
@@ -525,6 +590,13 @@ func get_carousel_index(with_drag : bool = false, with_clamp : bool = true) -> i
 	return calculated
 ## Moves to an item of the given index within the carousel. If an invalid index is given, it will be posmod into a vaild index.
 func go_to_index(idx : int, animation : bool = true) -> void:
+	if _item_count == 0: return
+	
+	if allow_loop:
+		idx = posmod(idx, _item_count)
+	else:
+		idx = clamp(idx, 0, _item_count - 1)
+	
 	if animation: _create_animation(idx, ANIMATION_TYPE.MANUAL)
 	else:
 		_kill_animation()
@@ -536,6 +608,17 @@ func prev(animation : bool = true) -> void:
 ## Moves to the next item in the carousel, if there is one.
 func next(animation : bool = true) -> void:
 	go_to_index(get_carousel_index() + 1, animation)
+## Returns if the carousel is currening scrolling via na animation
+func is_animating() -> bool:
+	return _scroll_tween.is_running()
+## Returns if the carousel is currening being dragged by player input.
+func being_dragged() -> bool:
+	return _is_dragging
+## Gets the current scroll value.
+func get_scroll(with_drag : bool = false) -> int:
+	if with_drag:
+		return _scroll_value + _drag_scroll_value
+	return _scroll_value
 
 
 
