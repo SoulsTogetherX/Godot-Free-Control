@@ -12,7 +12,7 @@ enum CAROUSEL_ORIENTATION {
 ## Changes the behavior of how draging scrolls the carousel items. Also see [member snap_carousel_transtion_type], [member snap_carousel_ease_type], and [member paging_requirement].
 enum SNAP_BEHAVIOR {
 	NONE = 0b00, ## No behavior.
-	SNAP = 0b01, ## Once drag is released, the carousel will snap to the nearest item. [member hard_stop] will be assumed as [code]true[/code] for this.
+	SNAP = 0b01, ## Once drag is released, the carousel will snap to the nearest item.x
 	PAGING = 0b10 ## Carousel items will not scroll when dragged, unless [member paging_requirement] threshold is met. [member hard_stop] will be assumed as [code]true[/code] for this.
 }
 ## Internel enum used to differentiate what animation is currently playing
@@ -162,7 +162,7 @@ signal slowdown_interupted
 @export_subgroup("Slowdown")
 ## If [code]true[/code] the carousel will immediately stop when not being dragged. Otherwise, drag speed will be gradually decreased.
 ## [br][br]
-## This property is assumed [code]false[/code] if [member snap_behavior] is set to [SNAP_BEHAVIOR.NONE]. Also see [member slowdown_drag] and [member slowdown_friction].
+## This property is assumed [code]true[/code] if [member snap_behavior] is set to [SNAP_BEHAVIOR.PAGING]. Also see [member slowdown_drag], [member slowdown_friction], and [member slowdown_cutoff].
 @export var hard_stop : bool = true:
 	set(val):
 		if val != hard_stop:
@@ -172,12 +172,16 @@ signal slowdown_interupted
 			notify_property_list_changed()
 ## The percentage multiplier the drag velocity will experience each frame.
 ## [br][br]
-## This property does nothing if [member hard_stop] is [code]false[/code].
+## This property does nothing if [member hard_stop] is [code]true[/code].
 @export_range(0.0, 1.0, 0.001) var slowdown_drag : float = 0.9
 ## The constant decrease the drag velocity will experience each frame.
 ## [br][br]
-## This property does nothing if [member hard_stop] is [code]false[/code].
+## This property does nothing if [member hard_stop] is [code]true[/code].
 @export_range(0.0, 5.0, 0.001, "or_greater", "hide_slider") var slowdown_friction : float = 0.1
+## The cutoff amount. If drag velocity magnitude drops below this amount, the slowdown has finished.
+## [br][br]
+## This property does nothing if [member hard_stop] is [code]true[/code].
+@export_range(0.01, 10.0, 0.001, "or_greater", "hide_slider") var slowdown_cutoff : float = 0.01
 
 var _scroll_value : int
 var _drag_scroll_value : int
@@ -389,26 +393,27 @@ func _adjust_children() -> void:
 
 
 func _start_drag_slowdown() -> void:
-	print(1)
 	if get_tree() && !get_tree().process_frame.is_connected(_handle_drag_slowdown):
 		get_tree().process_frame.connect(_handle_drag_slowdown)
 func _end_drag_slowdown() -> void:
-	if _drag_velocity != 0:
+	if abs(_drag_velocity) < slowdown_cutoff:
 		slowdown_interupted.emit()
 		_drag_velocity = 0
+		if snap_behavior == SNAP_BEHAVIOR.SNAP:
+			_create_animation(get_carousel_index(), ANIMATION_TYPE.SNAP)
 	if get_tree() && get_tree().process_frame.is_connected(_handle_drag_slowdown):
 		get_tree().process_frame.disconnect(_handle_drag_slowdown)
 func _handle_drag_slowdown() -> void:
-	if is_zero_approx(_drag_velocity):
+	if abs(_drag_velocity) < slowdown_cutoff:
 		slowdown_end.emit()
 		_end_drag_slowdown()
 		return
 	
-	_drag_velocity *= slowdown_drag
 	if _drag_velocity > 0:
 		_drag_velocity = max(0, _drag_velocity - slowdown_friction)
 	else:
 		_drag_velocity = min(0, _drag_velocity + slowdown_friction)
+	_drag_velocity *= slowdown_drag
 	_scroll_value += _drag_velocity
 	_adjust_children()
 
@@ -474,7 +479,8 @@ func _gui_input(event: InputEvent) -> void:
 			if snap_behavior == SNAP_BEHAVIOR.NONE:
 				if !hard_stop: _start_drag_slowdown()
 			elif snap_behavior == SNAP_BEHAVIOR.SNAP:
-				_create_animation(get_carousel_index(), ANIMATION_TYPE.SNAP)
+				if hard_stop: _create_animation(get_carousel_index(), ANIMATION_TYPE.SNAP)
+				else: _start_drag_slowdown()
 func _validate_property(property: Dictionary) -> void:
 	if property.name == "enforce_border":
 		if display_loop:
@@ -486,10 +492,10 @@ func _validate_property(property: Dictionary) -> void:
 		if snap_behavior != SNAP_BEHAVIOR.PAGING:
 			property.usage |= PROPERTY_USAGE_READ_ONLY
 	elif property.name == "hard_stop":
-		if snap_behavior != SNAP_BEHAVIOR.NONE:
+		if snap_behavior == SNAP_BEHAVIOR.PAGING:
 			property.usage |= PROPERTY_USAGE_READ_ONLY
-	elif property.name in ["slowdown_drag", "slowdown_friction"]:
-		if hard_stop || snap_behavior != SNAP_BEHAVIOR.NONE:
+	elif property.name in ["slowdown_drag", "slowdown_friction", "slowdown_cutoff"]:
+		if hard_stop || snap_behavior == SNAP_BEHAVIOR.PAGING:
 			property.usage |= PROPERTY_USAGE_READ_ONLY
 func _get_allowed_size_flags_horizontal() -> PackedInt32Array:
 	return [SIZE_FILL, SIZE_SHRINK_BEGIN, SIZE_SHRINK_CENTER, SIZE_SHRINK_END]
