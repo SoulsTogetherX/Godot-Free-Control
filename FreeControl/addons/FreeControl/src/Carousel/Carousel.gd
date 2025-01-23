@@ -1,36 +1,42 @@
 @tool
 class_name Carousel extends Container
+## A container for Carousel Display of [Control] nodes.
 
-enum DRAG_LIMIT {
-	None = 0b00,
-	Limits = 0b01,
-	Item = 0b10,
-	Both = 0b11
-}
+## Changes the direction carousel items will be displayed in.
 enum CAROUSEL_ORIENTATION {
-	horizontal = 0b00,
-	vertical = 0b01,
-	horizontal_reversed = 0b10,
-	vertical_reversed = 0b11
+	horizontal = 0b00, ## From Left to Right
+	vertical = 0b01, ## From Top to Bottom
+	horizontal_reversed = 0b10, ## From Right to Left
+	vertical_reversed = 0b11 ## From Bottom to Top
 }
+## Changes the behavior of how draging scrolls the carousel items. Also see [member snap_carousel_transtion_type], [member snap_carousel_ease_type], and [member paging_requirement].
 enum SNAP_BEHAVIOR {
-	NONE = 0b00,
-	SNAP = 0b01,
-	PAGING = 0b10
+	NONE = 0b00, ## No behavior.
+	SNAP = 0b01, ## Once drag is released, the carousel will snap to the nearest item. [member hard_stop] will be assumed as [code]true[/code] for this.
+	PAGING = 0b10 ## Carousel items will not scroll when dragged, unless [member paging_requirement] threshold is met. [member hard_stop] will be assumed as [code]true[/code] for this.
 }
+## Internel enum used to differentiate what animation is currently playing
 enum ANIMATION_TYPE {
-	NONE = 0b00,
-	MANUAL = 0b01,
-	SNAP = 0b10
+	NONE = 0b00, ## No behavior.
+	MANUAL = 0b01, ## Currently animating via request by [method go_to_index].
+	SNAP = 0b10 ## Currently animating via an auto-item snapping request.
 }
 
+## This signal is emited when a snap reaches it's destination.
 signal snap_end
+## This signal is emited when a snap begins.
 signal snap_begin
-
+## This signal is emited when a drag finishes. This does not include the slowdown caused when [memeber hard_stop] is [code]false[/code].
 signal drag_end
+## This signal is emited when a drag begins.
 signal drag_begin
+## This signal is emited when the slowdown, caused when [memeber hard_stop] is [code]false[/code], finished naturally.
+signal slowdown_end
+## This signal is emited when the slowdown, caused when [memeber hard_stop] is [code]false[/code], is interrupted by another drag or other feature. 
+signal slowdown_interupted
 
 @export_group("Carousel Options")
+## The index of the item this carousel will start at.
 @export var starting_index : int = 0:
 	set(val):
 		if is_node_ready() && _item_count != 0:
@@ -38,6 +44,7 @@ signal drag_begin
 		if starting_index != val:
 			starting_index = val
 			go_to_index(-val, false)
+## The size of each item in the carousel.
 @export var item_size : Vector2 = Vector2(200, 200):
 	set(val):
 		if item_size != val:
@@ -45,12 +52,14 @@ signal drag_begin
 			item_size = val
 			_settup_children()
 			go_to_index(current_index, false)
+## The space between each item in the carousel.
 @export var item_seperation : int = 0:
 	set(val):
 		if item_seperation != val:
 			item_seperation = val
 			_kill_animation()
 			_adjust_children()
+## The orientation the carousel items will be displayed in.
 @export var orientation : CAROUSEL_ORIENTATION = CAROUSEL_ORIENTATION.horizontal:
 	set(val):
 		if orientation != val:
@@ -61,13 +70,19 @@ signal drag_begin
 			go_to_index(current_index, false)
 
 @export_group("Loop Options")
+## Allows looping from the last item to the first and vice versa.
 @export var allow_loop : bool = true
+## If [code]true[/code], the carousel will display it's items as if looping. Otherwise, the items will not loop.
+## [br][br]
+## also see [member enforce_border] and [member border_limit].
 @export var display_loop : bool = true:
 	set(val):
 		if val != display_loop:
 			display_loop = val
 			_adjust_children()
 			notify_property_list_changed()
+## The number of items, surrounding the current item of the current index, that will be visible.
+## If [code]-1[/code], all items will be visible.
 @export var display_range : int = -1:
 	set(val):
 		val = max(-1, val)
@@ -76,13 +91,16 @@ signal drag_begin
 			_adjust_children()
 
 @export_group("Snap")
+## Assigns the behavior of how draging scrolls the carousel items. Also see [member snap_carousel_transtion_type], [member snap_carousel_ease_type], and [member paging_requirement].
 @export var snap_behavior : SNAP_BEHAVIOR = SNAP_BEHAVIOR.SNAP:
 	set(val):
 		if val != snap_behavior:
 			snap_behavior = val
-			notify_property_list_changed()
-			if val && is_node_ready():
+			if is_node_ready():
+				_end_drag_slowdown()
 				_create_animation(get_carousel_index(), ANIMATION_TYPE.SNAP)
+			notify_property_list_changed()
+## If [memeber snap_behavior] is [SNAP_BEHAVIOR.PAGING], this is the draging threshold needed to page to the next carousel item.
 @export var paging_requirement : int = 200:
 	set(val):
 		val = max(1, val)
@@ -92,16 +110,23 @@ signal drag_begin
 
 @export_group("Animation Options")
 @export_subgroup("Manual")
+## The duration of the animation any call to [method go_to_index] will cause, if the animation option is requested. 
 @export_range(0.001, 2.0, 0.001, "or_greater") var manual_carousel_duration : float = 0.4
+## The [enum Tween.TransitionType] of the animation any call to [method go_to_index] will cause, if the animation option is requested. 
 @export var manual_carousel_transtion_type : Tween.TransitionType
+## The [enum Tween.EaseType] of the animation any call to [method go_to_index] will cause, if the animation option is requested. 
 @export var manual_carousel_ease_type : Tween.EaseType
 
 @export_subgroup("Snap")
+## The duration of the animation when snapping to an item.
 @export_range(0.001, 2.0, 0.001, "or_greater") var snap_carousel_duration : float = 0.2
+## The [enum Tween.TransitionType] of the animation when snapping to an item.
 @export var snap_carousel_transtion_type : Tween.TransitionType
+## The [enum Tween.EaseType] of the animation when snapping to an item.
 @export var snap_carousel_ease_type : Tween.EaseType
 
 @export_group("Drag")
+## If [code]true[/code], the user is allowed to drag via their mouse or touch.
 @export var can_drag : bool = true:
 	set(val):
 		if val != can_drag:
@@ -110,24 +135,53 @@ signal drag_begin
 				_drag_scroll_value = 0
 				if _is_dragging:
 					_adjust_children()
+@export_subgroup("Limits")
+## The max amount a user can drag in either direction. If [code]0[/code], then the user can drag any amount they wish.
+@export var drag_limit : int = 0:
+	set(val):
+		val = max(0, val)
+		if val != drag_limit: drag_limit = val
+## When dragging, the user will not be able to move past the last or first item, besides for [member border_limit] number of extra pixels.
+## [br][br]
+## This value is assumed [code]false[/code] is [memeber display_loop] is [code]true[/code].
 @export var enforce_border : bool = false:
 	set(val):
 		if val != enforce_border:
 			enforce_border = val
 			_adjust_children()
 			notify_property_list_changed()
-@export var drag_limit : int = 0:
-	set(val):
-		val = max(0, val)
-		if val != drag_limit: drag_limit = val
+## The amount of extra pixels a user can drag past the last and before the first item in the carousel.
+## [br][br]
+## This property does nothing if enforce_border is [code]false[/code].
 @export var border_limit : int = 0:
 	set(val):
 		if val != border_limit:
 			border_limit = val
 			_adjust_children()
 
+@export_subgroup("Slowdown")
+## If [code]true[/code] the carousel will immediately stop when not being dragged. Otherwise, drag speed will be gradually decreased.
+## [br][br]
+## This property is assumed [code]false[/code] if [member snap_behavior] is set to [SNAP_BEHAVIOR.NONE]. Also see [member slowdown_drag] and [member slowdown_friction].
+@export var hard_stop : bool = true:
+	set(val):
+		if val != hard_stop:
+			hard_stop = val
+			if is_node_ready():
+				_end_drag_slowdown()
+			notify_property_list_changed()
+## The percentage multiplier the drag velocity will experience each frame.
+## [br][br]
+## This property does nothing if [member hard_stop] is [code]false[/code].
+@export_range(0.0, 1.0, 0.001) var slowdown_drag : float = 0.9
+## The constant decrease the drag velocity will experience each frame.
+## [br][br]
+## This property does nothing if [member hard_stop] is [code]false[/code].
+@export_range(0.0, 5.0, 0.001, "or_greater", "hide_slider") var slowdown_friction : float = 0.1
+
 var _scroll_value : int
 var _drag_scroll_value : int
+var _drag_velocity : float
 
 var _item_count : int = 0
 var _item_infos : Array
@@ -136,6 +190,7 @@ var _scroll_tween : Tween
 var _is_dragging : bool = false
 
 var _last_animation : ANIMATION_TYPE = ANIMATION_TYPE.NONE
+
 
 func _get_child_rect(child : Control) -> Rect2:
 	var child_pos : Vector2 = (size - item_size) * 0.5
@@ -333,30 +388,65 @@ func _adjust_children() -> void:
 			_on_item_progress(item_info.node, local_scroll, scroll, local_index, item)
 
 
+func _start_drag_slowdown() -> void:
+	print(1)
+	if get_tree() && !get_tree().process_frame.is_connected(_handle_drag_slowdown):
+		get_tree().process_frame.connect(_handle_drag_slowdown)
+func _end_drag_slowdown() -> void:
+	if _drag_velocity != 0:
+		slowdown_interupted.emit()
+		_drag_velocity = 0
+	if get_tree() && get_tree().process_frame.is_connected(_handle_drag_slowdown):
+		get_tree().process_frame.disconnect(_handle_drag_slowdown)
+func _handle_drag_slowdown() -> void:
+	if is_zero_approx(_drag_velocity):
+		slowdown_end.emit()
+		_end_drag_slowdown()
+		return
+	
+	_drag_velocity *= slowdown_drag
+	if _drag_velocity > 0:
+		_drag_velocity = max(0, _drag_velocity - slowdown_friction)
+	else:
+		_drag_velocity = min(0, _drag_velocity + slowdown_friction)
+	_scroll_value += _drag_velocity
+	_adjust_children()
+
+
 func _ready() -> void:
 	if !sort_children.is_connected(_sort_children):
 		sort_children.connect(_sort_children)
+	if !tree_exiting.is_connected(_end_drag_slowdown):
+		tree_exiting.connect(_end_drag_slowdown)
 	_settup_children()
 	starting_index = posmod(starting_index, _item_count)
 	go_to_index(-starting_index, false)
 func _gui_input(event: InputEvent) -> void:
 	if !can_drag: return
 	
+	if event is InputEventMouseMotion:
+		pass
+	
 	if event is InputEventScreenDrag && event.index == 0:
 		if !_is_dragging:
 			drag_begin.emit()
+			_end_drag_slowdown()
 			_kill_animation()
 		_is_dragging = true
 		
 		match orientation:
 			CAROUSEL_ORIENTATION.horizontal:
 				_drag_scroll_value -= event.relative.x
+				_drag_velocity = -event.relative.x
 			CAROUSEL_ORIENTATION.vertical:
 				_drag_scroll_value -= event.relative.y
+				_drag_velocity = -event.relative.y
 			CAROUSEL_ORIENTATION.horizontal_reversed:
 				_drag_scroll_value += event.relative.x
+				_drag_velocity = event.relative.x
 			CAROUSEL_ORIENTATION.vertical_reversed:
 				_drag_scroll_value += event.relative.y
+				_drag_velocity = event.relative.y
 		
 		if drag_limit != 0:
 			_drag_scroll_value = clampi(_drag_scroll_value, -drag_limit, drag_limit)
@@ -375,14 +465,16 @@ func _gui_input(event: InputEvent) -> void:
 		else:
 			_adjust_children()
 	elif event is InputEventScreenTouch && !event.pressed:
-		if snap_behavior != SNAP_BEHAVIOR.PAGING:
-			_scroll_value = _get_adjusted_scroll()
-		_drag_scroll_value = 0
 		_is_dragging = false
 		drag_end.emit()
 		
-		if snap_behavior == SNAP_BEHAVIOR.SNAP:
-			_create_animation(get_carousel_index(), ANIMATION_TYPE.SNAP)
+		if snap_behavior != SNAP_BEHAVIOR.PAGING:
+			_scroll_value = _get_adjusted_scroll()
+			_drag_scroll_value = 0
+			if snap_behavior == SNAP_BEHAVIOR.NONE:
+				if !hard_stop: _start_drag_slowdown()
+			elif snap_behavior == SNAP_BEHAVIOR.SNAP:
+				_create_animation(get_carousel_index(), ANIMATION_TYPE.SNAP)
 func _validate_property(property: Dictionary) -> void:
 	if property.name == "enforce_border":
 		if display_loop:
@@ -393,8 +485,12 @@ func _validate_property(property: Dictionary) -> void:
 	elif property.name == "paging_requirement":
 		if snap_behavior != SNAP_BEHAVIOR.PAGING:
 			property.usage |= PROPERTY_USAGE_READ_ONLY
-
-
+	elif property.name == "hard_stop":
+		if snap_behavior != SNAP_BEHAVIOR.NONE:
+			property.usage |= PROPERTY_USAGE_READ_ONLY
+	elif property.name in ["slowdown_drag", "slowdown_friction"]:
+		if hard_stop || snap_behavior != SNAP_BEHAVIOR.NONE:
+			property.usage |= PROPERTY_USAGE_READ_ONLY
 func _get_allowed_size_flags_horizontal() -> PackedInt32Array:
 	return [SIZE_FILL, SIZE_SHRINK_BEGIN, SIZE_SHRINK_CENTER, SIZE_SHRINK_END]
 func _get_allowed_size_flags_vertical() -> PackedInt32Array:
@@ -404,6 +500,9 @@ func _get_allowed_size_flags_vertical() -> PackedInt32Array:
 
 # Public Functions
 
+## Gets the index of the current carousel item.[br]
+## If [param with_drag] is [code]true[/code] the current drag will also be considered.[br]
+## If [param with_clamp] is [code]true[/code] the index will be looped if [member allow_loop] is true or clamped to a vaild index within the carousel.
 func get_carousel_index(with_drag : bool = false, with_clamp : bool = true) -> int:
 	if _item_count == 0: return -1
 	
@@ -418,14 +517,17 @@ func get_carousel_index(with_drag : bool = false, with_clamp : bool = true) -> i
 			calculated = clampi(calculated, 0, _item_count - 1)
 	
 	return calculated
+## Moves to an item of the given index within the carousel. If an invalid index is given, it will be posmod into a vaild index.
 func go_to_index(idx : int, animation : bool = true) -> void:
 	if animation: _create_animation(idx, ANIMATION_TYPE.MANUAL)
 	else:
 		_kill_animation()
 		_scroll_value = -_get_relevant_axis() * idx
 		_adjust_children()
+## Moves to the previous item in the carousel, if there is one.
 func prev(animation : bool = true) -> void:
 	go_to_index(get_carousel_index() - 1, animation)
+## Moves to the next item in the carousel, if there is one.
 func next(animation : bool = true) -> void:
 	go_to_index(get_carousel_index() + 1, animation)
 
@@ -433,11 +535,14 @@ func next(animation : bool = true) -> void:
 
 # Virtual Functions
 
+## A virtual function that is is called whenever the scroll changes.
 func _on_progress(scroll : int) -> void: pass
+## A virtual function that is is called whenever the scroll changes, for each visible item in the carousel
 func _on_item_progress(item : Control, local_scroll : int, scroll : int, local_index : int, index : int) -> void: pass
 
 
-
+ 
+# Used to hold data about a carousel item
 class ItemInfo:
 	var node : Control
 	var rect : Rect2
