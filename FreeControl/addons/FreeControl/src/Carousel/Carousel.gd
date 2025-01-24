@@ -384,7 +384,7 @@ func _adjust_children() -> void:
 			item_info.loaded = true
 			item_info.node.visible = true
 			item_info.node.z_index = index - abs(local_offset)
-			_on_item_progress(item_info.node, local_scroll, scroll, local_index, item)
+			_on_item_progress(item_info.node, local_scroll, scroll, item, local_index)
 	else:
 		if display_range == -1:
 			range = range(0, _item_count)
@@ -428,7 +428,7 @@ func _adjust_children() -> void:
 			fit_child_in_rect(item_info.node, rect)
 			item_info.node.visible = true
 			item_info.node.z_index = index - abs(local_index)
-			_on_item_progress(item_info.node, local_scroll, scroll, local_index, item)
+			_on_item_progress(item_info.node, local_scroll, scroll, item, local_index)
 
 
 func _start_drag_slowdown() -> void:
