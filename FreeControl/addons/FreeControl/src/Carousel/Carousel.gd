@@ -237,13 +237,14 @@ func _get_adjusted_scroll() -> int:
 		scroll += _drag_scroll_value
 	if enforce_border:
 		scroll = clampi(scroll, -border_limit, _get_relevant_axis() * (_item_count - 1) + border_limit)
+	elif display_loop:
+		scroll = posmod(scroll, _get_relevant_axis() * _item_count)
 	return scroll
 
 
 func _create_animation(idx : int, animation_type : ANIMATION_TYPE) -> void:
 	_kill_animation()
 	if _item_count == 0: return
-	
 	_scroll_tween = create_tween()
 	
 	var axis := _get_relevant_axis()
@@ -266,22 +267,22 @@ func _create_animation(idx : int, animation_type : ANIMATION_TYPE) -> void:
 	_last_animation = animation_type
 	match animation_type:
 		ANIMATION_TYPE.MANUAL:
+			_scroll_tween.set_ease(manual_carousel_ease_type)
+			_scroll_tween.set_trans(manual_carousel_transtion_type)
 			_scroll_tween.tween_method(
 				_animation_method,
 				_scroll_value,
 				desired_scroll,
 				manual_carousel_duration)
-			_scroll_tween.set_ease(manual_carousel_ease_type)
-			_scroll_tween.set_trans(manual_carousel_transtion_type)
 		ANIMATION_TYPE.SNAP:
 			snap_begin.emit()
+			_scroll_tween.set_ease(snap_carousel_ease_type)
+			_scroll_tween.set_trans(snap_carousel_transtion_type)
 			_scroll_tween.tween_method(
 				_animation_method,
 				_scroll_value,
 				desired_scroll,
 				snap_carousel_duration)
-			_scroll_tween.set_ease(snap_carousel_ease_type)
-			_scroll_tween.set_trans(snap_carousel_transtion_type)
 			_scroll_tween.tween_callback(_kill_animation)
 	_scroll_tween.play()
 func _animation_method(scroll : int) -> void:
@@ -614,12 +615,14 @@ func is_animating() -> bool:
 ## Returns if the carousel is currening being dragged by player input.
 func being_dragged() -> bool:
 	return _is_dragging
-## Gets the current scroll value.
+## Returns the current scroll value.
 func get_scroll(with_drag : bool = false) -> int:
 	if with_drag:
 		return _scroll_value + _drag_scroll_value
 	return _scroll_value
-
+## Returns the current number of items in the carousel
+func get_item_count() -> int:
+	return _item_count
 
 
 # Virtual Functions

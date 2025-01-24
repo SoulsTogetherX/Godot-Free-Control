@@ -1,0 +1,73 @@
+[gd_scene load_steps=3 format=3 uid="uid://c77gcg3hhjik8"]
+
+[ext_resource type="Script" path="res://addons/FreeControl/src/Carousel/Carousel.gd" id="1_deluy"]
+[ext_resource type="Texture2D" uid="uid://bdenffuc0sdcl" path="res://icon.svg" id="2_rlhig"]
+
+[node name="Control" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Carousel" type="Container" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_deluy")
+
+[node name="1" type="TextureRect" parent="Carousel"]
+layout_mode = 2
+texture = ExtResource("2_rlhig")
+
+[node name="2" type="TextureRect" parent="Carousel"]
+modulate = Color(0, 1, 1, 1)
+z_index = -1
+layout_mode = 2
+texture = ExtResource("2_rlhig")
+
+[node name="3" type="TextureRect" parent="Carousel"]
+modulate = Color(1, 0, 1, 1)
+z_index = -2
+layout_mode = 2
+texture = ExtResource("2_rlhig")
+
+[node name="4" type="TextureRect" parent="Carousel"]
+modulate = Color(1, 1, 0, 1)
+z_index = -3
+layout_mode = 2
+texture = ExtResource("2_rlhig")
+
+[node name="5" type="TextureRect" parent="Carousel"]
+modulate = Color(0, 0, 1, 1)
+z_index = -4
+layout_mode = 2
+texture = ExtResource("2_rlhig")
+
+[node name="6" type="TextureRect" parent="Carousel"]
+modulate = Color(0, 1, 0, 1)
+z_index = -4
+layout_mode = 2
+texture = ExtResource("2_rlhig")
+
+[node name="7" type="TextureRect" parent="Carousel"]
+modulate = Color(1, 0, 0, 1)
+z_index = -3
+layout_mode = 2
+texture = ExtResource("2_rlhig")
+
+[node name="8" type="TextureRect" parent="Carousel"]
+modulate = Color(0, 0, 0, 1)
+z_index = -2
+layout_mode = 2
+texture = ExtResource("2_rlhig")
+
+[node name="9" type="TextureRect" parent="Carousel"]
+modulate = Color(1, 1, 1, 0.498039)
+z_index = -1
+layout_mode = 2
+texture = ExtResource("2_rlhig")
