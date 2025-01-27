@@ -128,7 +128,7 @@ var hide_indicator : bool = false:
 			hide_indicator = val
 			queue_redraw()
 
-var _last_overlapped : bool
+var _last_overlapped : int = 2
 
 func _draw() -> void:
 	if !_mount || !Engine.is_editor_hint() || hide_indicator || !scroll || check_mode == CHECK_MODE.NONE: return
@@ -141,7 +141,6 @@ func _draw() -> void:
 	scroll_transform.get_rotation() - transform.get_rotation(),
 	scroll_transform.get_scale() / transform.get_scale())
 	draw_rect(draw_rect, HIGHLIGHT_COLOR)
-
 func _get_property_list() -> Array[Dictionary]:
 	var ret : Array[Dictionary] = []
 	var horizontal : int = 0 if check_mode & CHECK_MODE.HORIZONTAL else PROPERTY_USAGE_READ_ONLY
@@ -251,12 +250,12 @@ func _scrolled_horizontal(scroll_hor : float) -> void:
 	
 	var overlapped := is_overlaped_with_activate_zone()
 	if overlapped:
-		if !_last_overlapped:
+		if _last_overlapped != 1:
 			entered_zone.emit()
-			_last_overlapped = true
+			_last_overlapped = 1
 		_while_in_zone(zone_local_scroll().x)
 	elif _last_overlapped:
-		_last_overlapped = false
+		_last_overlapped = 0
 		_while_in_zone(1 if zone_local_scroll().x > 0.5 else 0)
 		exited_zone.emit()
 func _scrolled_vertical(scroll_ver : float) -> void:
@@ -264,12 +263,12 @@ func _scrolled_vertical(scroll_ver : float) -> void:
 	
 	var overlapped := is_overlaped_with_activate_zone()
 	if overlapped:
-		if !_last_overlapped:
+		if _last_overlapped != 1:
 			entered_zone.emit()
-			_last_overlapped = true
+			_last_overlapped = 1
 		_while_in_zone(zone_local_scroll().y)
 	elif _last_overlapped:
-		_last_overlapped = false
+		_last_overlapped = 0
 		_while_in_zone(1 if zone_local_scroll().y > 0.5 else 0)
 		exited_zone.emit()
 
@@ -350,8 +349,10 @@ func get_zone_rect() -> Rect2:
 ## Also see [method get_zone_rect], [member zone_horizontal], [member zone_vertical],
 ## [member zone_range_horizontal], [member zone_range_vertical].
 func get_zone_global_rect() -> Rect2:
+	if !scroll: return Rect2()
+	
 	var zone_rect := get_zone_rect()
-	zone_rect.position -= scroll.global_position
+	zone_rect.position += scroll.global_position
 	return zone_rect
 ## Gets the percentage of this node's mount intersection with the zone.
 ## [br][br]
@@ -366,7 +367,9 @@ func in_zone_percent() -> float:
 func zone_local_scroll() -> Vector2:
 	var zone := get_zone_global_rect()
 	var mount := _mount.get_global_rect()
-	return (_mount.global_position - zone.position + mount.size) / (zone.size + mount.size)
+	
+	if zone.size + mount.size == Vector2.ZERO: return Vector2.ZERO
+	return Vector2.ONE + ((zone.position - _mount.global_position - mount.size) / (zone.size + mount.size)).clampf(-1, 0)
 
 
 
@@ -376,4 +379,4 @@ func zone_local_scroll() -> Vector2:
 ## after each scroll of [member scroll].
 ## [br][br]
 ## Paramter [param _scroll] is the local scroll within the zone.
-func _while_in_zone(_scroll : float) -> void: pass
+func _while_in_zone(scroll : float) -> void: pass

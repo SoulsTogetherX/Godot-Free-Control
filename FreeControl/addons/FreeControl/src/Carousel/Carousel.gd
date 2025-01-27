@@ -2,17 +2,6 @@
 class_name Carousel extends Container
 ## A container for Carousel Display of [Control] nodes.
 
-## Changes the direction carousel items will be displayed in.
-enum CAROUSEL_ORIENTATION {
-	horizontal = 0b00, ## From Left to Right
-	vertical = 0b01, ## From Top to Bottom
-	horizontal_reversed = 0b10, ## From Right to Left
-	vertical_reversed = 0b11, ## From Bottom to Top
-	diagonal = 0b100,
-	diagonal_reversed = 0b101,
-	antidiagonal = 0b110,
-	antidiagonal_reversed = 0b111,
-}
 ## Changes the behavior of how draging scrolls the carousel items. Also see [member snap_carousel_transtion_type], [member snap_carousel_ease_type], and [member paging_requirement].
 enum SNAP_BEHAVIOR {
 	NONE = 0b00, ## No behavior.
@@ -64,11 +53,14 @@ signal slowdown_interupted
 			_kill_animation()
 			_adjust_children()
 ## The orientation the carousel items will be displayed in.
-@export var orientation : CAROUSEL_ORIENTATION = CAROUSEL_ORIENTATION.horizontal:
+@export_range(0, 360, 0.001, "or_less", "or_greater") var carousel_angle : float = 0.0:
 	set(val):
-		if orientation != val:
+		if carousel_angle != val:
 			var current_index := get_carousel_index()
-			orientation = val
+			
+			carousel_angle = val
+			_angle_vec = Vector2.RIGHT.rotated(deg_to_rad(carousel_angle))
+			
 			_kill_animation()
 			_adjust_children()
 			go_to_index(current_index, false)
@@ -199,6 +191,7 @@ var _is_dragging : bool = false
 
 var _last_animation : ANIMATION_TYPE = ANIMATION_TYPE.NONE
 
+var _angle_vec : Vector2
 
 func _get_child_rect(child : Control) -> Rect2:
 	var child_pos : Vector2 = (size - item_size) * 0.5
@@ -227,10 +220,11 @@ func _get_children() -> Array[Control]:
 			ret.append(child)
 	return ret
 func _get_relevant_axis() -> int:
-	if bool(orientation & 0b100):
-		return item_size.length()
+	var abs_angle_vec = _angle_vec.abs()
 	
-	return (item_size.y if bool(orientation & 0b01) else item_size.x) + item_seperation
+	if abs_angle_vec.y >= abs_angle_vec.x:
+		return item_size.x / abs_angle_vec.y
+	return item_size.y / abs_angle_vec.x
 func _get_adjusted_scroll() -> int:
 	var scroll := _scroll_value
 	if snap_behavior != SNAP_BEHAVIOR.PAGING:
@@ -355,31 +349,8 @@ func _adjust_children() -> void:
 			
 			local_offset += adjustment
 			var rect : Rect2 = item_info.rect
-			match orientation:
-				CAROUSEL_ORIENTATION.horizontal:
-					rect.position.x += local_offset * axis - local_scroll
-				CAROUSEL_ORIENTATION.vertical:
-					rect.position.y += local_offset * axis - local_scroll
-				CAROUSEL_ORIENTATION.horizontal_reversed:
-					rect.position.x -= local_offset * axis - local_scroll
-				CAROUSEL_ORIENTATION.vertical_reversed:
-					rect.position.y -= local_offset * axis - local_scroll
-				CAROUSEL_ORIENTATION.diagonal:
-					var value := local_offset * axis - local_scroll
-					rect.position.x += value
-					rect.position.y += value
-				CAROUSEL_ORIENTATION.diagonal_reversed:
-					var value := -(local_offset * axis - local_scroll)
-					rect.position.x += value
-					rect.position.y += value
-				CAROUSEL_ORIENTATION.antidiagonal:
-					var value := local_offset * axis - local_scroll
-					rect.position.x += value
-					rect.position.y -= value
-				CAROUSEL_ORIENTATION.antidiagonal_reversed:
-					var value := local_offset * axis - local_scroll
-					rect.position.x -= value
-					rect.position.y += value
+			
+			rect.position += _angle_vec * (local_offset * axis - local_scroll)
 			
 			fit_child_in_rect(item_info.node, rect)
 			item_info.loaded = true
@@ -400,31 +371,8 @@ func _adjust_children() -> void:
 			
 			local_index += adjustment
 			var rect : Rect2 = item_info.rect
-			match orientation:
-				CAROUSEL_ORIENTATION.horizontal:
-					rect.position.x += local_index * axis - local_scroll
-				CAROUSEL_ORIENTATION.vertical:
-					rect.position.y += local_index * axis - local_scroll
-				CAROUSEL_ORIENTATION.horizontal_reversed:
-					rect.position.x -= local_index * axis - local_scroll
-				CAROUSEL_ORIENTATION.vertical_reversed:
-					rect.position.y -= local_index * axis - local_scroll
-				CAROUSEL_ORIENTATION.diagonal:
-					var value := local_index * axis - local_scroll
-					rect.position.x += value
-					rect.position.y += value
-				CAROUSEL_ORIENTATION.diagonal_reversed:
-					var value := -(local_index * axis - local_scroll)
-					rect.position.x += value
-					rect.position.y += value
-				CAROUSEL_ORIENTATION.antidiagonal:
-					var value := local_index * axis - local_scroll
-					rect.position.x += value
-					rect.position.y -= value
-				CAROUSEL_ORIENTATION.antidiagonal_reversed:
-					var value := local_index * axis - local_scroll
-					rect.position.x -= value
-					rect.position.y += value
+			
+			rect.position += _angle_vec * (local_index * axis - local_scroll)
 			
 			fit_child_in_rect(item_info.node, rect)
 			item_info.node.visible = true
@@ -464,6 +412,7 @@ func _ready() -> void:
 	if !tree_exiting.is_connected(_end_drag_slowdown):
 		tree_exiting.connect(_end_drag_slowdown)
 	
+	_angle_vec = Vector2.RIGHT.rotated(deg_to_rad(carousel_angle))
 	_settup_children()
 	if _item_count > 0:
 		starting_index = posmod(starting_index, _item_count)
@@ -481,43 +430,9 @@ func _gui_input(event: InputEvent) -> void:
 			_kill_animation()
 		_is_dragging = true
 		
-		match orientation:
-			CAROUSEL_ORIENTATION.horizontal:
-				_drag_scroll_value -= event.relative.x
-				_drag_velocity = -event.relative.x
-			CAROUSEL_ORIENTATION.vertical:
-				_drag_scroll_value -= event.relative.y
-				_drag_velocity = -event.relative.y
-			CAROUSEL_ORIENTATION.horizontal_reversed:
-				_drag_scroll_value += event.relative.x
-				_drag_velocity = event.relative.x
-			CAROUSEL_ORIENTATION.vertical_reversed:
-				_drag_scroll_value += event.relative.y
-				_drag_velocity = event.relative.y
-			CAROUSEL_ORIENTATION.diagonal:
-				var value : float = event.relative.length()
-				if event.relative.x > -event.relative.y:
-					value = -value
-				_drag_scroll_value += value
-				_drag_velocity = value
-			CAROUSEL_ORIENTATION.diagonal_reversed:
-				var value : float = event.relative.length()
-				if event.relative.x < -event.relative.y:
-					value = -value
-				_drag_scroll_value += value
-				_drag_velocity = value
-			CAROUSEL_ORIENTATION.antidiagonal:
-				var value : float = event.relative.length()
-				if event.relative.max_axis_index() == Vector2.AXIS_X:
-					value = -value
-				_drag_scroll_value += value
-				_drag_velocity = value
-			CAROUSEL_ORIENTATION.antidiagonal_reversed:
-				var value : float = event.relative.length()
-				if event.relative.max_axis_index() == Vector2.AXIS_Y:
-					value = -value
-				_drag_scroll_value += value
-				_drag_velocity = value
+		var projected_scalar : float = -event.relative.dot(_angle_vec) / _angle_vec.length_squared()
+		_drag_velocity = projected_scalar
+		_drag_scroll_value += projected_scalar
 		
 		if drag_limit != 0:
 			_drag_scroll_value = clampi(_drag_scroll_value, -drag_limit, drag_limit)
