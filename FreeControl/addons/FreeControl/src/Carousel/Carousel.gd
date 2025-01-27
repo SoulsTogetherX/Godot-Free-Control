@@ -223,8 +223,8 @@ func _get_relevant_axis() -> int:
 	var abs_angle_vec = _angle_vec.abs()
 	
 	if abs_angle_vec.y >= abs_angle_vec.x:
-		return item_size.x / abs_angle_vec.y
-	return item_size.y / abs_angle_vec.x
+		return (item_size.x / abs_angle_vec.y) + item_seperation
+	return (item_size.y / abs_angle_vec.x) + item_seperation
 func _get_adjusted_scroll() -> int:
 	var scroll := _scroll_value
 	if snap_behavior != SNAP_BEHAVIOR.PAGING:
