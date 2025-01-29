@@ -1,4 +1,4 @@
-# Made by Savier Alvarez. A part of the "FreeControl" Godot addon.
+# Made by Xavier Alvarez. A part of the "FreeControl" Godot addon.
 @tool
 class_name AnimatableVisibleControl extends AnimatableScrollControl
 ## A container to be used for free transformation, within a UI, depending on if
@@ -79,7 +79,7 @@ var threshold_vertical : float = 0.5:
 			_scrolled_vertical(0)
 			queue_redraw()
 ## [b]Editor usage only.[/b] Shows or hides the helpful threshold highlighter.
-var hide_indicator : bool = false:
+var hide_indicator : bool = true:
 	set(val):
 		if hide_indicator != val:
 			hide_indicator = val
@@ -148,7 +148,7 @@ func _property_can_revert(property: StringName) -> bool:
 	elif property in ["threshold_horizontal", "threshold_vertical"]:
 		if self[property] != 0.5: return true
 	elif property == "hide_indicator":
-		return hide_indicator
+		return !hide_indicator
 	return false
 func _property_get_revert(property: StringName) -> Variant:
 	if property == "threshold_pixel":
@@ -156,7 +156,7 @@ func _property_get_revert(property: StringName) -> Variant:
 	elif property in ["threshold_horizontal", "threshold_vertical"]:
 		return 0.5
 	elif property == "hide_indicator":
-		return false
+		return true
 	return null
 
 func _ready() -> void:
@@ -396,4 +396,4 @@ func _while_visible(intersect : float) -> void: pass
 ## Paramter [param intersect] is the current threshold value met.
 func _while_threshold(intersect : float) -> void: pass
 
-# Made by Savier Alvarez. A part of the "FreeControl" Godot addon.
+# Made by Xavier Alvarez. A part of the "FreeControl" Godot addon.

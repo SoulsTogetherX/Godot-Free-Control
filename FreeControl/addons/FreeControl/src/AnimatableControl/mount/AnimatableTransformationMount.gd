@@ -1,4 +1,4 @@
-# Made by Savier Alvarez. A part of the "FreeControl" Godot addon.
+# Made by Xavier Alvarez. A part of the "FreeControl" Godot addon.
 @tool
 class_name AnimatableTransformationMount extends AnimatableMount
 ## An [AnimatableMount] that adjusts for it's children 2D transformations: Rotation, Position, and Scale.
@@ -123,7 +123,7 @@ func _get_rotated_rect_bounding_box(rect : Rect2, pivot : Vector2, angle : float
 
 func _ready() -> void:
 	if !size_flags_changed.is_connected(queue_minimum_size_update):
-		size_flags_changed.connect(queue_minimum_size_update, CONNECT_DEFERRED | CONNECT_PERSIST)
+		size_flags_changed.connect(queue_minimum_size_update, CONNECT_DEFERRED)
 	super()
 
 func _on_mount(control : AnimatableControl) -> void:
@@ -137,4 +137,4 @@ func get_relative_size(control : AnimatableControl) -> Vector2:
 		return _child_min_size / control.scale
 	return _child_min_size
 
-# Made by Savier Alvarez. A part of the "FreeControl" Godot addon.
+# Made by Xavier Alvarez. A part of the "FreeControl" Godot addon.

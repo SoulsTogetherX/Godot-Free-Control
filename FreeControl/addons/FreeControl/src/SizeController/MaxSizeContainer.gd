@@ -1,8 +1,9 @@
-# Made by Savier Alvarez. A part of the "FreeControl" Godot addon.
+# Made by Xavier Alvarez. A part of the "FreeControl" Godot addon.
 @tool
 class_name MaxSizeContainer extends Container
 ## A container that limits it's size to a maximum value.
 
+var _min_size := -Vector2.ONE
 var _max_size := -Vector2.ONE
 ## The maximum size this container can possess.
 ## [br][br]
@@ -12,36 +13,37 @@ var _max_size := -Vector2.ONE
 	set(val):
 		_max_size = val
 		queue_sort()
-## If [code]true[/code], positions children relative to the container's top left corner.
-@export var use_top_left : bool = false:
-	set(val):
-		use_top_left = val
-		queue_sort()
+
+var _ignore_resize : bool
 
 func _ready() -> void:
-	if !resized.is_connected(_handle_resize):
-		resized.connect(_handle_resize, CONNECT_PERSIST)
-	if !sort_children.is_connected(_handle_resize):
-		sort_children.connect(_handle_resize, CONNECT_PERSIST)
-	_handle_resize()
-func _get_minimum_size() -> Vector2:
+	if !sort_children.is_connected(_handle_sort):
+		sort_children.connect(_handle_sort)
+	_handle_sort()
+func _find_minimum_size() -> Vector2:
 	var min_size : Vector2 = Vector2.ZERO
 	for c : Node in get_children(true):
 		if c is Control:
-			min_size = min_size.max(c.get_minimum_size())
+			min_size = min_size.max(c.get_combined_minimum_size())
 	return min_size
+func _get_minimum_size() -> Vector2:
+	_min_size = _find_minimum_size()
+	return _min_size
 func _set(property: StringName, value: Variant) -> bool:
 	if property == "size":
 		return true
 	return false
 
 ## A helper function that should be called whenever this node's size needs to be changed, or when it's children are changed.
-func _handle_resize() -> void:
-	if !is_node_ready(): return
+func _handle_sort() -> void:
+	if _ignore_resize: return
+	_ignore_resize = true
 	
 	# Handles everything needed to change max_size and rebound all children
 	update_minimum_size()
 	_before_resize_children()
+	
+	_ignore_resize = false
 	_update_childrend()
 
 ## A virtual helper function that should be used when creating your own MaxSizeContainers.[br]
@@ -60,7 +62,7 @@ func _update_child(child : Control):
 	)
 	
 	var set_pos : Vector2
-	match size_flags_horizontal:
+	match child.size_flags_horizontal & ~SIZE_EXPAND:
 		SIZE_FILL:
 			set_pos.x = (size.x - result_size.x) * 0.5
 		SIZE_SHRINK_BEGIN:
@@ -69,7 +71,7 @@ func _update_child(child : Control):
 			set_pos.x = (size.x - result_size.x) * 0.5
 		SIZE_SHRINK_END:
 			set_pos.x = size.x - result_size.x
-	match size_flags_vertical:
+	match child.size_flags_vertical & ~SIZE_EXPAND:
 		SIZE_FILL:
 			set_pos.y = (size.y - result_size.y) * 0.5
 		SIZE_SHRINK_BEGIN:
@@ -86,4 +88,4 @@ func _get_allowed_size_flags_horizontal() -> PackedInt32Array:
 func _get_allowed_size_flags_vertical() -> PackedInt32Array:
 	return [SIZE_FILL, SIZE_SHRINK_BEGIN, SIZE_SHRINK_CENTER, SIZE_SHRINK_END]
 
-# Made by Savier Alvarez. A part of the "FreeControl" Godot addon.
+# Made by Xavier Alvarez. A part of the "FreeControl" Godot addon.

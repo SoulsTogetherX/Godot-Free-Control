@@ -1,4 +1,4 @@
-# Made by Savier Alvarez. A part of the "FreeControl" Godot addon.
+# Made by Xavier Alvarez. A part of the "FreeControl" Godot addon.
 @tool
 class_name AnimatableMount extends Control
 ## Used as a mount for size consistency between children [AnimatableControl] nodes.
@@ -31,9 +31,9 @@ func _update_children_minimum_size() -> void:
 
 func _ready() -> void:
 	if !resized.is_connected(_handle_resize):
-		resized.connect(_handle_resize, CONNECT_PERSIST)
+		resized.connect(_handle_resize)
 	if !size_flags_changed.is_connected(_handle_resize):
-		size_flags_changed.connect(_handle_resize, CONNECT_PERSIST)
+		size_flags_changed.connect(_handle_resize)
 	
 	queue_minimum_size_update()
 func _handle_resize() -> void:
@@ -55,8 +55,8 @@ func queue_minimum_size_update() -> void:
 		call_deferred("call_deferred", "_update_children_minimum_size")
 	
 		# Releases lock at the start of next frame
-		get_tree().process_frame.connect(_relase_queue, CONNECT_ONE_SHOT)
-func _relase_queue() -> void: _update_queued = false
+		get_tree().process_frame.connect(_release_queue, CONNECT_ONE_SHOT)
+func _release_queue() -> void: _update_queued = false
 
 ## A virtual helper function that should be used when creating your own mounts.[br]
 ## Is called upon an [AnimatableControl] being added as a child.
@@ -68,4 +68,4 @@ func _on_unmount(control : AnimatableControl) -> void: pass
 ## Returns size of this mount.
 func get_relative_size(control : AnimatableControl) -> Vector2: return size
 
-# Made by Savier Alvarez. A part of the "FreeControl" Godot addon.
+# Made by Xavier Alvarez. A part of the "FreeControl" Godot addon.

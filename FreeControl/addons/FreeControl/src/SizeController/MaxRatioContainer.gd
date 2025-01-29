@@ -1,4 +1,4 @@
-# Made by Savier Alvarez. A part of the "FreeControl" Godot addon.
+# Made by Xavier Alvarez. A part of the "FreeControl" Godot addon.
 @tool
 class_name MaxRatioContainer extends MaxSizeContainer
 ## A container that limits an axis of it's size, to a maximum value, relative
@@ -18,26 +18,19 @@ enum MAX_RATIO_MODE {
 	set(val):
 		if val != mode:
 			mode = val
-			_handle_resize()
+			queue_sort()
 ## The ratio value used to expand and limit children.
 @export_range(0.001, 10, 0.001, "or_greater") var ratio : float = 1.0:
 	set(val):
 		if val != ratio:
 			ratio = val
-			_handle_resize()
+			queue_sort()
 
 func _validate_property(property: Dictionary) -> void:
 	if property.name == "max_size":
 		property.usage |= PROPERTY_USAGE_READ_ONLY
 func _get_minimum_size() -> Vector2:
 	return _max_size
-func _get_children_minimum_size() -> Vector2:
-	var min_size : Vector2 = Vector2.ZERO
-	for child : Node in get_children():
-		if child is Control:
-			var child_min : Vector2 = child.get_combined_minimum_size()
-			min_size = min_size.max(child_min)
-	return min_size
 
 ## Updates the _max_size according to the ratio mode and current dimentions
 func _before_resize_children() -> void:
@@ -50,17 +43,17 @@ func _before_resize_children() -> void:
 		MAX_RATIO_MODE.WIDTH:
 			_max_size = Vector2(-1, minf(size.x * ratio, parent.y))
 		MAX_RATIO_MODE.WIDTH_PROPORTION:
-			_max_size = Vector2(-1, min(size.x * ratio, _get_children_minimum_size().y, parent.y))
+			_max_size = Vector2(-1, min(size.x * ratio, _min_size.y, parent.y))
 		MAX_RATIO_MODE.HEIGHT:
 			_max_size = Vector2(minf(size.y * ratio, parent.x), -1)
 		MAX_RATIO_MODE.HEIGHT_PROPORTION:
-			_max_size = Vector2(min(size.y * ratio, _get_children_minimum_size().x, parent.x), -1)
+			_max_size = Vector2(min(size.y * ratio, _min_size.x, parent.x), -1)
 	
 	var newSize := size
 	if _max_size.x >= 0:
 		newSize.x = _max_size.x
 	if _max_size.y >= 0:
 		newSize.y = _max_size.y
-	size = newSize
+	size = newSize.max(_min_size)
 
-# Made by Savier Alvarez. A part of the "FreeControl" Godot addon.
+# Made by Xavier Alvarez. A part of the "FreeControl" Godot addon.

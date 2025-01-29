@@ -1,3 +1,4 @@
+# Made by Xavier Alvarez. A part of the "FreeControl" Godot addon.
 @tool
 class_name Carousel extends Container
 ## A container for Carousel Display of [Control] nodes.
@@ -554,3 +555,5 @@ class ItemInfo:
 	var node : Control
 	var rect : Rect2
 	var loaded : bool
+
+# Made by Xavier Alvarez. A part of the "FreeControl" Godot addon.

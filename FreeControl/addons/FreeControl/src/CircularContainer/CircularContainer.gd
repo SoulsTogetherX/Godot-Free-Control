@@ -1,4 +1,4 @@
-# Made by Savier Alvarez. A part of the "FreeControl" Godot addon.
+# Made by Xavier Alvarez. A part of the "FreeControl" Godot addon.
 @tool
 class_name CircularContainer extends Container
 ## A container that positions children in a ellipse within the bounds of this node.
@@ -17,14 +17,14 @@ enum BOUND_BEHAVIOR {
 @export_range(0, 1) var origin_x : float = 0.5:
 	set(val):
 		origin_x = val
-		_fix_childrend()
+		queue_sort()
 ## The vertical offset of the ellipse's center.
 ## [br][br]
 ## [code]0[/code] is fully top and [code]1[/code] is fully bottom.
 @export_range(0, 1) var origin_y : float = 0.5:
 	set(val):
 		origin_y = val
-		_fix_childrend()
+		queue_sort()
 
 ## The horizontal radius of the ellipse's center.
 ## [br][br]
@@ -32,14 +32,14 @@ enum BOUND_BEHAVIOR {
 @export_range(0, 1) var xRadius : float = 0.5:
 	set(val):
 		xRadius = val
-		_fix_childrend()
+		queue_sort()
 ## The vertical radius of the ellipse's center.
 ## [br][br]
 ## [code]0[/code] is [code]0[/code], [code]0.5[/code] is half of [member Control.size].y, and [code]1[/code] is [member Control.size].y.
 @export_range(0, 1) var yRadius : float = 0.5:
 	set(val):
 		yRadius = val
-		_fix_childrend()
+		queue_sort()
 
 @export_group("Angles")
 ## If [code]false[/code], the node will automatically write the angles of children.[br]
@@ -49,14 +49,7 @@ enum BOUND_BEHAVIOR {
 		if manual != val:
 			manual = val
 			notify_property_list_changed()
-			
-			if !manual:
-				_calculate_angles()
-				if !child_order_changed.is_connected(_calculate_angles):
-					child_order_changed.connect(_calculate_angles)
-			else:
-				if child_order_changed.is_connected(_calculate_angles):
-					child_order_changed.disconnect(_calculate_angles)
+			_calculate_angles()
 
 ## The behavior this node will have if the angle exceeds the max set angle in auto-mode.
 ## [br][br]
@@ -66,9 +59,8 @@ var bound_behavior : BOUND_BEHAVIOR:
 		if bound_behavior != val:
 			bound_behavior = val
 			notify_property_list_changed()
-			
 			_calculate_angles()
-## If true, the nodes will be equal-distantantly placed from each on, between the start and end angles.
+## If true, the nodes will be equal-distantantly placed from each on, between the start and end angles. Overides all other [member bound_behavior].
 ## [br][br]
 ## See [member manual], [member bound_behavior], [member angle_start], and [member angle_end].
 var equal_distant : bool:
@@ -76,7 +68,6 @@ var equal_distant : bool:
 		if equal_distant != val:
 			equal_distant = val
 			notify_property_list_changed()
-			
 			_calculate_angles()
 
 ## The angle auto-mode will increment from.
@@ -125,16 +116,15 @@ var angles : PackedFloat32Array:
 		return ret
 
 func _ready() -> void:
-	if !resized.is_connected(_fix_childrend):
-		resized.connect(_fix_childrend, CONNECT_PERSIST)
+	if !sort_children.is_connected(_fix_childrend):
+		sort_children.connect(_fix_childrend)
 	if !child_order_changed.is_connected(_childrend_changed):
-		child_order_changed.connect(_childrend_changed, CONNECT_PERSIST)
+		child_order_changed.connect(_childrend_changed)
 	_childrend_changed()
 	_fix_childrend()
 
 func _childrend_changed() -> void:
-	_container_angles.resize(_get_control_children().size())
-	notify_property_list_changed()
+	_calculate_angles()
 	_fix_childrend()
 func _get_control_children() -> Array[Control]:
 	var ret : Array[Control]
@@ -181,8 +171,7 @@ func _get_property_list() -> Array[Dictionary]:
 		})
 	else:
 		var unbounded = PROPERTY_USAGE_READ_ONLY if bound_behavior == BOUND_BEHAVIOR.NONE else 0
-		var spaced_out = PROPERTY_USAGE_READ_ONLY if bound_behavior != BOUND_BEHAVIOR.STOP else 0
-		var allow_step = (PROPERTY_USAGE_READ_ONLY ^ spaced_out) if equal_distant else 0
+		var allow_step = PROPERTY_USAGE_READ_ONLY if equal_distant && bound_behavior == BOUND_BEHAVIOR.STOP else 0
 		
 		properties.append({
 			"name": "bound_behavior",
@@ -194,7 +183,7 @@ func _get_property_list() -> Array[Dictionary]:
 		properties.append({
 			"name": "equal_distant",
 			"type": TYPE_BOOL,
-			"usage" : PROPERTY_USAGE_DEFAULT | spaced_out
+			"usage" : PROPERTY_USAGE_DEFAULT
 		})
 		properties.append({
 			"name": "Values",
@@ -249,6 +238,8 @@ func _property_get_revert(property: StringName) -> Variant:
 	return null
 
 func _calculate_angles() -> void:
+	if manual: return
+	
 	var count := _get_control_children().size()
 	_container_angles.resize(count)
 	
@@ -256,28 +247,23 @@ func _calculate_angles() -> void:
 	var end := deg_to_rad(angle_end)
 	
 	var step : float
-	if equal_distant && bound_behavior == BOUND_BEHAVIOR.STOP:
-		if count != 0:
-			step = deg_to_rad((angle_end - angle_start) / (count - 1))
+	if equal_distant:
+		if count != 0: step = deg_to_rad((angle_end - angle_start) / (count - 1))
 	else:
 		step = deg_to_rad(angle_step)
 	
 	var inc_func : Callable
-	if bound_behavior == BOUND_BEHAVIOR.NONE:
+	if equal_distant || bound_behavior == BOUND_BEHAVIOR.NONE:
 		inc_func = func(i : int): return (i * step) + start
 	elif bound_behavior == BOUND_BEHAVIOR.STOP:
-		if equal_distant:
-			inc_func = func(i : int): return (i * step) + start
-		else:
-			inc_func = func(i : int): return min(i * step, end) + start
+		inc_func = func(i : int): return min(i * step, end) + start
 	elif bound_behavior == BOUND_BEHAVIOR.LOOP:
 		inc_func = func(i : int): return fmod(i * step, end) + start
 	elif bound_behavior == BOUND_BEHAVIOR.MIRRIOR:
 		inc_func = func(i : int): return abs(fmod((i * step) - end, 2 * end) - end) + start
 	
 	for i : int in range(0, _container_angles.size()):
-		_container_angles[i] = inc_func.call(i)
-	
+		_container_angles[i] = fposmod(inc_func.call(i), TAU)
 	_fix_childrend()
 
 func _get_allowed_size_flags_horizontal() -> PackedInt32Array:
@@ -285,4 +271,4 @@ func _get_allowed_size_flags_horizontal() -> PackedInt32Array:
 func _get_allowed_size_flags_vertical() -> PackedInt32Array:
 	return []
 
-# Made by Savier Alvarez. A part of the "FreeControl" Godot addon.
+# Made by Xavier Alvarez. A part of the "FreeControl" Godot addon.

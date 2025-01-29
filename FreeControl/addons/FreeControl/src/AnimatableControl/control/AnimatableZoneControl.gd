@@ -1,4 +1,4 @@
-# Made by Savier Alvarez. A part of the "FreeControl" Godot addon.
+# Made by Xavier Alvarez. A part of the "FreeControl" Godot addon.
 @tool
 class_name AnimatableZoneControl extends AnimatableScrollControl
 ## A container to be used for free transformation, within a UI, depended on a
@@ -122,7 +122,7 @@ var zone_range_vertical : float:
 			queue_redraw()
 
 ## [b]Editor usage only.[/b] Shows or hides the helpful threshold highlighter.
-var hide_indicator : bool = false:
+var hide_indicator : bool = true:
 	set(val):
 		if hide_indicator != val:
 			hide_indicator = val
@@ -232,7 +232,7 @@ func _property_can_revert(property: StringName) -> bool:
 	elif property in ["zone_range_horizontal", "zone_range_vertical"]:
 		if self[property] != 0.05: return true
 	elif property == "hide_indicator":
-		return hide_indicator
+		return !hide_indicator
 	return false
 func _property_get_revert(property: StringName) -> Variant:
 	if property in ["zone_point_pixel", "zone_range_by_pixel"]:
@@ -242,7 +242,7 @@ func _property_get_revert(property: StringName) -> Variant:
 	elif property in ["zone_range_horizontal", "zone_range_vertical"]:
 		return 0.05
 	elif property == "hide_indicator":
-		return false
+		return true
 	return null
 
 func _scrolled_horizontal(scroll_hor : float) -> void:
@@ -365,6 +365,8 @@ func in_zone_percent() -> float:
 ## [br][br]
 ## Also see [method get_zone_rect], [method get_zone_global_rect].
 func zone_local_scroll() -> Vector2:
+	if !_mount: return Vector2.ZERO
+	
 	var zone := get_zone_global_rect()
 	var mount := _mount.get_global_rect()
 	
@@ -380,3 +382,5 @@ func zone_local_scroll() -> Vector2:
 ## [br][br]
 ## Paramter [param _scroll] is the local scroll within the zone.
 func _while_in_zone(scroll : float) -> void: pass
+
+# Made by Xavier Alvarez. A part of the "FreeControl" Godot addon.
