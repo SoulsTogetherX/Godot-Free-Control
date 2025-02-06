@@ -55,7 +55,8 @@ var state : bool:
 	set(val):
 		if _state != val:
 			_state = val
-			toggle_drawer(_state)
+			if is_node_ready():
+				toggle_drawer(_state)
 
 #@export_group("Drawer Angle")
 ## The angle in which the drawer will open/close from.
@@ -68,9 +69,7 @@ var drawer_angle : float = 0.0:
 			_angle_vec = Vector2.RIGHT.rotated(deg_to_rad(drawer_angle))
 			
 			_kill_animation()
-			_find_offsets()
-			_current_progress = _max_offset * float(_state)
-			_adjust_children()
+			_calculate_childrend()
 ## If [code]true[/code], the drawer will be snapped to move as strictly cardinally as possible.
 ## [br][br]
 ## Also see: [member drawer_angle].
@@ -80,9 +79,7 @@ var drawer_angle_axis_snap : bool:
 			drawer_angle_axis_snap = val
 			
 			_kill_animation()
-			_find_offsets()
-			_current_progress = _max_offset * float(_state)
-			_adjust_children()
+			_calculate_childrend()
 
 #@export_group("Drawer Span")
 ## If [code]false[/code], [member drawer_width] is equal to a ratio of this node's [Control.size]'s x component.
@@ -265,6 +262,7 @@ func get_progress(include_drag : bool = false, with_clamp : bool = true) -> floa
 ## Gets the percentage of the drawer's current position between being closed and opened. 
 ## [code]0.0[/code] when closed and [code]1.0[/code] when opened.
 func get_progress_adjusted(include_drag : bool = false, with_clamp : bool = true) -> float:
+	if _max_offset == 0.0: return 0.0
 	return get_progress(include_drag, with_clamp) / _max_offset
 
 
@@ -282,6 +280,7 @@ func _get_control_children() -> Array[Control]:
 	return ret
 func _calculate_childrend() -> void:
 	_find_offsets()
+	_current_progress = _max_offset * float(_state)
 	_adjust_children()
 func _adjust_children() -> void:
 	var rect := get_drawer_rect(true)
@@ -325,7 +324,6 @@ func _find_offsets() -> void:
 	_max_offset = (_outer_offset - _inner_offset).length()
 	_inner_offset += _angle_vec * open_margin
 	_outer_offset -= _angle_vec * close_margin
-
 
 
 ## Allows opening and closing the drawer.
