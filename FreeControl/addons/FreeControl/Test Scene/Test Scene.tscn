@@ -1,14 +1,13 @@
-[gd_scene load_steps=10 format=3 uid="uid://bnk0kjfvifew"]
+[gd_scene load_steps=9 format=3 uid="uid://bnk0kjfvifew"]
 
 [ext_resource type="Script" path="res://addons/FreeControl/src/ProportionalContainer/ProportionalContainer.gd" id="1_oh8we"]
-[ext_resource type="Script" path="res://addons/FreeControl/src/AnimatableControl/mount/AnimatableMount.gd" id="2_s72e7"]
 [ext_resource type="Texture2D" uid="uid://bdenffuc0sdcl" path="res://icon.svg" id="3_hc7l0"]
-[ext_resource type="Script" path="res://addons/FreeControl/src/AnimatableControl/control/AnimatableControl.gd" id="3_ibgac"]
 [ext_resource type="Script" path="res://addons/FreeControl/src/Carousel/Carousel.gd" id="3_ymryc"]
 [ext_resource type="Script" path="res://addons/FreeControl/src/CircularContainer/CircularContainer.gd" id="4_dkgx1"]
 [ext_resource type="Script" path="res://addons/FreeControl/src/SizeController/MaxSizeContainer.gd" id="6_likrf"]
 [ext_resource type="Script" path="res://addons/FreeControl/src/SizeController/MaxRatioContainer.gd" id="7_p24p1"]
 [ext_resource type="Script" path="res://addons/FreeControl/src/Typography/Typography.gd" id="8_5s75o"]
+[ext_resource type="Script" path="res://addons/FreeControl/src/Drawer/Drawer.gd" id="8_ku3ui"]
 
 [node name="TestScene" type="PanelContainer"]
 anchors_preset = 15
@@ -17,73 +16,58 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="AnimatableMount" type="Control" parent="."]
-visible = false
-layout_mode = 2
-size_flags_horizontal = 2
-size_flags_vertical = 3
-script = ExtResource("2_s72e7")
-
-[node name="AnimatableControl" type="Container" parent="AnimatableMount"]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-script = ExtResource("3_ibgac")
-size_mode = 0
-
-[node name="TextureRect" type="TextureRect" parent="AnimatableMount/AnimatableControl"]
-layout_mode = 2
-texture = ExtResource("3_hc7l0")
-
 [node name="Carousel" type="Container" parent="."]
-visible = false
 layout_mode = 2
 script = ExtResource("3_ymryc")
 
 [node name="1" type="TextureRect" parent="Carousel"]
+z_index = 4
 layout_mode = 2
 texture = ExtResource("3_hc7l0")
 
 [node name="2" type="TextureRect" parent="Carousel"]
-z_index = -1
+modulate = Color(0, 1, 1, 1)
+z_index = 3
 layout_mode = 2
 texture = ExtResource("3_hc7l0")
 
 [node name="3" type="TextureRect" parent="Carousel"]
-z_index = -2
+modulate = Color(1, 0, 1, 1)
+z_index = 2
 layout_mode = 2
 texture = ExtResource("3_hc7l0")
 
 [node name="4" type="TextureRect" parent="Carousel"]
-z_index = -3
+modulate = Color(1, 1, 0, 1)
+z_index = 1
 layout_mode = 2
 texture = ExtResource("3_hc7l0")
 
 [node name="5" type="TextureRect" parent="Carousel"]
-z_index = -4
+modulate = Color(0, 0, 1, 1)
 layout_mode = 2
 texture = ExtResource("3_hc7l0")
 
 [node name="6" type="TextureRect" parent="Carousel"]
-z_index = -4
+modulate = Color(0, 1, 0, 1)
 layout_mode = 2
 texture = ExtResource("3_hc7l0")
 
 [node name="7" type="TextureRect" parent="Carousel"]
-z_index = -3
+modulate = Color(1, 0.00784314, 0, 1)
+z_index = 1
 layout_mode = 2
 texture = ExtResource("3_hc7l0")
 
 [node name="8" type="TextureRect" parent="Carousel"]
-z_index = -2
+modulate = Color(0, 0, 0, 1)
+z_index = 2
 layout_mode = 2
 texture = ExtResource("3_hc7l0")
 
 [node name="9" type="TextureRect" parent="Carousel"]
-z_index = -1
+modulate = Color(1, 1, 1, 0.498039)
+z_index = 3
 layout_mode = 2
 texture = ExtResource("3_hc7l0")
 
@@ -164,7 +148,7 @@ layout_mode = 2
 script = ExtResource("7_p24p1")
 mode = 1
 ratio = 0.696
-max_size = Vector2(-1, 696)
+max_size = Vector2(-1, 0)
 
 [node name="TextureRect" type="TextureRect" parent="MaxRatioContainer"]
 layout_mode = 2
@@ -174,3 +158,66 @@ texture = ExtResource("3_hc7l0")
 visible = false
 layout_mode = 2
 script = ExtResource("8_5s75o")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+visible = false
+layout_mode = 2
+alignment = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="Drawer" type="Container" parent="VBoxContainer/MarginContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+script = ExtResource("8_ku3ui")
+state = false
+drawer_angle = 0.0
+drawer_angle_axis_snap = false
+drawer_width_by_pixel = false
+drawer_width = 1.0
+drawer_height_by_pixel = false
+drawer_height = 1.0
+action_mode = 1
+open_margin = 0
+close_margin = 0
+allow_drag = 3
+smooth_drag = true
+drag_give = 0
+open_bounds = 3
+open_drag_threshold = 50
+close_bounds = 3
+close_drag_threshold = 200
+manual_drawer_translate = 0
+manual_drawer_ease = 0
+manual_drawer_duration = 0.2
+drag_drawer_translate = 0
+drag_drawer_ease = 0
+drag_drawer_duration = 0.2
+
+[node name="TextureRect" type="TextureRect" parent="VBoxContainer/MarginContainer/Drawer"]
+modulate = Color(1, 1, 1, 0.556863)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+size_flags_stretch_ratio = 8.0
+texture = ExtResource("3_hc7l0")
+expand_mode = 1
+stretch_mode = 6
+
+[node name="HBoxContainer" type="HBoxContainer" parent="VBoxContainer"]
+layout_mode = 2
+
+[node name="Open" type="Button" parent="VBoxContainer/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Open"
+
+[node name="Close" type="Button" parent="VBoxContainer/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Close"
+
+[connection signal="pressed" from="VBoxContainer/HBoxContainer/Open" to="VBoxContainer/MarginContainer/Drawer" method="toggle_drawer" binds= [true]]
+[connection signal="pressed" from="VBoxContainer/HBoxContainer/Close" to="VBoxContainer/MarginContainer/Drawer" method="toggle_drawer" binds= [false]]

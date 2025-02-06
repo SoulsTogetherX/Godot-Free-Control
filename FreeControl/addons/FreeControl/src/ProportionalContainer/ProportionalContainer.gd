@@ -104,8 +104,8 @@ func _handel_resize() -> void:
 	_fit_children()
 
 func _fit_children() -> void:
-	for child: Control in get_children(true):
-		if child:_fit_child(child)
+	for child : Control in _get_control_children():
+		_fit_child(child)
 func _fit_child(child : Control) -> void:
 	var child_size := child.get_minimum_size()
 	var ancher_size : Vector2 = ancher.size if ancher else get_parent_area_size()
@@ -156,11 +156,14 @@ func _fit_child(child : Control) -> void:
 	fit_child_in_rect(child, Rect2(set_pos, child_size))
 func _get_children_min_size() -> Vector2:
 	var ret := Vector2.ZERO
-	for child : Node in get_children(true):
-		if child is Control:
-			ret = ret.max(child.get_combined_minimum_size())
+	for child : Control in _get_control_children():
+		ret = ret.max(child.get_combined_minimum_size())
 	return ret
-	
+func _get_control_children() -> Array[Control]:
+	var ret : Array[Control]
+	ret.assign(get_children().filter(func(child : Node): return child is Control && child.visible))
+	return ret
+
 func _get_allowed_size_flags_horizontal() -> PackedInt32Array:
 	return [SIZE_FILL, SIZE_SHRINK_BEGIN, SIZE_SHRINK_CENTER, SIZE_SHRINK_END]
 func _get_allowed_size_flags_vertical() -> PackedInt32Array:

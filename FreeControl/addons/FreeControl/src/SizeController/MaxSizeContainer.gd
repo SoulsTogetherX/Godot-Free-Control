@@ -20,19 +20,25 @@ func _ready() -> void:
 	if !sort_children.is_connected(_handle_sort):
 		sort_children.connect(_handle_sort)
 	_handle_sort()
-func _find_minimum_size() -> Vector2:
-	var min_size : Vector2 = Vector2.ZERO
-	for c : Node in get_children(true):
-		if c is Control:
-			min_size = min_size.max(c.get_combined_minimum_size())
-	return min_size
-func _get_minimum_size() -> Vector2:
-	_min_size = _find_minimum_size()
-	return _min_size
 func _set(property: StringName, value: Variant) -> bool:
 	if property == "size":
 		return true
 	return false
+func _find_minimum_size() -> Vector2:
+	var min_size : Vector2 = Vector2.ZERO
+	for child : Control in _get_control_children():
+		min_size = min_size.max(child.get_combined_minimum_size())
+	return min_size
+
+func _get_minimum_size() -> Vector2:
+	_min_size = _find_minimum_size()
+	return _min_size
+func _get_control_children() -> Array[Control]:
+	var ret : Array[Control]
+	ret.assign(get_children().filter(func(child : Node): return child is Control && child.visible))
+	return ret
+
+
 
 ## A helper function that should be called whenever this node's size needs to be changed, or when it's children are changed.
 func _handle_sort() -> void:
@@ -50,9 +56,8 @@ func _handle_sort() -> void:
 ## Is called when [method _handle_resize] is called. The minimum_size of this node will be calculated first, before this is called.
 func _before_resize_children() -> void: pass
 func _update_childrend() -> void:
-	for x : Node in get_children():
-		if x is Control:
-			_update_child(x)
+	for child : Control in _get_control_children():
+		_update_child(child)
 func _update_child(child : Control):
 	var child_min_size := child.get_minimum_size()
 	var result_size := Vector2.ZERO

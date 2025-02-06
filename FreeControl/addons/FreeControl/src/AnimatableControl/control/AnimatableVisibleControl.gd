@@ -118,7 +118,7 @@ func _get_property_list() -> Array[Dictionary]:
 		"usage": PROPERTY_USAGE_DEFAULT | horizontal
 	}.merged({} if threshold_pixel & 1 else {
 		"hint": PROPERTY_HINT_RANGE,
-		"hint_string": "0,1,0.01"
+		"hint_string": "0,1,0.001"
 	}))
 	ret.append({
 		"name": "threshold_vertical",
@@ -126,7 +126,7 @@ func _get_property_list() -> Array[Dictionary]:
 		"usage": PROPERTY_USAGE_DEFAULT | vertical
 	}.merged({} if threshold_pixel & 2 else {
 		"hint": PROPERTY_HINT_RANGE,
-		"hint_string": "0,1,0.01"
+		"hint_string": "0,1,0.001"
 	}))
 	
 	ret.append({

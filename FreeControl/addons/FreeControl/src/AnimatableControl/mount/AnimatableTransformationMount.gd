@@ -32,8 +32,8 @@ func _update_children_minimum_size() -> void:
 	
 	var children_info: Array[Array] = []
 	
-	for child : Node in get_children():
-		if child is AnimatableControl:
+	for child : AnimatableControl in get_children():
+		if child:
 			var child_size : Vector2
 			var child_offset : Vector2
 			

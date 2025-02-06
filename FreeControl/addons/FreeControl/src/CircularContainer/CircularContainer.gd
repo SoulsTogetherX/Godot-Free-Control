@@ -128,7 +128,7 @@ func _childrend_changed() -> void:
 	_fix_childrend()
 func _get_control_children() -> Array[Control]:
 	var ret : Array[Control]
-	ret.assign(get_children().filter(func(child : Node): return child is Control))
+	ret.assign(get_children().filter(func(child : Node): return child is Control && child.visible))
 	return ret
 func _fix_childrend() -> void:
 	var children := _get_control_children()

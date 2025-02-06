@@ -46,7 +46,7 @@ func _enter_tree() -> void:
 		load(ICON_FOLDER + "AnimatableTransformationMount.svg")
 	)
 	
-	#Carousel
+	# Carousel
 	add_custom_type(
 		"Carousel",
 		"Container",
@@ -60,6 +60,14 @@ func _enter_tree() -> void:
 		"Container",
 		load(SCRIPT_FOLDER + "CircularContainer/CircularContainer.gd"), 
 		load(ICON_FOLDER + "CircularContainer.svg")
+	)
+	
+	# Drawer
+	add_custom_type(
+		"Drawer",
+		"Container",
+		load(SCRIPT_FOLDER + "Drawer/Drawer.gd"), 
+		load(ICON_FOLDER + "Drawer.svg")
 	)
 	
 	# ProportionalContainer
@@ -103,11 +111,14 @@ func _exit_tree() -> void:
 	remove_custom_type("AnimatableMount")
 	remove_custom_type("AnimatableTransformationMount")
 	
-	#Carousel
+	# Carousel
 	remove_custom_type("Carousel")
 	
 	# CircularContainer
 	remove_custom_type("CircularContainer")
+	
+	# Drawer
+	remove_custom_type("Drawer")
 	
 	# ProportionalContainer
 	remove_custom_type("ProportionalContainer")

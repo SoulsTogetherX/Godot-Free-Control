@@ -170,7 +170,7 @@ func _get_property_list() -> Array[Dictionary]:
 		"usage": PROPERTY_USAGE_DEFAULT | horizontal
 	}.merged({} if zone_point_pixel & 1 else {
 		"hint": PROPERTY_HINT_RANGE,
-		"hint_string": "0,1,0.01,or_less,or_greater"
+		"hint_string": "0,1,0.001,or_less,or_greater"
 	}))
 	ret.append({
 		"name": "zone_vertical",
@@ -178,7 +178,7 @@ func _get_property_list() -> Array[Dictionary]:
 		"usage": PROPERTY_USAGE_DEFAULT | vertical
 	}.merged({} if zone_point_pixel & 2 else {
 		"hint": PROPERTY_HINT_RANGE,
-		"hint_string": "0,1,0.01,or_less,or_greater"
+		"hint_string": "0,1,0.001,or_less,or_greater"
 	}))
 	
 	ret.append({
@@ -200,7 +200,7 @@ func _get_property_list() -> Array[Dictionary]:
 		"usage": PROPERTY_USAGE_DEFAULT | horizontal
 	}.merged({} if zone_range_by_pixel & 1 else {
 		"hint": PROPERTY_HINT_RANGE,
-		"hint_string": "0,1,0.01,or_less,or_greater"
+		"hint_string": "0,1,0.001,or_less,or_greater"
 	}))
 	ret.append({
 		"name": "zone_range_vertical",
@@ -208,7 +208,7 @@ func _get_property_list() -> Array[Dictionary]:
 		"usage": PROPERTY_USAGE_DEFAULT | vertical
 	}.merged({} if zone_range_by_pixel & 2 else {
 		"hint": PROPERTY_HINT_RANGE,
-		"hint_string": "0,1,0.01,or_less,or_greater"
+		"hint_string": "0,1,0.001,or_less,or_greater"
 	}))
 	
 	ret.append({

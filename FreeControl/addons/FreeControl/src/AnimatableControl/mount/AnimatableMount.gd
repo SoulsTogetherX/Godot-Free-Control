@@ -31,7 +31,7 @@ func _update_children_minimum_size() -> void:
 
 func _ready() -> void:
 	if !resized.is_connected(_handle_resize):
-		resized.connect(_handle_resize)
+		resized.connect(_handle_resize, CONNECT_DEFERRED)
 	if !size_flags_changed.is_connected(_handle_resize):
 		size_flags_changed.connect(_handle_resize)
 	

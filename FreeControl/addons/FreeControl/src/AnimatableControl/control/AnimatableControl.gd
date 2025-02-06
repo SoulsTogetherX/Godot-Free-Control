@@ -88,9 +88,8 @@ func _handle_resize() -> void:
 func _sort_children() -> void:
 	var _old_min_size := _min_size
 	_min_size = Vector2.ZERO
-	for child : Node in get_children():
-		if child is Control:
-			_min_size = _min_size.max(child.get_combined_minimum_size())
+	for child : Control in _get_control_children():
+		_min_size = _min_size.max(child.get_combined_minimum_size())
 	
 	if _min_size != _old_min_size:
 		update_minimum_size()
@@ -98,9 +97,8 @@ func _sort_children() -> void:
 		if _mount: _mount.queue_minimum_size_update()
 	else: _resize_childrend()
 func _resize_childrend() -> void:
-	for child : Node in get_children():
-		if child is Control:
-			_resize_child(child)
+	for child : Control in _get_control_children():
+		_resize_child(child)
 func _resize_child(child : Control) -> void:
 	var child_size := child.get_minimum_size()
 	var set_pos : Vector2
@@ -144,6 +142,11 @@ func _bound_size() -> void:
 	
 	if new_size != size:
 		size = new_size
+
+func _get_control_children() -> Array[Control]:
+	var ret : Array[Control]
+	ret.assign(get_children().filter(func(child : Node): return child is Control && child.visible))
+	return ret
 
 ## Gets the mount this node is currently a child to.[br]
 ## If this node is not a child to any [AnimatableMount] nodes, this returns [code]null[/code] instead.

@@ -33,8 +33,8 @@ signal slowdown_interupted
 ## The index of the item this carousel will start at.
 @export var starting_index : int = 0:
 	set(val):
-		if is_node_ready() && _item_count != 0:
-			val = posmod(val, _item_count)
+		#if is_node_ready():
+		#	val = posmod(val, _item_count)
 		if starting_index != val:
 			starting_index = val
 			go_to_index(-val, false)
@@ -214,11 +214,9 @@ func _get_child_rect(child : Control) -> Rect2:
 	child.position = child_pos
 	
 	return Rect2(child_pos, child_size)
-func _get_children() -> Array[Control]:
+func _get_control_children() -> Array[Control]:
 	var ret : Array[Control]
-	for child : Node in get_children():
-		if child is Control:
-			ret.append(child)
+	ret.assign(get_children().filter(func(child : Node): return child is Control && child.visible))
 	return ret
 func _get_relevant_axis() -> int:
 	var abs_angle_vec = _angle_vec.abs()
@@ -296,7 +294,7 @@ func _sort_children() -> void:
 	_settup_children()
 	_adjust_children()
 func _settup_children() -> void:
-	var children : Array[Control] = _get_children()
+	var children : Array[Control] = _get_control_children()
 	_item_count = children.size()
 	
 	_item_infos.resize(_item_count)
@@ -309,7 +307,8 @@ func _adjust_children() -> void:
 	if _item_count == 0: return
 	
 	var range : Array
-	var children : Array[Control] = _get_children()
+	var max_local_offset : int
+	var children : Array[Control] = _get_control_children()
 	var axis := _get_relevant_axis()
 	var scroll := _get_adjusted_scroll()
 	
@@ -332,10 +331,12 @@ func _adjust_children() -> void:
 	
 	if display_loop:
 		if display_range == -1:
+			max_local_offset = (_item_count >> 1)
 			range = range(0, _item_count)
 			for i : int in range:
 				_item_infos[i].loaded = false
 		else:
+			max_local_offset = (display_range >> 1) 
 			range = range(0, (display_range << 1) + 1)
 			for i : int in range(0, _item_count):
 				var item_info : ItemInfo = _item_infos[i]
@@ -356,12 +357,14 @@ func _adjust_children() -> void:
 			fit_child_in_rect(item_info.node, rect)
 			item_info.loaded = true
 			item_info.node.visible = true
-			item_info.node.z_index = index - abs(local_offset)
+			item_info.node.z_index = max_local_offset - abs(local_offset)
 			_on_item_progress(item_info.node, local_scroll, scroll, item, local_index)
 	else:
 		if display_range == -1:
+			max_local_offset = (_item_count >> 1) + (_item_count & 1) + 1
 			range = range(0, _item_count)
 		else:
+			max_local_offset = display_range
 			range = range(max(0, index - display_range), min(_item_count, index + display_range + 1))
 			for info : ItemInfo in _item_infos:
 				info.node.visible = false
@@ -377,9 +380,8 @@ func _adjust_children() -> void:
 			
 			fit_child_in_rect(item_info.node, rect)
 			item_info.node.visible = true
-			item_info.node.z_index = index - abs(local_index)
+			item_info.node.z_index = max_local_offset - abs(local_index)
 			_on_item_progress(item_info.node, local_scroll, scroll, item, local_index)
-
 
 func _start_drag_slowdown() -> void:
 	if get_tree() && !get_tree().process_frame.is_connected(_handle_drag_slowdown):
@@ -418,13 +420,31 @@ func _ready() -> void:
 	if _item_count > 0:
 		starting_index = posmod(starting_index, _item_count)
 		go_to_index(-starting_index, false)
-func _gui_input(event: InputEvent) -> void:
+func _validate_property(property: Dictionary) -> void:
+	if property.name == "enforce_border":
+		if display_loop:
+			property.usage |= PROPERTY_USAGE_READ_ONLY
+	elif property.name == "border_limit":
+		if display_loop || !enforce_border:
+			property.usage |= PROPERTY_USAGE_READ_ONLY
+	elif property.name == "paging_requirement":
+		if snap_behavior != SNAP_BEHAVIOR.PAGING:
+			property.usage |= PROPERTY_USAGE_READ_ONLY
+	elif property.name == "hard_stop":
+		if snap_behavior == SNAP_BEHAVIOR.PAGING:
+			property.usage |= PROPERTY_USAGE_READ_ONLY
+	elif property.name in ["slowdown_drag", "slowdown_friction", "slowdown_cutoff"]:
+		if hard_stop || snap_behavior == SNAP_BEHAVIOR.PAGING:
+			property.usage |= PROPERTY_USAGE_READ_ONLY
+
+func _input(event: InputEvent) -> void:
 	if !can_drag: return
 	
-	if event is InputEventMouseMotion:
-		pass
-	
-	if event is InputEventScreenDrag && event.index == 0:
+	if (event is InputEventScreenDrag || event is InputEventMouseMotion):
+		if event.pressure == 0:
+			if _is_dragging: _on_drag_release()
+			return
+		
 		if !_is_dragging:
 			drag_begin.emit()
 			_end_drag_slowdown()
@@ -451,34 +471,21 @@ func _gui_input(event: InputEvent) -> void:
 					_create_animation(desired, ANIMATION_TYPE.SNAP)
 		else:
 			_adjust_children()
-	elif event is InputEventScreenTouch && !event.pressed:
-		_is_dragging = false
-		drag_end.emit()
-		
-		if snap_behavior != SNAP_BEHAVIOR.PAGING:
-			_scroll_value = _get_adjusted_scroll()
-			_drag_scroll_value = 0
-			if snap_behavior == SNAP_BEHAVIOR.NONE:
-				if !hard_stop: _start_drag_slowdown()
-			elif snap_behavior == SNAP_BEHAVIOR.SNAP:
-				if hard_stop: _create_animation(get_carousel_index(), ANIMATION_TYPE.SNAP)
-				else: _start_drag_slowdown()
-func _validate_property(property: Dictionary) -> void:
-	if property.name == "enforce_border":
-		if display_loop:
-			property.usage |= PROPERTY_USAGE_READ_ONLY
-	elif property.name == "border_limit":
-		if display_loop || !enforce_border:
-			property.usage |= PROPERTY_USAGE_READ_ONLY
-	elif property.name == "paging_requirement":
-		if snap_behavior != SNAP_BEHAVIOR.PAGING:
-			property.usage |= PROPERTY_USAGE_READ_ONLY
-	elif property.name == "hard_stop":
-		if snap_behavior == SNAP_BEHAVIOR.PAGING:
-			property.usage |= PROPERTY_USAGE_READ_ONLY
-	elif property.name in ["slowdown_drag", "slowdown_friction", "slowdown_cutoff"]:
-		if hard_stop || snap_behavior == SNAP_BEHAVIOR.PAGING:
-			property.usage |= PROPERTY_USAGE_READ_ONLY
+	elif event is InputEventScreenTouch:
+		if !event.pressed: _on_drag_release()
+func _on_drag_release() -> void:
+	_is_dragging = false
+	drag_end.emit()
+	
+	if snap_behavior != SNAP_BEHAVIOR.PAGING:
+		_scroll_value = _get_adjusted_scroll()
+		_drag_scroll_value = 0
+		if snap_behavior == SNAP_BEHAVIOR.NONE:
+			if !hard_stop: _start_drag_slowdown()
+		elif snap_behavior == SNAP_BEHAVIOR.SNAP:
+			if hard_stop: _create_animation(get_carousel_index(), ANIMATION_TYPE.SNAP)
+			else: _start_drag_slowdown()
+
 func _get_allowed_size_flags_horizontal() -> PackedInt32Array:
 	return [SIZE_FILL, SIZE_SHRINK_BEGIN, SIZE_SHRINK_CENTER, SIZE_SHRINK_END]
 func _get_allowed_size_flags_vertical() -> PackedInt32Array:
@@ -510,7 +517,7 @@ func go_to_index(idx : int, animation : bool = true) -> void:
 	if _item_count == 0: return
 	
 	if allow_loop:
-		idx = posmod(idx, _item_count)
+		idx = (((idx % _item_count) - _item_count) % _item_count)
 	else:
 		idx = clamp(idx, 0, _item_count - 1)
 	
