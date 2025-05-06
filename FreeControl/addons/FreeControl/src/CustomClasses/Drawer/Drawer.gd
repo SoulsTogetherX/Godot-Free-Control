@@ -1,3 +1,4 @@
+# Made by Xavier Alvarez. A part of the "FreeControl" Godot addon.
 @tool
 class_name Drawer extends Container
 ## A [Container] node used for easy UI Drawers.
@@ -12,10 +13,11 @@ enum ActionMode {
 
 ## An enum used to classify where input is accepted.
 enum InputAreaMode {
-	Anywhere = 0, ## Input accepted anywere on the screen.
-	WithinBounds = 1, ## Input is accepted only within this node's rect.
-	ExcludeDrawer = 2, ## Input is accepted anywhere except on the drawer's rect.
-	WithinEmptyBounds = 3 ## Input is accepted only within this node's rect, outside of the drawer's rect.
+	Nowhere = 0, ## No input is alloed anywhere on the screen.
+	Anywhere = 1, ## Input accepted anywere on the screen.
+	WithinBounds = 2, ## Input is accepted only within this node's rect.
+	ExcludeDrawer = 3, ## Input is accepted anywhere except on the drawer's rect.
+	WithinEmptyBounds = 4, ## Input is accepted only within this node's rect, outside of the drawer's rect.
 }
 
 ## An enum used to classify when dragging is allowed.
@@ -27,14 +29,22 @@ enum DragMode {
 }
 
 
-## Emited when drawer is begining an opening/closing animation, if caused manually.
+## Emited when drawer is begining an opening/closing animation.
 ## [br][br]
 ## Also see: [member state], [method toggle_drawer].
-signal toggle_start(toggle : bool)
-## Emited when drawer is ending an opening/closing animation, if caused manually.
+signal slide_begin
+## Emited when drawer is ending an opening/closing animation.
 ## [br][br]
 ## Also see: [member state], [method toggle_drawer].
-signal toggle_end(toggle : bool)
+signal slide_end
+## Emited when state has changed, but animation has not began.
+## [br][br]
+## Also see: [member state], [method toggle_drawer].
+signal state_toggle_begin(toggle : bool)
+## Emited when state has changed and animation has finished.
+## [br][br]
+## Also see: [member state], [method toggle_drawer].
+signal state_toggle_end(toggle : bool)
 ## Emited when drag has began.
 ## [br][br]
 ## Also see: [member allow_drag].
@@ -46,7 +56,7 @@ signal drag_end
 
 
 
-var _state : bool
+@export_storage var _state : bool
 ## The state of the drawer. If [code]true[/code], the drawer is open. Otherwise closed.
 ## [br][br]
 ## Also see: [method toggle_drawer].
@@ -54,9 +64,10 @@ var state : bool:
 	get: return _state
 	set(val):
 		if _state != val:
-			_state = val
 			if is_node_ready():
-				toggle_drawer(_state)
+				toggle_drawer(val)
+			else:
+				_state = val
 
 #@export_group("Drawer Angle")
 ## The angle in which the drawer will open/close from.
@@ -137,6 +148,11 @@ var action_mode : ActionMode = ActionMode.ACTION_MODE_BUTTON_PRESS:
 			action_mode = val
 			_is_dragging = false
 
+## Prevents a single click to be processed multiple times
+## [br][br]
+## Also see: [member action_mode].
+var single_input : bool = true
+
 #@export_subgroup("Margins")
 ## Extra pixels to where the open drawer lies when open.
 var open_margin : int = 0:
@@ -183,7 +199,7 @@ var close_bounds : InputAreaMode = InputAreaMode.WithinEmptyBounds
 ## The minimum amount you need to drag before your drag is considered to have opened the drawer.
 ## [br][br]
 ## Also see: [member allow_drag].
-var close_drag_threshold : int = 200:
+var close_drag_threshold : int = 50:
 	set(val):
 		val = max(0, val)
 		if val != close_drag_threshold:
@@ -231,6 +247,9 @@ var _max_offset : float
 
 ## Returns if the drawer is currently open.
 func is_open() -> bool:
+	return get_progress_adjusted() > 0.5
+## Returns if the drawer is expected to be open.
+func is_open_expected() -> bool:
 	return _state
 ## Returns if the drawer is currently animating.
 func is_animating() -> bool:
@@ -322,24 +341,27 @@ func _find_offsets() -> void:
 		_outer_offset = (outer_distance * _angle_vec + (size - drawer_size)) * 0.5
 	
 	_max_offset = (_outer_offset - _inner_offset).length()
-	_inner_offset += _angle_vec * open_margin
-	_outer_offset -= _angle_vec * close_margin
+	_inner_offset = (_inner_offset + _angle_vec * open_margin).floor()
+	_outer_offset = (_outer_offset - _angle_vec * close_margin).floor()
 
 
 ## Allows opening and closing the drawer.
 ## [br][br]
-## Also see: [member state].
+## Also see: [member state] and [method force_drawer].
 func toggle_drawer(open : bool) -> void:
-	toggle_start.emit(open)
 	_toggle_drawer(open)
-	_animation_tween.tween_callback(toggle_end.emit.bind(open))
-func _toggle_drawer(open : bool, drag_animate : bool = false, use_drag_scroll : bool = false) -> void:
-	_state = open
-	_animate_to_progress(float(open), drag_animate, use_drag_scroll)
+func _toggle_drawer(open : bool, drag_animate : bool = false) -> void:
+	slide_begin.emit()
+	_animate_to_progress(float(open), drag_animate)
+	_animation_tween.tween_callback(slide_end.emit)
+	
+	if _state != open:
+		state_toggle_begin.emit(open)
+		_animation_tween.tween_callback(state_toggle_end.emit.bind(open))
+		_state = open
 func _animate_to_progress(
 			to_progress : float,
-			drag_animate : bool = false,
-			use_drag_scroll : bool = false
+			drag_animate : bool = false
 		) -> void:
 	_kill_animation()
 	_animation_tween = create_tween()
@@ -349,7 +371,7 @@ func _animate_to_progress(
 		_animation_tween.set_ease(drag_drawer_ease)
 		_animation_tween.tween_method(
 			_animation_method,
-			get_progress(use_drag_scroll),
+			get_progress(true),
 			to_progress * _max_offset,
 			drag_drawer_duration
 		)
@@ -358,25 +380,35 @@ func _animate_to_progress(
 		_animation_tween.set_ease(manual_drawer_ease)
 		_animation_tween.tween_method(
 			_animation_method,
-			get_progress(use_drag_scroll),
+			get_progress(true),
 			to_progress * _max_offset,
 			manual_drawer_duration
 		)
 func _kill_animation() -> void:
 	if _animation_tween && _animation_tween.is_running():
 		_animation_tween.kill()
-func _animation_method(process : float) -> void:
-	_current_progress = process
+func _animation_method(progress : float) -> void:
+	_current_progress = progress
 	_progress_changed(get_progress_adjusted())
 	_adjust_children()
 
 
 
+## Allows opening and closing the drawer without animation.
+## [br][br]
+## Also see: [member state] and [method toggle_drawer].
+func force_drawer(open : bool) -> void:
+	_kill_animation()
+	_state = open
+	_animation_method(float(open) * _max_offset)
+
+
+
 func _ready() -> void:
-	sort_children.connect(_adjust_children)
+	resized.connect(_calculate_childrend)
+	sort_children.connect(_calculate_childrend)
 	
 	_angle_vec = Vector2.RIGHT.rotated(deg_to_rad(drawer_angle))
-	call_deferred("_calculate_childrend")
 func _get_minimum_size() -> Vector2:
 	_min_size = _find_minimum_size()
 	return _min_size
@@ -386,7 +418,7 @@ func _get_property_list() -> Array[Dictionary]:
 	ret.append({
 		"name": "state",
 		"type": TYPE_BOOL,
-		"usage": PROPERTY_USAGE_DEFAULT
+		"usage": PROPERTY_USAGE_EDITOR
 	})
 	
 	
@@ -603,76 +635,48 @@ func _get_property_list() -> Array[Dictionary]:
 	
 	return ret
 func _property_can_revert(property: StringName) -> bool:
-	match property:
-		"state":
-			return _state
-		
-		"drawer_angle":
-			return drawer_angle
-		"drawer_angle_axis_snap":
-			return drawer_angle_axis_snap
-		
-		"drawer_width_by_pixel":
-			return drawer_width_by_pixel
-		"drawer_width":
-			return drawer_width != (size.x if drawer_width_by_pixel else 1.0)
-		"drawer_height_by_pixel":
-			return drawer_height_by_pixel
-		"drawer_height":
-			return drawer_height != (size.y if drawer_height_by_pixel else 1.0)
-		
-		"action_mode":
-			return action_mode != ActionMode.ACTION_MODE_BUTTON_PRESS
-		
-		"drag_give":
-			return drag_give
-		"open_margin":
-			return open_margin
-		"close_margin":
-			return close_margin
-		
-		"allow_drag":
-			return allow_drag != DragMode.ON_OPEN_OR_CLOSE
-		"smooth_drag":
-			return !smooth_drag
-		
-		"open_bounds":
-			return open_bounds != InputAreaMode.WithinEmptyBounds
-		"open_drag_threshold":
-			return open_drag_threshold != 50
-		
-		"close_bounds":
-			return close_bounds != InputAreaMode.WithinEmptyBounds
-		"close_drag_threshold":
-			return close_drag_threshold != 200
-		
-		"manual_drawer_translate":
-			return manual_drawer_translate != Tween.TransitionType.TRANS_LINEAR
-		"manual_drawer_ease":
-			return manual_drawer_ease != Tween.EaseType.EASE_IN
-		"manual_drawer_duration":
-			return manual_drawer_duration != 0.2
-		
-		"drag_drawer_translate":
-			return manual_drawer_translate  != Tween.TransitionType.TRANS_LINEAR
-		"drag_drawer_ease":
-			return manual_drawer_ease != Tween.EaseType.EASE_IN
-		"drag_drawer_duration":
-			return manual_drawer_duration != 0.2
-	return false
+	return property in [
+		"state",
+		"drawer_angle",
+		"drawer_angle_axis_snap",
+		"drawer_width_by_pixel",
+		"drawer_width",
+		"drawer_height_by_pixel",
+		"drawer_height",
+		"action_mode",
+		"drag_give",
+		"open_margin",
+		"close_margin",
+		"allow_drag",
+		"smooth_drag",
+		"open_bounds",
+		"open_drag_threshold",
+		"close_bounds",
+		"close_drag_threshold",
+		"manual_drawer_translate",
+		"manual_drawer_ease",
+		"manual_drawer_duration",
+		"drag_drawer_translate",
+		"drag_drawer_ease",
+		"drag_drawer_duration"
+		]
 func _property_get_revert(property: StringName) -> Variant:
 	match property:
-		"state", "smooth_drag", "drawer_width_by_pixel", "drawer_height_by_pixel":
+		"smooth_drag":
+			return true
+		"state", "drawer_width_by_pixel", "drawer_height_by_pixel", "drawer_angle_axis_snap":
 			return false
-		
-		"drawer_angle", "drawer_angle_axis_snap", "drag_give", "open_margin", "close_margin":
+			
+		"drag_give", "open_margin", "close_margin":
 			return 0
+		"drawer_angle":
+			return 0.0
 		"manual_drawer_duration", "drag_drawer_duration":
 			return 0.2
 		"open_drag_threshold":
 			return 50
 		"close_drag_threshold":
-			return 200
+			return 50
 		
 		"drawer_width":
 			return size.x if drawer_width_by_pixel else 1.0
@@ -704,25 +708,22 @@ func _convert_to_enum(strs : PackedStringArray) -> String:
 
 
 
-func _handle_touch(event : InputEvent) -> void:
-	if _single_input: return
-	_single_input = true
-	set_deferred("_single_input", false)
-	state = !_state
-func _confirm_input_accept(event : InputEvent) -> bool:
+func _confirm_input_accept(event : InputEvent, drag : bool = false) -> bool:
 	if mouse_filter == MouseFilter.MOUSE_FILTER_IGNORE: return false
 	
 	var boundType : InputAreaMode
 	if _state:
 		boundType = close_bounds
-		if !(allow_drag & DragMode.ON_CLOSE):
+		if drag && !(allow_drag & DragMode.ON_CLOSE):
 			return false
 	else:
 		boundType = open_bounds
-		if !(allow_drag & DragMode.ON_OPEN):
+		if drag && !(allow_drag & DragMode.ON_OPEN):
 			return false
 	
 	match boundType:
+		InputAreaMode.Nowhere:
+			return false
 		InputAreaMode.Anywhere:
 			pass
 		InputAreaMode.WithinBounds:
@@ -730,43 +731,41 @@ func _confirm_input_accept(event : InputEvent) -> bool:
 				return false
 		InputAreaMode.ExcludeDrawer:
 			if get_drawer_rect().has_point(event.position):
+				if mouse_filter == MouseFilter.MOUSE_FILTER_STOP:
+					get_viewport().set_input_as_handled()
 				return false
 		InputAreaMode.WithinEmptyBounds:
 			if get_rect().intersection(get_drawer_rect()).has_point(event.position):
+				if mouse_filter == MouseFilter.MOUSE_FILTER_STOP:
+					get_viewport().set_input_as_handled()
 				return false
 	
-	if mouse_filter == MouseFilter.MOUSE_FILTER_STOP: accept_event()
+	if mouse_filter == MouseFilter.MOUSE_FILTER_STOP:
+		get_viewport().set_input_as_handled()
 	return true
 func _input(event: InputEvent) -> void:
-	if action_mode & (ActionMode.ACTION_MODE_BUTTON_PRESS | ActionMode.ACTION_MODE_BUTTON_RELEASE):
-		if event is InputEventMouseButton || event is InputEventScreenTouch:
-			if !_confirm_input_accept(event): return
-			if event.pressed:
-				if action_mode & ActionMode.ACTION_MODE_BUTTON_PRESS:
-					_toggle_drawer(!_state)
-			else:
-				if action_mode & ActionMode.ACTION_MODE_BUTTON_RELEASE:
-					_toggle_drawer(!_state)
 	if action_mode & ActionMode.ACTION_MODE_BUTTON_DRAG:
 		if event is InputEventMouseMotion || event is InputEventScreenDrag:
 			if event.pressure == 0:
-				if _drag_value:
+				if _is_dragging:
 					drag_end.emit()
-					if _state:
+					if is_open():
 						if _drag_value < -open_drag_threshold:
-							_toggle_drawer(false, true, smooth_drag)
+							_toggle_drawer(false, true)
 						else:
-							_toggle_drawer(true, true, smooth_drag)
+							_toggle_drawer(true, true)
 					else:
 						if _drag_value > close_drag_threshold:
-							_toggle_drawer(true, true, smooth_drag)
+							_toggle_drawer(true, true)
 						else:
-							_toggle_drawer(false, true, smooth_drag)
-				_is_dragging = false
-				_drag_value = 0.0
+							_toggle_drawer(false, true)
+					
+					_is_dragging = false
+					_drag_value = 0.0
 			else:
+				if _single_input_lock(): return
 				if !_is_dragging:
-					if !_confirm_input_accept(event): return
+					if !_confirm_input_accept(event, true): return
 					drag_start.emit()
 				
 				_is_dragging = true
@@ -775,6 +774,26 @@ func _input(event: InputEvent) -> void:
 				
 				_progress_changed(get_progress_adjusted(true))
 				if smooth_drag: _adjust_children()
+	
+	if event is InputEventMouseButton || event is InputEventScreenTouch:
+		if event.pressed:
+			if action_mode & ActionMode.ACTION_MODE_BUTTON_PRESS:
+				if _single_input_lock(): return
+				if !_confirm_input_accept(event): return
+				_toggle_drawer(!is_open())
+				return
+		else:
+			if action_mode & ActionMode.ACTION_MODE_BUTTON_RELEASE:
+				if _single_input_lock(): return
+				if !_confirm_input_accept(event): return
+				_toggle_drawer(!is_open())
+				return
+func _single_input_lock() -> bool:
+	if !single_input: return true
+	if _single_input: return false
+	_single_input = true
+	set_deferred("_single_input", false)
+	return true
 
 
 
@@ -789,3 +808,5 @@ func _get_drawer_offset(inner_offset : Vector2, outer_offset : Vector2, with_dra
 
 ## A virtual function that is is called whenever the drawer progress changes.
 func _progress_changed(progress : float) -> void: pass
+
+# Made by Xavier Alvarez. A part of the "FreeControl" Godot addon.

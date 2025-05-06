@@ -384,7 +384,7 @@ func _adjust_children() -> void:
 			_on_item_progress(item_info.node, local_scroll, scroll, item, local_index)
 
 func _start_drag_slowdown() -> void:
-	if get_tree() && !get_tree().process_frame.is_connected(_handle_drag_slowdown):
+	if is_inside_tree() && !get_tree().process_frame.is_connected(_handle_drag_slowdown):
 		get_tree().process_frame.connect(_handle_drag_slowdown)
 func _end_drag_slowdown() -> void:
 	if abs(_drag_velocity) < slowdown_cutoff:
@@ -392,7 +392,7 @@ func _end_drag_slowdown() -> void:
 		_drag_velocity = 0
 		if snap_behavior == SNAP_BEHAVIOR.SNAP:
 			_create_animation(get_carousel_index(), ANIMATION_TYPE.SNAP)
-	if get_tree() && get_tree().process_frame.is_connected(_handle_drag_slowdown):
+	if is_inside_tree() && get_tree().process_frame.is_connected(_handle_drag_slowdown):
 		get_tree().process_frame.disconnect(_handle_drag_slowdown)
 func _handle_drag_slowdown() -> void:
 	if abs(_drag_velocity) < slowdown_cutoff:
@@ -438,7 +438,9 @@ func _validate_property(property: Dictionary) -> void:
 			property.usage |= PROPERTY_USAGE_READ_ONLY
 
 func _input(event: InputEvent) -> void:
-	if !can_drag: return
+	if !can_drag || !(
+		event is InputEventMouseMotion || event is InputEventScreenDrag
+	) || !get_global_rect().has_point(event.position): return
 	
 	if (event is InputEventScreenDrag || event is InputEventMouseMotion):
 		if event.pressure == 0:
@@ -447,6 +449,7 @@ func _input(event: InputEvent) -> void:
 		
 		if !_is_dragging:
 			drag_begin.emit()
+			_start_mouse_check()
 			_end_drag_slowdown()
 			_kill_animation()
 		_is_dragging = true
@@ -474,6 +477,7 @@ func _input(event: InputEvent) -> void:
 	elif event is InputEventScreenTouch:
 		if !event.pressed: _on_drag_release()
 func _on_drag_release() -> void:
+	_end_mouse_check()
 	_is_dragging = false
 	drag_end.emit()
 	
@@ -485,6 +489,19 @@ func _on_drag_release() -> void:
 		elif snap_behavior == SNAP_BEHAVIOR.SNAP:
 			if hard_stop: _create_animation(get_carousel_index(), ANIMATION_TYPE.SNAP)
 			else: _start_drag_slowdown()
+
+func _start_mouse_check() -> void:
+	if is_inside_tree() && !get_tree().process_frame.is_connected(_mouse_check):
+		get_tree().process_frame.connect(_mouse_check)
+func _end_mouse_check() -> void:
+	if is_inside_tree() && get_tree().process_frame.is_connected(_mouse_check):
+		get_tree().process_frame.disconnect(_mouse_check)
+func _mouse_check() -> void:
+	if !_mouse_in_rect():
+		_on_drag_release()
+
+func _mouse_in_rect() -> bool:
+	return get_rect().has_point(get_local_mouse_position())
 
 func _get_allowed_size_flags_horizontal() -> PackedInt32Array:
 	return [SIZE_FILL, SIZE_SHRINK_BEGIN, SIZE_SHRINK_CENTER, SIZE_SHRINK_END]
@@ -521,7 +538,8 @@ func go_to_index(idx : int, animation : bool = true) -> void:
 	else:
 		idx = clamp(idx, 0, _item_count - 1)
 	
-	if animation: _create_animation(idx, ANIMATION_TYPE.MANUAL)
+	if animation:
+		_create_animation(idx, ANIMATION_TYPE.MANUAL)
 	else:
 		_kill_animation()
 		_scroll_value = -_get_relevant_axis() * idx

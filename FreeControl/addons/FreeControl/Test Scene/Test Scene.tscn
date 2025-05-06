@@ -1,13 +1,12 @@
-[gd_scene load_steps=9 format=3 uid="uid://bnk0kjfvifew"]
+[gd_scene load_steps=8 format=3 uid="uid://bnk0kjfvifew"]
 
-[ext_resource type="Script" path="res://addons/FreeControl/src/ProportionalContainer/ProportionalContainer.gd" id="1_oh8we"]
+[ext_resource type="Script" path="res://addons/FreeControl/src/CustomClasses/ProportionalContainer/ProportionalContainer.gd" id="1_oh8we"]
 [ext_resource type="Texture2D" uid="uid://bdenffuc0sdcl" path="res://icon.svg" id="3_hc7l0"]
-[ext_resource type="Script" path="res://addons/FreeControl/src/Carousel/Carousel.gd" id="3_ymryc"]
-[ext_resource type="Script" path="res://addons/FreeControl/src/CircularContainer/CircularContainer.gd" id="4_dkgx1"]
-[ext_resource type="Script" path="res://addons/FreeControl/src/SizeController/MaxSizeContainer.gd" id="6_likrf"]
-[ext_resource type="Script" path="res://addons/FreeControl/src/SizeController/MaxRatioContainer.gd" id="7_p24p1"]
-[ext_resource type="Script" path="res://addons/FreeControl/src/Typography/Typography.gd" id="8_5s75o"]
-[ext_resource type="Script" path="res://addons/FreeControl/src/Drawer/Drawer.gd" id="8_ku3ui"]
+[ext_resource type="Script" path="res://addons/FreeControl/src/CustomClasses/Carousel/Carousel.gd" id="3_ymryc"]
+[ext_resource type="Script" path="res://addons/FreeControl/src/CustomClasses/CircularContainer/CircularContainer.gd" id="4_dkgx1"]
+[ext_resource type="Script" path="res://addons/FreeControl/src/CustomClasses/SizeController/MaxSizeContainer.gd" id="6_likrf"]
+[ext_resource type="Script" path="res://addons/FreeControl/src/CustomClasses/SizeController/MaxRatioContainer.gd" id="7_p24p1"]
+[ext_resource type="Script" path="res://addons/FreeControl/src/CustomClasses/Drawer/Drawer.gd" id="8_ku3ui"]
 
 [node name="TestScene" type="PanelContainer"]
 anchors_preset = 15
@@ -17,6 +16,7 @@ grow_horizontal = 2
 grow_vertical = 2
 
 [node name="Carousel" type="Container" parent="."]
+visible = false
 layout_mode = 2
 script = ExtResource("3_ymryc")
 
@@ -118,11 +118,10 @@ texture = ExtResource("3_hc7l0")
 layout_mode = 2
 texture = ExtResource("3_hc7l0")
 
-[node name="ProportionalContainer" type="Container" parent="." node_paths=PackedStringArray("ancher")]
+[node name="ProportionalContainer" type="Container" parent="."]
 visible = false
 layout_mode = 2
 script = ExtResource("1_oh8we")
-ancher = NodePath("../Typography")
 mode = 1
 horizontal_ratio = 0.399
 
@@ -154,11 +153,6 @@ max_size = Vector2(-1, 0)
 layout_mode = 2
 texture = ExtResource("3_hc7l0")
 
-[node name="Typography" type="Label" parent="."]
-visible = false
-layout_mode = 2
-script = ExtResource("8_5s75o")
-
 [node name="VBoxContainer" type="VBoxContainer" parent="."]
 visible = false
 layout_mode = 2
@@ -172,7 +166,6 @@ size_flags_vertical = 3
 layout_mode = 2
 size_flags_vertical = 3
 script = ExtResource("8_ku3ui")
-state = false
 drawer_angle = 0.0
 drawer_angle_axis_snap = false
 drawer_width_by_pixel = false

@@ -2,7 +2,8 @@
 @tool
 extends EditorPlugin
 
-const SCRIPT_FOLDER := "res://addons/FreeControl/src/"
+const GLOBAL_FOLDER := "res://addons/FreeControl/src/Other/Global/"
+const CUSTOM_CLASS_FOLDER := "res://addons/FreeControl/src/CustomClasses/"
 const ICON_FOLDER := "res://addons/FreeControl/assets/icons/CustomType/"
 
 func _enter_tree() -> void:
@@ -11,38 +12,38 @@ func _enter_tree() -> void:
 	add_custom_type(
 		"AnimatableControl",
 		"Container",
-		load(SCRIPT_FOLDER + "AnimatableControl/control/AnimatableControl.gd"), 
+		load(CUSTOM_CLASS_FOLDER + "AnimatableControl/control/AnimatableControl.gd"), 
 		load(ICON_FOLDER + "AnimatableControl.svg")
 	)
 	add_custom_type(
 		"AnimatableScrollControl",
 		"Container",
-		load(SCRIPT_FOLDER + "AnimatableControl/control/AnimatableScrollControl.gd"), 
+		load(CUSTOM_CLASS_FOLDER + "AnimatableControl/control/AnimatableScrollControl.gd"), 
 		load(ICON_FOLDER + "AnimatableScrollControl.svg")
 	)
 	add_custom_type(
 		"AnimatableZoneControl",
 		"Container",
-		load(SCRIPT_FOLDER + "AnimatableControl/control/AnimatableZoneControl.gd"), 
+		load(CUSTOM_CLASS_FOLDER + "AnimatableControl/control/AnimatableZoneControl.gd"), 
 		load(ICON_FOLDER + "AnimatableZoneControl.svg")
 	)
 	add_custom_type(
 		"AnimatableVisibleControl",
 		"Container",
-		load(SCRIPT_FOLDER + "AnimatableControl/control/AnimatableVisibleControl.gd"), 
+		load(CUSTOM_CLASS_FOLDER + "AnimatableControl/control/AnimatableVisibleControl.gd"), 
 		load(ICON_FOLDER + "AnimatableVisibleControl.svg")
 	)
 		# Mount
 	add_custom_type(
 		"AnimatableMount",
 		"Control",
-		load(SCRIPT_FOLDER + "AnimatableControl/mount/AnimatableMount.gd"), 
+		load(CUSTOM_CLASS_FOLDER + "AnimatableControl/mount/AnimatableMount.gd"), 
 		load(ICON_FOLDER + "AnimatableMount.svg")
 	)
 	add_custom_type(
 		"AnimatableTransformationMount",
 		"Control",
-		load(SCRIPT_FOLDER + "AnimatableControl/mount/AnimatableTransformationMount.gd"), 
+		load(CUSTOM_CLASS_FOLDER + "AnimatableControl/mount/AnimatableTransformationMount.gd"), 
 		load(ICON_FOLDER + "AnimatableTransformationMount.svg")
 	)
 	
@@ -50,7 +51,7 @@ func _enter_tree() -> void:
 	add_custom_type(
 		"Carousel",
 		"Container",
-		load(SCRIPT_FOLDER + "Carousel/Carousel.gd"), 
+		load(CUSTOM_CLASS_FOLDER + "Carousel/Carousel.gd"), 
 		load(ICON_FOLDER + "Carousel.svg")
 	)
 	
@@ -58,7 +59,7 @@ func _enter_tree() -> void:
 	add_custom_type(
 		"CircularContainer",
 		"Container",
-		load(SCRIPT_FOLDER + "CircularContainer/CircularContainer.gd"), 
+		load(CUSTOM_CLASS_FOLDER + "CircularContainer/CircularContainer.gd"), 
 		load(ICON_FOLDER + "CircularContainer.svg")
 	)
 	
@@ -66,7 +67,7 @@ func _enter_tree() -> void:
 	add_custom_type(
 		"Drawer",
 		"Container",
-		load(SCRIPT_FOLDER + "Drawer/Drawer.gd"), 
+		load(CUSTOM_CLASS_FOLDER + "Drawer/Drawer.gd"), 
 		load(ICON_FOLDER + "Drawer.svg")
 	)
 	
@@ -74,7 +75,7 @@ func _enter_tree() -> void:
 	add_custom_type(
 		"ProportionalContainer",
 		"Container",
-		load(SCRIPT_FOLDER + "ProportionalContainer/ProportionalContainer.gd"), 
+		load(CUSTOM_CLASS_FOLDER + "ProportionalContainer/ProportionalContainer.gd"), 
 		load(ICON_FOLDER + "ProportionalContainer.svg")
 	)
 	
@@ -82,25 +83,18 @@ func _enter_tree() -> void:
 	add_custom_type(
 		"MaxSizeContainer",
 		"Container",
-		load(SCRIPT_FOLDER + "SizeController/MaxSizeContainer.gd"), 
+		load(CUSTOM_CLASS_FOLDER + "SizeController/MaxSizeContainer.gd"), 
 		load(ICON_FOLDER + "MaxSizeContainer.svg")
 	)
 	add_custom_type(
 		"MaxRatioContainer",
 		"Container",
-		load(SCRIPT_FOLDER + "SizeController/MaxRatioContainer.gd"), 
+		load(CUSTOM_CLASS_FOLDER + "SizeController/MaxRatioContainer.gd"), 
 		load(ICON_FOLDER + "MaxRatioContainer.svg")
-	)
-	
-	# Typography
-	add_custom_type(
-		"Typography",
-		"Label",
-		load(SCRIPT_FOLDER + "Typography/Typography.gd"), 
-		load(ICON_FOLDER + "Typography.svg")
 	)
 
 func _exit_tree() -> void:
+	
 	# AnimatableControls
 		# Control
 	remove_custom_type("AnimatableControl")
@@ -126,6 +120,3 @@ func _exit_tree() -> void:
 	# SizeControllers
 	remove_custom_type("MaxRatioContainer")
 	remove_custom_type("MaxSizeContainer")
-	
-	# Typography
-	remove_custom_type("Typography")

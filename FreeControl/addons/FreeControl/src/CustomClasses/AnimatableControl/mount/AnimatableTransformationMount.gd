@@ -8,20 +8,20 @@ class_name AnimatableTransformationMount extends AnimatableMount
 	set(val):
 		if val != adjust_scale:
 			adjust_scale = val
-			queue_minimum_size_update()
+			update_minimum_size()
 ## If [code]true[/code] this node will adjust it's size to fit its children's rotations.[br]
 ## [b]NOTE[/b]: A large [member pivot_offset] can cause floating point precision issues.
 @export var adjust_rotate : bool:
 	set(val):
 		if val != adjust_rotate:
 			adjust_rotate = val
-			queue_minimum_size_update()
+			update_minimum_size()
 ## If [code]true[/code] this node adjust its children's positions inside it's size.
 @export var adjust_position : bool:
 	set(val):
 		if val != adjust_position:
 			adjust_position = val
-			queue_minimum_size_update()
+			update_minimum_size()
 
 var _child_min_size : Vector2
 
@@ -122,14 +122,14 @@ func _get_rotated_rect_bounding_box(rect : Rect2, pivot : Vector2, angle : float
 	return Rect2(bb_pos, bb_size)
 
 func _ready() -> void:
-	if !size_flags_changed.is_connected(queue_minimum_size_update):
-		size_flags_changed.connect(queue_minimum_size_update, CONNECT_DEFERRED)
+	if !size_flags_changed.is_connected(update_minimum_size):
+		size_flags_changed.connect(update_minimum_size, CONNECT_DEFERRED)
 	super()
 
 func _on_mount(control : AnimatableControl) -> void:
-	control.transformation_changed.connect(queue_minimum_size_update, CONNECT_DEFERRED)
+	control.transformation_changed.connect(update_minimum_size, CONNECT_DEFERRED)
 func _on_unmount(control : AnimatableControl) -> void:
-	control.transformation_changed.disconnect(queue_minimum_size_update)
+	control.transformation_changed.disconnect(update_minimum_size)
 
 ## Returns the adjusted size of this mount.
 func get_relative_size(control : AnimatableControl) -> Vector2:

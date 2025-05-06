@@ -20,18 +20,18 @@ enum SIZE_MODE {
 	set(val):
 		if size_mode != val:
 			size_mode = val
-			notify_property_list_changed()
+			if _mount:
+				_mount.update_minimum_size()
 			_bound_size()
+			notify_property_list_changed()
 ## Auto sets the pivot to be at some position percentage of the size.
-@export var pivot_ratio : Vector2 = Vector2.ZERO:
+@export var pivot_ratio : Vector2:
 	set(val):
 		if pivot_ratio != val:
 			pivot_ratio = val
 			pivot_offset = size * val
 
 var _mount : AnimatableMount
-var _min_size : Vector2
-var _ignore_resize : bool
 
 func _get_configuration_warnings() -> PackedStringArray:
 	if get_parent() is AnimatableMount:
@@ -48,14 +48,15 @@ func _set(property: StringName, value: Variant) -> bool:
 		transformation_changed.emit()
 		_bound_size()
 	elif property == "pivot_offset":
-		pivot_ratio = pivot_offset / size
-		transformation_changed.emit()
-		_bound_size()
+		if is_node_ready() && size > Vector2.ZERO:
+			pivot_ratio = pivot_offset / size
+			transformation_changed.emit()
+			_bound_size()
 	return false
 
 func _ready() -> void:
 	if !resized.is_connected(_handle_resize):
-		resized.connect(_handle_resize)
+		resized.connect(_handle_resize, CONNECT_DEFERRED)
 	if !sort_children.is_connected(_sort_children):
 		sort_children.connect(_sort_children)
 	if !tree_exited.is_connected(_on_tree_exit):
@@ -76,34 +77,20 @@ func _on_tree_enter() -> void:
 	_sort_children()
 func _on_tree_exit() -> void:
 	if _mount:
-		_mount.queue_minimum_size_update()
 		_mount._on_unmount(self)
 		_mount = null
 
 func _handle_resize() -> void:
-	if _ignore_resize: return
-	_ignore_resize = true
 	_bound_size()
-	_ignore_resize = false
+	pivot_offset = size * pivot_ratio
 func _sort_children() -> void:
-	var _old_min_size := _min_size
-	_min_size = Vector2.ZERO
-	for child : Control in _get_control_children():
-		_min_size = _min_size.max(child.get_combined_minimum_size())
-	
-	if _min_size != _old_min_size:
-		update_minimum_size()
-		_resize_childrend()
-		if _mount: _mount.queue_minimum_size_update()
-	else: _resize_childrend()
-func _resize_childrend() -> void:
 	for child : Control in _get_control_children():
 		_resize_child(child)
 func _resize_child(child : Control) -> void:
-	var child_size := child.get_minimum_size()
+	var child_size := child.get_combined_minimum_size()
 	var set_pos : Vector2
 	
-	match size_flags_horizontal:
+	match child.size_flags_horizontal & ~SIZE_EXPAND:
 		SIZE_FILL:
 			set_pos.x = 0
 			child_size.x = max(child_size.x, size.x)
@@ -113,7 +100,7 @@ func _resize_child(child : Control) -> void:
 			set_pos.x = (size.x - child_size.x) * 0.5
 		SIZE_SHRINK_END:
 			set_pos.x = size.x - child_size.x
-	match size_flags_vertical:
+	match child.size_flags_vertical & ~SIZE_EXPAND:
 		SIZE_FILL:
 			set_pos.y = 0
 			child_size.y = max(child_size.y, size.y)
@@ -126,11 +113,15 @@ func _resize_child(child : Control) -> void:
 	
 	fit_child_in_rect(child, Rect2(set_pos, child_size))
 func _get_minimum_size() -> Vector2:
-	return _min_size
+	if clip_children: return Vector2.ZERO
+	
+	var min_size := Vector2.ZERO
+	for child : Control in _get_control_children():
+		min_size = min_size.max(child.get_combined_minimum_size())
+	return min_size
 
 func _bound_size() -> void:
-	pivot_offset = size * pivot_ratio
-	if !_mount : return
+	if !_mount: return
 	
 	var new_size : Vector2 = size
 	if size_mode == SIZE_MODE.MAX:

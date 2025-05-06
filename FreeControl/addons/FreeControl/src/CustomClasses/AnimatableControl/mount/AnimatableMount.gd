@@ -9,54 +9,35 @@ signal pre_sort_children
 signal sort_children
 
 var _min_size : Vector2
-var _update_queued : bool = false
 
 func _get_configuration_warnings() -> PackedStringArray:
 	for child : Node in get_children():
 		if child is AnimatableControl: return []
 	return ["This node has no 'AnimatableControl' nodes as children"]
 func _get_minimum_size() -> Vector2:
+	if clip_children: return Vector2.ZERO
+	_update_children_minimum_size()
 	return _min_size
 func _update_children_minimum_size() -> void:
-	var _old_min_size := _min_size
 	_min_size = Vector2.ZERO
 	
 	# Ensures size is the same as the largest size (of both axis) of children
 	for child : Node in get_children():
 		if child is AnimatableControl:
-			_min_size = _min_size.max(child.get_combined_minimum_size())
-	
-	if _old_min_size != _min_size:
-		update_minimum_size()
+			if child.size_mode & child.SIZE_MODE.MIN:
+				_min_size = _min_size.max(child.get_combined_minimum_size())
 
 func _ready() -> void:
 	if !resized.is_connected(_handle_resize):
 		resized.connect(_handle_resize, CONNECT_DEFERRED)
 	if !size_flags_changed.is_connected(_handle_resize):
 		size_flags_changed.connect(_handle_resize)
-	
-	queue_minimum_size_update()
 func _handle_resize() -> void:
 	pre_sort_children.emit()
 	for child : Node in get_children():
 		if child is AnimatableControl:
 			child._bound_size()
 	sort_children.emit()
-
-## Queues This mount to update it's size, size min, and all children, within the frame.[br]
-## Cannot be called more than once in a single frame. Will be finished at the end of the frame.
-func queue_minimum_size_update() -> void:
-	# Aquires lock
-	if _update_queued: return
-	# Does nothing if not inside tree.
-	if is_inside_tree(): 
-		_update_queued = true
-		# Updates children size
-		call_deferred("call_deferred", "_update_children_minimum_size")
-	
-		# Releases lock at the start of next frame
-		get_tree().process_frame.connect(_release_queue, CONNECT_ONE_SHOT)
-func _release_queue() -> void: _update_queued = false
 
 ## A virtual helper function that should be used when creating your own mounts.[br]
 ## Is called upon an [AnimatableControl] being added as a child.
