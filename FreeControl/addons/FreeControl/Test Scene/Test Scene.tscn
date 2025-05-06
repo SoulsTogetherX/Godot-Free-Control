@@ -19,6 +19,7 @@ grow_vertical = 2
 visible = false
 layout_mode = 2
 script = ExtResource("3_ymryc")
+drag_outside = null
 
 [node name="1" type="TextureRect" parent="Carousel"]
 z_index = 4

@@ -128,10 +128,18 @@ signal slowdown_interupted
 	set(val):
 		if val != can_drag:
 			can_drag = val
+			notify_property_list_changed()
 			if !val:
 				_drag_scroll_value = 0
 				if _is_dragging:
 					_adjust_children()
+## If [code]true[/code], the user is allowed to drag outisde the drawer's bounding box.
+## [br][br]
+## Also see [member can_drag].
+@export var drag_outside : bool = false:
+	set(val):
+		if val != drag_outside:
+			drag_outside = val
 @export_subgroup("Limits")
 ## The max amount a user can drag in either direction. If [code]0[/code], then the user can drag any amount they wish.
 @export var drag_limit : int = 0:
@@ -436,11 +444,15 @@ func _validate_property(property: Dictionary) -> void:
 	elif property.name in ["slowdown_drag", "slowdown_friction", "slowdown_cutoff"]:
 		if hard_stop || snap_behavior == SNAP_BEHAVIOR.PAGING:
 			property.usage |= PROPERTY_USAGE_READ_ONLY
+	elif property.name in ["drag_outside"]:
+		if !can_drag:
+			property.usage |= PROPERTY_USAGE_READ_ONLY
+	
 
 func _gui_input(event: InputEvent) -> void:
 	if !can_drag || !(
 		event is InputEventMouseMotion || event is InputEventScreenDrag
-	) || !get_global_rect().has_point(event.position): return
+	) || !(drag_outside || _mouse_in_rect()): return
 	
 	if (event is InputEventScreenDrag || event is InputEventMouseMotion):
 		if event.pressure == 0:
@@ -474,7 +486,7 @@ func _gui_input(event: InputEvent) -> void:
 					_create_animation(desired, ANIMATION_TYPE.SNAP)
 		else:
 			_adjust_children()
-	elif event is InputEventScreenTouch:
+	elif (event is InputEventScreenTouch || event is InputEventMouseButton):
 		if !event.pressed: _on_drag_release()
 func _on_drag_release() -> void:
 	_end_mouse_check()
@@ -501,7 +513,7 @@ func _mouse_check() -> void:
 		_on_drag_release()
 
 func _mouse_in_rect() -> bool:
-	return get_rect().has_point(get_local_mouse_position())
+	return Rect2(Vector2.ZERO, size).has_point(get_local_mouse_position())
 
 func _get_allowed_size_flags_horizontal() -> PackedInt32Array:
 	return [SIZE_FILL, SIZE_SHRINK_BEGIN, SIZE_SHRINK_CENTER, SIZE_SHRINK_END]
