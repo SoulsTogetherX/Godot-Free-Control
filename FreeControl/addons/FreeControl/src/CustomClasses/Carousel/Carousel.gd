@@ -437,7 +437,7 @@ func _validate_property(property: Dictionary) -> void:
 		if hard_stop || snap_behavior == SNAP_BEHAVIOR.PAGING:
 			property.usage |= PROPERTY_USAGE_READ_ONLY
 
-func _input(event: InputEvent) -> void:
+func _gui_input(event: InputEvent) -> void:
 	if !can_drag || !(
 		event is InputEventMouseMotion || event is InputEventScreenDrag
 	) || !get_global_rect().has_point(event.position): return

@@ -743,7 +743,7 @@ func _confirm_input_accept(event : InputEvent, drag : bool = false) -> bool:
 	if mouse_filter == MouseFilter.MOUSE_FILTER_STOP:
 		get_viewport().set_input_as_handled()
 	return true
-func _input(event: InputEvent) -> void:
+func _gui_input(event: InputEvent) -> void:
 	if action_mode & ActionMode.ACTION_MODE_BUTTON_DRAG:
 		if event is InputEventMouseMotion || event is InputEventScreenDrag:
 			if event.pressure == 0:
