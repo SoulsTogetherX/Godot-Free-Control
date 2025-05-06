@@ -2,6 +2,9 @@
 @tool
 class_name ProportionalContainer extends Container
 ## A container that preserves the proportions of its [member ancher] size.
+## [br][br]
+## [b]WARNING[b]: Is this a buggy node. Try to use [PaddingContainer] instead, unless required.
+
 
 ## The method this node will change in proportion of its [member ancher] size.
 enum PROPORTION_MODE {

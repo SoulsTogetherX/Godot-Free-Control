@@ -71,6 +71,14 @@ func _enter_tree() -> void:
 		load(ICON_FOLDER + "Drawer.svg")
 	)
 	
+	# PaddingContainer
+	add_custom_type(
+		"PaddingContainer",
+		"Container",
+		load(CUSTOM_CLASS_FOLDER + "PaddingContainer/PaddingContainer.gd"), 
+		load(ICON_FOLDER + "PaddingContainer.svg")
+	)
+	
 	# ProportionalContainer
 	add_custom_type(
 		"ProportionalContainer",
@@ -113,6 +121,9 @@ func _exit_tree() -> void:
 	
 	# Drawer
 	remove_custom_type("Drawer")
+	
+	# PaddingContainer
+	remove_custom_type("PaddingContainer")
 	
 	# ProportionalContainer
 	remove_custom_type("ProportionalContainer")

@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://chk80wa3xfjei"
-path="res://.godot/imported/Typography.svg-83b9bbf2c096cdf0cc1aa48c1b63b17d.ctex"
+uid="uid://1pif73eeuhik"
+path="res://.godot/imported/PaddingContainer.svg-9d29b77cc431f8e4258d6655803790fe.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://addons/FreeControl/assets/icons/CustomType/Typography.svg"
-dest_files=["res://.godot/imported/Typography.svg-83b9bbf2c096cdf0cc1aa48c1b63b17d.ctex"]
+source_file="res://addons/FreeControl/assets/icons/CustomType/PaddingContainer.svg"
+dest_files=["res://.godot/imported/PaddingContainer.svg-9d29b77cc431f8e4258d6655803790fe.ctex"]
 
 [params]
 
