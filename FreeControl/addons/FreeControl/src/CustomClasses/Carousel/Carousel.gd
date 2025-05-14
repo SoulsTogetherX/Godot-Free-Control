@@ -20,13 +20,13 @@ enum ANIMATION_TYPE {
 signal snap_end
 ## This signal is emited when a snap begins.
 signal snap_begin
-## This signal is emited when a drag finishes. This does not include the slowdown caused when [memeber hard_stop] is [code]false[/code].
+## This signal is emited when a drag finishes. This does not include the slowdown caused when [member hard_stop] is [code]false[/code].
 signal drag_end
 ## This signal is emited when a drag begins.
 signal drag_begin
-## This signal is emited when the slowdown, caused when [memeber hard_stop] is [code]false[/code], finished naturally.
+## This signal is emited when the slowdown, caused when [member hard_stop] is [code]false[/code], finished naturally.
 signal slowdown_end
-## This signal is emited when the slowdown, caused when [memeber hard_stop] is [code]false[/code], is interrupted by another drag or other feature. 
+## This signal is emited when the slowdown, caused when [member hard_stop] is [code]false[/code], is interrupted by another drag or other feature. 
 signal slowdown_interupted
 
 @export_group("Carousel Options")
@@ -97,7 +97,7 @@ signal slowdown_interupted
 				_end_drag_slowdown()
 				_create_animation(get_carousel_index(), ANIMATION_TYPE.SNAP)
 			notify_property_list_changed()
-## If [memeber snap_behavior] is [SNAP_BEHAVIOR.PAGING], this is the draging threshold needed to page to the next carousel item.
+## If [member snap_behavior] is [SNAP_BEHAVIOR.PAGING], this is the draging threshold needed to page to the next carousel item.
 @export var paging_requirement : int = 200:
 	set(val):
 		val = max(1, val)
@@ -148,7 +148,7 @@ signal slowdown_interupted
 		if val != drag_limit: drag_limit = val
 ## When dragging, the user will not be able to move past the last or first item, besides for [member border_limit] number of extra pixels.
 ## [br][br]
-## This value is assumed [code]false[/code] is [memeber display_loop] is [code]true[/code].
+## This value is assumed [code]false[/code] is [member display_loop] is [code]true[/code].
 @export var enforce_border : bool = false:
 	set(val):
 		if val != enforce_border:
@@ -466,26 +466,7 @@ func _gui_input(event: InputEvent) -> void:
 			_kill_animation()
 		_is_dragging = true
 		
-		var projected_scalar : float = -event.relative.dot(_angle_vec) / _angle_vec.length_squared()
-		_drag_velocity = projected_scalar
-		_drag_scroll_value += projected_scalar
-		
-		if drag_limit != 0:
-			_drag_scroll_value = clampi(_drag_scroll_value, -drag_limit, drag_limit)
-		
-		if snap_behavior == SNAP_BEHAVIOR.PAGING:
-			if paging_requirement < _drag_scroll_value:
-				_drag_scroll_value = 0
-				var desired := get_carousel_index() + 1
-				if allow_loop || desired < _item_count:
-					_create_animation(desired, ANIMATION_TYPE.SNAP)
-			elif -paging_requirement > _drag_scroll_value:
-				_drag_scroll_value = 0
-				var desired := get_carousel_index() - 1
-				if allow_loop || desired >= 0:
-					_create_animation(desired, ANIMATION_TYPE.SNAP)
-		else:
-			_adjust_children()
+		_handle_drag_angle(event.relative)
 	elif (event is InputEventScreenTouch || event is InputEventMouseButton):
 		if !event.pressed: _on_drag_release()
 func _on_drag_release() -> void:
@@ -562,6 +543,25 @@ func prev(animation : bool = true) -> void:
 ## Moves to the next item in the carousel, if there is one.
 func next(animation : bool = true) -> void:
 	go_to_index(get_carousel_index() + 1, animation)
+## Enacts a manual drag on the carousel. This can be used even if [member can_drag] is [code]false[/code].
+## Note that [param from] and [param dir] are considered in local coordinates.
+## [br][br]
+## Also see [member hard_stop], [member drag_outside], and [member drag_limit]
+func flick(from : Vector2, dir : Vector2) -> void:
+	drag_begin.emit()
+	_kill_animation()
+	_end_drag_slowdown()
+	
+	if !drag_outside:
+		dir = dir.clamp(Vector2.ZERO, size)
+		from = from.clamp(Vector2.ZERO, size)
+	var combined := dir - from
+	
+	if drag_limit > 0:
+		combined = combined.limit_length(drag_limit)
+	
+	_handle_drag_angle(dir - from)
+	_on_drag_release()
 ## Returns if the carousel is currening scrolling via na animation
 func is_animating() -> bool:
 	return _scroll_tween.is_running()
@@ -586,7 +586,30 @@ func _on_progress(scroll : int) -> void: pass
 func _on_item_progress(item : Control, local_scroll : int, scroll : int, local_index : int, index : int) -> void: pass
 
 
+
+func _handle_drag_angle(local_pos : Vector2) -> void:
+	var projected_scalar : float = -local_pos.dot(_angle_vec) / _angle_vec.length_squared()
+	_drag_velocity = projected_scalar
+	_drag_scroll_value += projected_scalar
+	
+	if drag_limit != 0:
+		_drag_scroll_value = clampi(_drag_scroll_value, -drag_limit, drag_limit)
+	
+	if snap_behavior == SNAP_BEHAVIOR.PAGING:
+		if paging_requirement < _drag_scroll_value:
+			_drag_scroll_value = 0
+			var desired := get_carousel_index() + 1
+			if allow_loop || desired < _item_count:
+				_create_animation(desired, ANIMATION_TYPE.SNAP)
+		elif -paging_requirement > _drag_scroll_value:
+			_drag_scroll_value = 0
+			var desired := get_carousel_index() - 1
+			if allow_loop || desired >= 0:
+				_create_animation(desired, ANIMATION_TYPE.SNAP)
+	else:
+		_adjust_children()
  
+
 # Used to hold data about a carousel item
 class ItemInfo:
 	var node : Control

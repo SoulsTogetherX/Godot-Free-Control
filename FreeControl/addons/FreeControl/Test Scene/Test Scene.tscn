@@ -16,10 +16,9 @@ grow_horizontal = 2
 grow_vertical = 2
 
 [node name="Carousel" type="Container" parent="."]
-visible = false
 layout_mode = 2
+size_flags_vertical = 3
 script = ExtResource("3_ymryc")
-drag_outside = null
 
 [node name="1" type="TextureRect" parent="Carousel"]
 z_index = 4
