@@ -16,6 +16,7 @@ grow_horizontal = 2
 grow_vertical = 2
 
 [node name="Carousel" type="Container" parent="."]
+visible = false
 layout_mode = 2
 size_flags_vertical = 3
 script = ExtResource("3_ymryc")

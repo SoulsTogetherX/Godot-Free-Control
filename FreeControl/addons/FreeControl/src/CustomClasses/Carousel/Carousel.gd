@@ -546,21 +546,14 @@ func next(animation : bool = true) -> void:
 ## Enacts a manual drag on the carousel. This can be used even if [member can_drag] is [code]false[/code].
 ## Note that [param from] and [param dir] are considered in local coordinates.
 ## [br][br]
-## Also see [member hard_stop], [member drag_outside], and [member drag_limit]
+## Is not affected by [member hard_stop], [member drag_outside], and [member drag_limit].
 func flick(from : Vector2, dir : Vector2) -> void:
 	drag_begin.emit()
 	_kill_animation()
 	_end_drag_slowdown()
 	
-	if !drag_outside:
-		dir = dir.clamp(Vector2.ZERO, size)
-		from = from.clamp(Vector2.ZERO, size)
-	var combined := dir - from
-	
-	if drag_limit > 0:
-		combined = combined.limit_length(drag_limit)
-	
 	_handle_drag_angle(dir - from)
+	
 	_on_drag_release()
 ## Returns if the carousel is currening scrolling via na animation
 func is_animating() -> bool:
