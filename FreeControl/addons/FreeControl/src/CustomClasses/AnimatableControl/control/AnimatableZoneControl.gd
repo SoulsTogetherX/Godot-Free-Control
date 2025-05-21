@@ -130,6 +130,8 @@ var hide_indicator : bool = true:
 
 var _last_overlapped : int = 2
 
+
+
 func _draw() -> void:
 	if !_mount || !Engine.is_editor_hint() || hide_indicator || !scroll || check_mode == CHECK_MODE.NONE: return
 	

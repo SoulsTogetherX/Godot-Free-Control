@@ -115,7 +115,7 @@ var angles : PackedFloat32Array:
 			ret[i] = rad_to_deg(_container_angles[i])
 		return ret
 
-func _ready() -> void:
+func _init() -> void:
 	if !sort_children.is_connected(_fix_childrend):
 		sort_children.connect(_fix_childrend)
 	if !child_order_changed.is_connected(_childrend_changed):

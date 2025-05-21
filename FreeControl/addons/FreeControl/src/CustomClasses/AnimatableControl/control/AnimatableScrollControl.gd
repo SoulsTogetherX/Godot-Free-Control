@@ -20,12 +20,8 @@ class_name AnimatableScrollControl extends AnimatableControl
 				val.get_h_scroll_bar().value_changed.connect(_scrolled_horizontal)
 				val.get_v_scroll_bar().value_changed.connect(_scrolled_vertical)
 				
-				if is_node_ready():
-					_scrolled_horizontal(val.get_h_scroll_bar().value)
-					_scrolled_vertical(val.get_v_scroll_bar().value)
-
-func _enter_tree() -> void:
-	if !scroll && Engine.is_editor_hint(): scroll = get_parent_scroll()
+				_scrolled_horizontal(val.get_h_scroll_bar().value)
+				_scrolled_vertical(val.get_v_scroll_bar().value)
 
 ## A virtual function that is called when [member scroll] is horizontally scrolled.
 ## [br][br]

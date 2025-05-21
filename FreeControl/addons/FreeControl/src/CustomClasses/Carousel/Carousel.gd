@@ -33,8 +33,6 @@ signal slowdown_interupted
 ## The index of the item this carousel will start at.
 @export var starting_index : int = 0:
 	set(val):
-		#if is_node_ready():
-		#	val = posmod(val, _item_count)
 		if starting_index != val:
 			starting_index = val
 			go_to_index(-val, false)
@@ -93,9 +91,8 @@ signal slowdown_interupted
 	set(val):
 		if val != snap_behavior:
 			snap_behavior = val
-			if is_node_ready():
-				_end_drag_slowdown()
-				_create_animation(get_carousel_index(), ANIMATION_TYPE.SNAP)
+			_end_drag_slowdown()
+			_create_animation(get_carousel_index(), ANIMATION_TYPE.SNAP)
 			notify_property_list_changed()
 ## If [member snap_behavior] is [SNAP_BEHAVIOR.PAGING], this is the draging threshold needed to page to the next carousel item.
 @export var paging_requirement : int = 200:
@@ -172,8 +169,7 @@ signal slowdown_interupted
 	set(val):
 		if val != hard_stop:
 			hard_stop = val
-			if is_node_ready():
-				_end_drag_slowdown()
+			_end_drag_slowdown()
 			notify_property_list_changed()
 ## The percentage multiplier the drag velocity will experience each frame.
 ## [br][br]
@@ -188,6 +184,8 @@ signal slowdown_interupted
 ## This property does nothing if [member hard_stop] is [code]true[/code].
 @export_range(0.01, 10.0, 0.001, "or_greater", "hide_slider") var slowdown_cutoff : float = 0.01
 
+
+
 var _scroll_value : int
 var _drag_scroll_value : int
 var _drag_velocity : float
@@ -201,6 +199,8 @@ var _is_dragging : bool = false
 var _last_animation : ANIMATION_TYPE = ANIMATION_TYPE.NONE
 
 var _angle_vec : Vector2
+
+
 
 func _get_child_rect(child : Control) -> Rect2:
 	var child_pos : Vector2 = (size - item_size) * 0.5
@@ -417,7 +417,7 @@ func _handle_drag_slowdown() -> void:
 	_adjust_children()
 
 
-func _ready() -> void:
+func _init() -> void:
 	if !sort_children.is_connected(_sort_children):
 		sort_children.connect(_sort_children)
 	if !tree_exiting.is_connected(_end_drag_slowdown):

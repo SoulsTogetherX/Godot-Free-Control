@@ -31,7 +31,37 @@ enum SIZE_MODE {
 			pivot_ratio = val
 			pivot_offset = size * val
 
+
 var _mount : AnimatableMount
+
+
+
+## Gets the mount this node is currently a child to.[br]
+## If this node is not a child to any [AnimatableMount] nodes, this returns [code]null[/code] instead.
+func get_mount() -> AnimatableMount:
+	return _mount
+
+
+
+func _bound_size() -> void:
+	if !_mount: return
+	
+	var new_size : Vector2 = size
+	if size_mode == SIZE_MODE.MAX:
+		new_size = _mount.get_relative_size(self).min(size)
+	elif size_mode == SIZE_MODE.MIN:
+		new_size = _mount.get_relative_size(self).max(size)
+	elif size_mode == SIZE_MODE.EXACT:
+		new_size = _mount.get_relative_size(self)
+	
+	if new_size != size:
+		size = new_size
+func _get_control_children() -> Array[Control]:
+	var ret : Array[Control]
+	ret.assign(get_children().filter(func(child : Node): return child is Control && child.visible))
+	return ret
+
+
 
 func _get_configuration_warnings() -> PackedStringArray:
 	if get_parent() is AnimatableMount:
@@ -48,13 +78,15 @@ func _set(property: StringName, value: Variant) -> bool:
 		transformation_changed.emit()
 		_bound_size()
 	elif property == "pivot_offset":
-		if is_node_ready() && size > Vector2.ZERO:
+		if size > Vector2.ZERO:
 			pivot_ratio = pivot_offset / size
 			transformation_changed.emit()
 			_bound_size()
 	return false
 
-func _ready() -> void:
+
+
+func _init() -> void:
 	if !resized.is_connected(_handle_resize):
 		resized.connect(_handle_resize, CONNECT_DEFERRED)
 	if !sort_children.is_connected(_sort_children):
@@ -70,15 +102,15 @@ func _ready() -> void:
 func _on_tree_enter() -> void:
 	_mount = (get_parent() as AnimatableMount)
 	if _mount:
-		if _mount.is_node_ready(): _bound_size()
-		elif !_mount.ready.is_connected(_bound_size):
-			_mount.ready.connect(_bound_size, CONNECT_DEFERRED | CONNECT_ONE_SHOT)
+		_bound_size()
 		_mount._on_mount(self)
 	_sort_children()
 func _on_tree_exit() -> void:
 	if _mount:
 		_mount._on_unmount(self)
 		_mount = null
+
+
 
 func _handle_resize() -> void:
 	_bound_size()
@@ -120,28 +152,6 @@ func _get_minimum_size() -> Vector2:
 		min_size = min_size.max(child.get_combined_minimum_size())
 	return min_size
 
-func _bound_size() -> void:
-	if !_mount: return
-	
-	var new_size : Vector2 = size
-	if size_mode == SIZE_MODE.MAX:
-		new_size = _mount.get_relative_size(self).min(size)
-	elif size_mode == SIZE_MODE.MIN:
-		new_size = _mount.get_relative_size(self).max(size)
-	elif size_mode == SIZE_MODE.EXACT:
-		new_size = _mount.get_relative_size(self)
-	
-	if new_size != size:
-		size = new_size
 
-func _get_control_children() -> Array[Control]:
-	var ret : Array[Control]
-	ret.assign(get_children().filter(func(child : Node): return child is Control && child.visible))
-	return ret
-
-## Gets the mount this node is currently a child to.[br]
-## If this node is not a child to any [AnimatableMount] nodes, this returns [code]null[/code] instead.
-func get_mount() -> AnimatableMount:
-	return _mount
 
 # Made by Xavier Alvarez. A part of the "FreeControl" Godot addon.

@@ -1,12 +1,15 @@
-[gd_scene load_steps=8 format=3 uid="uid://bnk0kjfvifew"]
+[gd_scene load_steps=10 format=3 uid="uid://bnk0kjfvifew"]
 
 [ext_resource type="Script" path="res://addons/FreeControl/src/CustomClasses/ProportionalContainer/ProportionalContainer.gd" id="1_oh8we"]
 [ext_resource type="Texture2D" uid="uid://bdenffuc0sdcl" path="res://icon.svg" id="3_hc7l0"]
 [ext_resource type="Script" path="res://addons/FreeControl/src/CustomClasses/Carousel/Carousel.gd" id="3_ymryc"]
 [ext_resource type="Script" path="res://addons/FreeControl/src/CustomClasses/CircularContainer/CircularContainer.gd" id="4_dkgx1"]
+[ext_resource type="Script" path="res://addons/FreeControl/src/CustomClasses/PaddingContainer/PaddingContainer.gd" id="5_v6kjq"]
 [ext_resource type="Script" path="res://addons/FreeControl/src/CustomClasses/SizeController/MaxSizeContainer.gd" id="6_likrf"]
 [ext_resource type="Script" path="res://addons/FreeControl/src/CustomClasses/SizeController/MaxRatioContainer.gd" id="7_p24p1"]
 [ext_resource type="Script" path="res://addons/FreeControl/src/CustomClasses/Drawer/Drawer.gd" id="8_ku3ui"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_8ihyc"]
 
 [node name="TestScene" type="PanelContainer"]
 anchors_preset = 15
@@ -130,11 +133,26 @@ horizontal_ratio = 0.399
 layout_mode = 2
 texture = ExtResource("3_hc7l0")
 
+[node name="PaddingContainer" type="Container" parent="."]
+layout_mode = 2
+script = ExtResource("5_v6kjq")
+child_anchor_left = 0.0
+child_anchor_top = 0.0
+child_anchor_right = 1.0
+child_anchor_bottom = 1.0
+child_offset_left = 0
+child_offset_top = 0
+child_offset_right = 0
+child_offset_bottom = 0
+
+[node name="Panel" type="Panel" parent="PaddingContainer"]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_8ihyc")
+
 [node name="MaxSizeContainer" type="Container" parent="."]
 visible = false
 layout_mode = 2
 script = ExtResource("6_likrf")
-max_size = Vector2(-1, 0)
 
 [node name="TextureRect" type="TextureRect" parent="MaxSizeContainer"]
 layout_mode = 2
@@ -148,7 +166,7 @@ layout_mode = 2
 script = ExtResource("7_p24p1")
 mode = 1
 ratio = 0.696
-max_size = Vector2(-1, 0)
+max_size = Vector2(-1, 89.088)
 
 [node name="TextureRect" type="TextureRect" parent="MaxRatioContainer"]
 layout_mode = 2

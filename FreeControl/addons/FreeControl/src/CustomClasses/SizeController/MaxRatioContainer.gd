@@ -26,34 +26,37 @@ enum MAX_RATIO_MODE {
 			ratio = val
 			queue_sort()
 
+
+
 func _validate_property(property: Dictionary) -> void:
 	if property.name == "max_size":
 		property.usage |= PROPERTY_USAGE_READ_ONLY
-func _get_minimum_size() -> Vector2:
-	return _max_size
 
 ## Updates the _max_size according to the ratio mode and current dimentions
-func _before_resize_children() -> void:
+func _update_childrend() -> void:
 	var parent := get_parent_area_size()
+	var min_size := get_combined_minimum_size()
 	
 	# Adjusts max_size itself accouring to the ratio mode and current dimentions
 	match mode:
 		MAX_RATIO_MODE.NONE:
-			_max_size = Vector2(-1, -1)
+			max_size = Vector2(-1, -1)
 		MAX_RATIO_MODE.WIDTH:
-			_max_size = Vector2(-1, minf(size.x * ratio, parent.y))
+			max_size = Vector2(-1, minf(size.x * ratio, parent.y))
 		MAX_RATIO_MODE.WIDTH_PROPORTION:
-			_max_size = Vector2(-1, min(size.x * ratio, _min_size.y, parent.y))
+			max_size = Vector2(-1, min(size.x * ratio, min_size.y, parent.y))
 		MAX_RATIO_MODE.HEIGHT:
-			_max_size = Vector2(minf(size.y * ratio, parent.x), -1)
+			max_size = Vector2(minf(size.y * ratio, parent.x), -1)
 		MAX_RATIO_MODE.HEIGHT_PROPORTION:
-			_max_size = Vector2(min(size.y * ratio, _min_size.x, parent.x), -1)
+			max_size = Vector2(min(size.y * ratio, min_size.x, parent.x), -1)
 	
 	var newSize := size
-	if _max_size.x >= 0:
-		newSize.x = _max_size.x
-	if _max_size.y >= 0:
-		newSize.y = _max_size.y
-	size = newSize.max(_min_size)
+	if max_size.x >= 0:
+		newSize.x = max_size.x
+	if max_size.y >= 0:
+		newSize.y = max_size.y
+	size = newSize.max(min_size)
+	
+	super()
 
 # Made by Xavier Alvarez. A part of the "FreeControl" Godot addon.

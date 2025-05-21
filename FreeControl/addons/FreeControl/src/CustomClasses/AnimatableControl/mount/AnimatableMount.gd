@@ -8,7 +8,32 @@ signal pre_sort_children
 ## Emits after children have been sorted
 signal sort_children
 
+
 var _min_size : Vector2
+
+
+## A virtual helper function that should be used when creating your own mounts.[br]
+## Is called upon an [AnimatableControl] being added as a child.
+func _on_mount(control : AnimatableControl) -> void: pass
+## A virtual helper function that should be used when creating your own mounts.[br]
+## Is called upon an [AnimatableControl] being removed as a child.
+func _on_unmount(control : AnimatableControl) -> void: pass
+## A helper function that should be used when creating your own mounts.[br]
+## Returns size of this mount.
+func get_relative_size(control : AnimatableControl) -> Vector2: return size
+
+
+func _init() -> void:
+	if !resized.is_connected(_handle_resize):
+		resized.connect(_handle_resize, CONNECT_DEFERRED)
+	if !size_flags_changed.is_connected(_handle_resize):
+		size_flags_changed.connect(_handle_resize)
+func _handle_resize() -> void:
+	pre_sort_children.emit()
+	for child : Node in get_children():
+		if child is AnimatableControl:
+			child._bound_size()
+	sort_children.emit()
 
 func _get_configuration_warnings() -> PackedStringArray:
 	for child : Node in get_children():
@@ -26,27 +51,5 @@ func _update_children_minimum_size() -> void:
 		if child is AnimatableControl:
 			if child.size_mode & child.SIZE_MODE.MIN:
 				_min_size = _min_size.max(child.get_combined_minimum_size())
-
-func _ready() -> void:
-	if !resized.is_connected(_handle_resize):
-		resized.connect(_handle_resize, CONNECT_DEFERRED)
-	if !size_flags_changed.is_connected(_handle_resize):
-		size_flags_changed.connect(_handle_resize)
-func _handle_resize() -> void:
-	pre_sort_children.emit()
-	for child : Node in get_children():
-		if child is AnimatableControl:
-			child._bound_size()
-	sort_children.emit()
-
-## A virtual helper function that should be used when creating your own mounts.[br]
-## Is called upon an [AnimatableControl] being added as a child.
-func _on_mount(control : AnimatableControl) -> void: pass
-## A virtual helper function that should be used when creating your own mounts.[br]
-## Is called upon an [AnimatableControl] being removed as a child.
-func _on_unmount(control : AnimatableControl) -> void: pass
-## A helper function that should be used when creating your own mounts.[br]
-## Returns size of this mount.
-func get_relative_size(control : AnimatableControl) -> Vector2: return size
 
 # Made by Xavier Alvarez. A part of the "FreeControl" Godot addon.

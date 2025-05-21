@@ -64,10 +64,7 @@ var state : bool:
 	get: return _state
 	set(val):
 		if _state != val:
-			if is_node_ready():
-				toggle_drawer(val)
-			else:
-				_state = val
+			_state = val
 
 #@export_group("Drawer Angle")
 ## The angle in which the drawer will open/close from.
@@ -404,7 +401,7 @@ func force_drawer(open : bool) -> void:
 
 
 
-func _ready() -> void:
+func _init() -> void:
 	resized.connect(_calculate_childrend)
 	sort_children.connect(_calculate_childrend)
 	

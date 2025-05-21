@@ -47,6 +47,41 @@ func _enter_tree() -> void:
 		load(ICON_FOLDER + "AnimatableTransformationMount.svg")
 	)
 	
+	# Buttons
+		# Base
+	add_custom_type(
+		"AnimatedSwitch",
+		"BaseButton",
+		load(CUSTOM_CLASS_FOLDER + "Buttons/Base.gd"), 
+		null
+	)
+	add_custom_type(
+		"HoldButton",
+		"BaseButton",
+		load(CUSTOM_CLASS_FOLDER + "Buttons/HoldButton.gd"), 
+		null
+	)
+	
+		# Complex
+	add_custom_type(
+		"AnimatedSwitch",
+		"BaseButton",
+		load(CUSTOM_CLASS_FOLDER + "Buttons/Base.gd"), 
+		null
+	)
+	add_custom_type(
+		"ModulateTransitionButton",
+		"Container",
+		load(CUSTOM_CLASS_FOLDER + "Complex/ModulateTransitionButton.gd"), 
+		null
+	)
+	add_custom_type(
+		"StyleTransitionButton",
+		"Container",
+		load(CUSTOM_CLASS_FOLDER + "Complex/StyleTransitionButton.gd"), 
+		null
+	)
+	
 	# Carousel
 	add_custom_type(
 		"Carousel",
@@ -87,6 +122,31 @@ func _enter_tree() -> void:
 		load(ICON_FOLDER + "ProportionalContainer.svg")
 	)
 	
+	# Routers
+		# Base
+			# Page
+	add_custom_type(
+		"Page",
+		"Container",
+		load(CUSTOM_CLASS_FOLDER + "Routers/Base/Page.gd"), 
+		null
+	)
+			# PageInfo
+	add_custom_type(
+		"PageInfo",
+		"Resource",
+		load(CUSTOM_CLASS_FOLDER + "Routers/Base/PageInfo.gd"), 
+		null
+	)
+	
+		# RouterStack
+	add_custom_type(
+		"RouterStack",
+		"Container",
+		load(CUSTOM_CLASS_FOLDER + "Routers/RouterStack.gd"), 
+		null
+	)
+	
 	# SizeControllers
 	add_custom_type(
 		"MaxSizeContainer",
@@ -100,18 +160,55 @@ func _enter_tree() -> void:
 		load(CUSTOM_CLASS_FOLDER + "SizeController/MaxRatioContainer.gd"), 
 		load(ICON_FOLDER + "MaxRatioContainer.svg")
 	)
+	
+	# SwapContainer
+	add_custom_type(
+		"SwapContainer",
+		"Container",
+		load(CUSTOM_CLASS_FOLDER + "SwapContainer/SwapContainer.gd"), 
+		null
+	)
+	
+	# TransitionContainers
+	add_custom_type(
+		"ModulateTransitionContainer",
+		"Container",
+		load(CUSTOM_CLASS_FOLDER + "TransitionContainers/ModulateTransitionContainer.gd"), 
+		null
+	)
+	add_custom_type(
+		"StyleTransitionContainer",
+		"Container",
+		load(CUSTOM_CLASS_FOLDER + "TransitionContainers/StyleTransitionContainer.gd"), 
+		null
+	)
+	add_custom_type(
+		"StyleTransitionPanel",
+		"Container",
+		load(CUSTOM_CLASS_FOLDER + "TransitionContainers/StyleTransitionPanel.gd"), 
+		null
+	)
 
 func _exit_tree() -> void:
-	
 	# AnimatableControls
 		# Control
 	remove_custom_type("AnimatableControl")
 	remove_custom_type("AnimatableScrollControl")
-	remove_custom_type("AnimatablePercentControl")
+	remove_custom_type("AnimatableZoneControl")
 	remove_custom_type("AnimatableVisibleControl")
 		# Mount
 	remove_custom_type("AnimatableMount")
 	remove_custom_type("AnimatableTransformationMount")
+	
+	# Buttons
+		# Base
+	remove_custom_type("AnimatedSwitch")
+	remove_custom_type("HoldButton")
+	
+		# Complex
+	remove_custom_type("AnimatedSwitch")
+	remove_custom_type("ModulateTransitionButton")
+	remove_custom_type("StyleTransitionButton")
 	
 	# Carousel
 	remove_custom_type("Carousel")
@@ -128,6 +225,24 @@ func _exit_tree() -> void:
 	# ProportionalContainer
 	remove_custom_type("ProportionalContainer")
 	
+	# Routers
+		# Base
+			# Page
+	remove_custom_type("Page")
+			# PageInfo
+	remove_custom_type("PageInfo")
+	
+		# RouterStack
+	remove_custom_type("RouterStack")
+	
 	# SizeControllers
-	remove_custom_type("MaxRatioContainer")
 	remove_custom_type("MaxSizeContainer")
+	remove_custom_type("MaxRatioContainer")
+	
+	# SwapContainer
+	remove_custom_type("SwapContainer")
+	
+	# TransitionContainers
+	remove_custom_type("ModulateTransitionContainer")
+	remove_custom_type("StyleTransitionContainer")
+	remove_custom_type("StyleTransitionPanel")

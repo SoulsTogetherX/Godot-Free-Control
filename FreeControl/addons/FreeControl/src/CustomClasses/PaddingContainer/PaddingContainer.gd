@@ -8,7 +8,6 @@ class_name PaddingContainer extends Container
 			minimum_size = val
 			
 			update_minimum_size()
-			queue_sort()
 
 var child_anchor_left : float = 0:
 	set(val):
@@ -16,36 +15,24 @@ var child_anchor_left : float = 0:
 			child_anchor_left = val
 			
 			child_anchor_right = max(val, child_anchor_right)
-			
-			update_minimum_size()
-			queue_sort()
 var child_anchor_top : float = 0:
 	set(val):
 		if child_anchor_top != val:
 			child_anchor_top = val
 			
 			child_anchor_bottom = max(val, child_anchor_bottom)
-			
-			update_minimum_size()
-			queue_sort()
 var child_anchor_right : float = 1:
 	set(val):
 		if child_anchor_right != val:
 			child_anchor_right = val
 			
 			child_anchor_left = min(val, child_anchor_left)
-			
-			update_minimum_size()
-			queue_sort()
 var child_anchor_bottom : float = 1:
 	set(val):
 		if child_anchor_bottom != val:
 			child_anchor_bottom = val
 			
 			child_anchor_top = min(val, child_anchor_top)
-			
-			update_minimum_size()
-			queue_sort()
 
 var child_offset_left : int = 0:
 	set(val):
@@ -53,31 +40,27 @@ var child_offset_left : int = 0:
 			child_offset_left = val
 			
 			update_minimum_size()
-			queue_sort()
 var child_offset_top : int = 0:
 	set(val):
 		if child_offset_top != val:
 			child_offset_top = val
 			
 			update_minimum_size()
-			queue_sort()
 var child_offset_right : int = 0:
 	set(val):
 		if child_offset_right != val:
 			child_offset_right = val
 			
 			update_minimum_size()
-			queue_sort()
 var child_offset_bottom : int = 0:
 	set(val):
 		if child_offset_bottom != val:
 			child_offset_bottom = val
 			
 			update_minimum_size()
-			queue_sort()
 
 
-func _ready() -> void:
+func _init() -> void:
 	if !sort_children.is_connected(_handel_resize):
 		sort_children.connect(_handel_resize)
 	_handel_resize()
@@ -148,7 +131,24 @@ func _get_property_list() -> Array[Dictionary]:
 	
 	return properties
 func _property_can_revert(property: StringName) -> bool:
-	return true
+	if property in [
+		"child_anchor_left",
+		"child_anchor_top",
+	]:
+		return self[property] != 0.0
+	elif property in [
+		"child_anchor_right",
+		"child_anchor_bottom",
+	]:
+		return self[property] != 1.0
+	elif property in [
+		"child_offset_left",
+		"child_offset_top",
+		"child_offset_right",
+		"child_offset_bottom"
+	]:
+		return self[property] != 0
+	return false
 func _property_get_revert(property: StringName) -> Variant:
 	if property in [
 		"child_anchor_left",
@@ -200,11 +200,11 @@ func _handel_resize() -> void:
 			child.set_anchor_and_offset(
 				SIDE_RIGHT,
 				child_anchor_right,
-				child_offset_right
+				-child_offset_right
 			)
 			child.set_anchor_and_offset(
 				SIDE_BOTTOM,
 				child_anchor_bottom,
-				child_offset_bottom
+				-child_offset_bottom
 			)
 # Made by Xavier Alvarez. A part of the "FreeControl" Godot addon.

@@ -1,12 +1,15 @@
 # Made by Xavier Alvarez. A part of the "FreeControl" Godot addon.
 @tool
-class_name ModulateTransitionContainer extends Container
-## A [Control] node with changable that allows easy [member CanvasItem.modulate] animation between colors.
+class_name StyleTransitionPanel extends Panel
+## A [Panel] node with changable that allows easy [member CanvasItem.self_modulate] animation between colors.
 
 
-@export_group("Alpha Override")
+@export_group("Colors Override")
 ## The colors to animate between.
-@export var colors : PackedColorArray = [Color.WHITE, Color(1.0, 1.0, 1.0, 0.5)]:
+@export var colors : PackedColorArray = [
+	Color.WEB_GRAY,
+	Color.DIM_GRAY
+]:
 	set(val):
 		if colors != val:
 			colors = val
@@ -26,9 +29,6 @@ var _focused_color : int = 0
 		if _focused_color != val:
 			_focused_color = val
 			_on_set_color()
-## If [code]true[/code] this node will only animate over [member CanvasItem.self_modulate]. Otherwise,
-## it will animate over [member CanvasItem.modulate].
-@export var modulate_self : bool = false
 
 @export_group("Tween Override")
 ## The duration of color animations.
@@ -59,15 +59,24 @@ func force_color(color: int) -> void:
 	if _color_tween && _color_tween.is_running():
 		if !can_cancle: return
 		_color_tween.kill()
-	_current_focused_color = color
-	modulate = colors[color]
+	_focused_color = color
+	_safe_base_set_background()
+	self_modulate = get_current_color()
 
 ## Gets the current color attributed to the current color index.
 func get_current_color() -> Color:
-	if _focused_color == -1: return 1
+	if _focused_color == -1: return Color.BLACK
 	return colors[_focused_color]
 
 
+
+func _safe_base_set_background() -> void:
+	if has_theme_stylebox_override("panel"): return
+	
+	var background = StyleBoxFlat.new()
+	background.resource_local_to_scene = true
+	background.bg_color = Color.WHITE
+	add_theme_stylebox_override("panel", background)
 
 func _on_set_color():
 	if _focused_color == _current_focused_color:
@@ -77,11 +86,12 @@ func _on_set_color():
 	elif _color_tween && _color_tween.is_running():
 		return
 	_current_focused_color = _focused_color
-		
+	
+	_safe_base_set_background()
 	_color_tween = create_tween()
 	_color_tween.tween_property(
 		self,
-		"self_modulate" if modulate_self else "modulate", 
+		"self_modulate",
 		get_current_color(),
 		transitionTime
 	)
@@ -90,25 +100,13 @@ func _on_set_color():
 
 
 func _init() -> void:
-	sort_children.connect(_handle_children)
 	_current_focused_color = _focused_color
 	focused_color = focused_color
 	
-	modulate = colors[_focused_color]
+	_safe_base_set_background()
 func _property_can_revert(property: StringName) -> bool:
 	if property == "colors":
-		return colors.size() == 2 && colors[0] == Color.WHITE && colors[1] == Color(1.0, 1.0, 1.0, 0.5)
+		return colors.size() == 2 && colors[0] == Color.WEB_GRAY && colors[1] == Color.DIM_GRAY
 	return false
-
-
-func _handle_children() -> void:
-	for child in get_children():
-		fit_child_in_rect(child, Rect2(Vector2.ZERO, size))
-func _get_minimum_size() -> Vector2:
-	var min_size : Vector2
-	for child : Node in get_children():
-		if child is Control:
-			min_size = min_size.max(child.get_combined_minimum_size())
-	return min_size
 
 # Made by Xavier Alvarez. A part of the "FreeControl" Godot addon.

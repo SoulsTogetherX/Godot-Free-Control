@@ -16,6 +16,8 @@ enum PROPORTION_MODE {
 	BOTH = 0b011 ## Sets the minimum size to be equal to the [member ancher] size multipled by [member horizontal_ratio] and [member vertical_ratio] respectively.
 }
 
+
+
 @export_group("Ancher")
 ## The ancher node this container proportions itself to. Is used if [member ancher_to_parent] is [code]false[/code].
 ## [br][br]
@@ -51,10 +53,14 @@ enum PROPORTION_MODE {
 			vertical_ratio = val
 			queue_sort()
 
+
+
 var _min_size : Vector2
 var _ignore_resize : bool
 
-func _ready() -> void:
+
+
+func _init() -> void:
 	layout_mode = 0
 	if !sort_children.is_connected(_handel_resize):
 		sort_children.connect(_handel_resize)
@@ -73,6 +79,8 @@ func _validate_property(property: Dictionary) -> void:
 			property.usage |= PROPERTY_USAGE_READ_ONLY
 func _get_minimum_size() -> Vector2:
 	return _min_size
+
+
 
 func _handel_resize() -> void:
 	if _ignore_resize: return
@@ -105,6 +113,8 @@ func _handel_resize() -> void:
 	
 	_ignore_resize = false
 	_fit_children()
+
+
 
 func _fit_children() -> void:
 	for child : Control in _get_control_children():
@@ -167,8 +177,11 @@ func _get_control_children() -> Array[Control]:
 	ret.assign(get_children().filter(func(child : Node): return child is Control && child.visible))
 	return ret
 
+
+
 func _get_allowed_size_flags_horizontal() -> PackedInt32Array:
 	return [SIZE_FILL, SIZE_SHRINK_BEGIN, SIZE_SHRINK_CENTER, SIZE_SHRINK_END]
 func _get_allowed_size_flags_vertical() -> PackedInt32Array:
 	return [SIZE_FILL, SIZE_SHRINK_BEGIN, SIZE_SHRINK_CENTER, SIZE_SHRINK_END]
+
 # Made by Xavier Alvarez. A part of the "FreeControl" Godot addon.
