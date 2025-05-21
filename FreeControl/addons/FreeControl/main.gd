@@ -52,13 +52,13 @@ func _enter_tree() -> void:
 	add_custom_type(
 		"AnimatedSwitch",
 		"BaseButton",
-		load(CUSTOM_CLASS_FOLDER + "Buttons/Base.gd"), 
+		load(CUSTOM_CLASS_FOLDER + "Buttons/Base/AnimatedSwitch.gd"), 
 		null
 	)
 	add_custom_type(
 		"HoldButton",
 		"BaseButton",
-		load(CUSTOM_CLASS_FOLDER + "Buttons/HoldButton.gd"), 
+		load(CUSTOM_CLASS_FOLDER + "Buttons/Base/HoldButton.gd"), 
 		null
 	)
 	
@@ -66,19 +66,19 @@ func _enter_tree() -> void:
 	add_custom_type(
 		"AnimatedSwitch",
 		"BaseButton",
-		load(CUSTOM_CLASS_FOLDER + "Buttons/Base.gd"), 
+		load(CUSTOM_CLASS_FOLDER + "Buttons/Base/AnimatedSwitch.gd"), 
 		null
 	)
 	add_custom_type(
 		"ModulateTransitionButton",
 		"Container",
-		load(CUSTOM_CLASS_FOLDER + "Complex/ModulateTransitionButton.gd"), 
+		load(CUSTOM_CLASS_FOLDER + "Buttons/Complex/ModulateTransitionButton.gd"), 
 		null
 	)
 	add_custom_type(
 		"StyleTransitionButton",
 		"Container",
-		load(CUSTOM_CLASS_FOLDER + "Complex/StyleTransitionButton.gd"), 
+		load(CUSTOM_CLASS_FOLDER + "Buttons/Complex/StyleTransitionButton.gd"), 
 		null
 	)
 	

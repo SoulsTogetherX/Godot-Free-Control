@@ -134,6 +134,7 @@ layout_mode = 2
 texture = ExtResource("3_hc7l0")
 
 [node name="PaddingContainer" type="Container" parent="."]
+visible = false
 layout_mode = 2
 script = ExtResource("5_v6kjq")
 child_anchor_left = 0.0
