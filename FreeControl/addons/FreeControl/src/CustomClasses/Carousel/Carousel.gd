@@ -184,8 +184,6 @@ signal slowdown_interupted
 ## This property does nothing if [member hard_stop] is [code]true[/code].
 @export_range(0.01, 10.0, 0.001, "or_greater", "hide_slider") var slowdown_cutoff : float = 0.01
 
-
-
 var _scroll_value : int
 var _drag_scroll_value : int
 var _drag_velocity : float
@@ -199,8 +197,6 @@ var _is_dragging : bool = false
 var _last_animation : ANIMATION_TYPE = ANIMATION_TYPE.NONE
 
 var _angle_vec : Vector2
-
-
 
 func _get_child_rect(child : Control) -> Rect2:
 	var child_pos : Vector2 = (size - item_size) * 0.5
@@ -418,12 +414,11 @@ func _handle_drag_slowdown() -> void:
 
 
 func _init() -> void:
-	if !sort_children.is_connected(_sort_children):
-		sort_children.connect(_sort_children)
-	if !tree_exiting.is_connected(_end_drag_slowdown):
-		tree_exiting.connect(_end_drag_slowdown)
+	sort_children.connect(_sort_children)
+	tree_exiting.connect(_end_drag_slowdown)
 	
 	_angle_vec = Vector2.RIGHT.rotated(deg_to_rad(carousel_angle))
+func _ready() -> void:
 	_settup_children()
 	if _item_count > 0:
 		starting_index = posmod(starting_index, _item_count)

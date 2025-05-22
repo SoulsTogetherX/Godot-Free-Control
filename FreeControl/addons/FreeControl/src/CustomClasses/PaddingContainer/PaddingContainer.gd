@@ -61,9 +61,7 @@ var child_offset_bottom : int = 0:
 
 
 func _init() -> void:
-	if !sort_children.is_connected(_handel_resize):
-		sort_children.connect(_handel_resize)
-	_handel_resize()
+	sort_children.connect(_handel_resize)
 func _get_property_list() -> Array[Dictionary]:
 	var properties : Array[Dictionary] = []
 	

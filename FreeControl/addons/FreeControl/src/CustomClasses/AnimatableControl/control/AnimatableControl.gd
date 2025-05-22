@@ -87,16 +87,11 @@ func _set(property: StringName, value: Variant) -> bool:
 
 
 func _init() -> void:
-	if !resized.is_connected(_handle_resize):
-		resized.connect(_handle_resize, CONNECT_DEFERRED)
-	if !sort_children.is_connected(_sort_children):
-		sort_children.connect(_sort_children)
-	if !tree_exited.is_connected(_on_tree_exit):
-		tree_exited.connect(_on_tree_exit)
-	if !tree_entered.is_connected(_on_tree_enter):
-		tree_entered.connect(_on_tree_enter)
-	if !item_rect_changed.is_connected(transformation_changed.emit):
-		item_rect_changed.connect(transformation_changed.emit)
+	resized.connect(_handle_resize, CONNECT_DEFERRED)
+	sort_children.connect(_sort_children)
+	tree_exited.connect(_on_tree_exit)
+	tree_entered.connect(_on_tree_enter)
+	item_rect_changed.connect(transformation_changed.emit)
 	
 	_on_tree_enter()
 func _on_tree_enter() -> void:

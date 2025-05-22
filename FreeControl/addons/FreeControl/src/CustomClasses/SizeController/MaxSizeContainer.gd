@@ -13,8 +13,7 @@ class_name MaxSizeContainer extends Container
 			queue_sort()
 
 func _init() -> void:
-	if !sort_children.is_connected(_update_childrend):
-		sort_children.connect(_update_childrend, CONNECT_DEFERRED)
+	sort_children.connect(_update_childrend, CONNECT_DEFERRED)
 func _set(property: StringName, value: Variant) -> bool:
 	if property == "size":
 		return true

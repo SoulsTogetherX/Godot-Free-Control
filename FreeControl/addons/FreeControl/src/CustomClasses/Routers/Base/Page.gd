@@ -24,12 +24,8 @@ func emit_event(event_name : String, args : Variant) -> void:
 
 
 
-func _enter_tree() -> void:
-	if !Engine.is_editor_hint():
-		clip_contents = true
 func _init() -> void:
 	sort_children.connect(_sort_children)
-
 
 
 func _sort_children() -> void:

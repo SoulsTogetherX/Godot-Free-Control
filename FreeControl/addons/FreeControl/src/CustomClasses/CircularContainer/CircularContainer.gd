@@ -116,12 +116,8 @@ var angles : PackedFloat32Array:
 		return ret
 
 func _init() -> void:
-	if !sort_children.is_connected(_fix_childrend):
-		sort_children.connect(_fix_childrend)
-	if !child_order_changed.is_connected(_childrend_changed):
-		child_order_changed.connect(_childrend_changed)
-	_childrend_changed()
-	_fix_childrend()
+	sort_children.connect(_fix_childrend)
+	child_order_changed.connect(_childrend_changed)
 
 func _childrend_changed() -> void:
 	_calculate_angles()

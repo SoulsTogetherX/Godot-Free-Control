@@ -62,9 +62,7 @@ var _ignore_resize : bool
 
 func _init() -> void:
 	layout_mode = 0
-	if !sort_children.is_connected(_handel_resize):
-		sort_children.connect(_handel_resize)
-	_handel_resize()
+	sort_children.connect(_handel_resize)
 func _validate_property(property: Dictionary) -> void:
 	if property.name in [
 		"layout_mode",

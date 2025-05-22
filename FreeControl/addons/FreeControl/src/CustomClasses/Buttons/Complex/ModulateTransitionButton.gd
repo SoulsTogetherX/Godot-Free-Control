@@ -72,8 +72,6 @@ func _init() -> void:
 	_button.move_to_front()
 	
 	if !Engine.is_editor_hint():
-		child_order_changed.connect(_button.move_to_front, CONNECT_DEFERRED)
-		
 		_button.pressed_state.connect(_set_button_color)
 		_button.release_state.connect(_emit_vaild_release)
 		
@@ -88,8 +86,9 @@ func _init() -> void:
 	_button.toggle_mode = toggle_mode
 	_button.button_pressed_state = pressed
 	_button.disabled = _disabled
-	
-	force_color(2 if _disabled else (1 if pressed else 0))
+func _ready() -> void:
+	if !Engine.is_editor_hint():
+		child_order_changed.connect(_button.move_to_front, CONNECT_DEFERRED)
 func _validate_property(property: Dictionary) -> void:
 	match property.name:
 		"pressed":

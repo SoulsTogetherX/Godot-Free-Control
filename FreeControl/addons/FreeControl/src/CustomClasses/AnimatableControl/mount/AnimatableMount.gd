@@ -24,10 +24,8 @@ func get_relative_size(control : AnimatableControl) -> Vector2: return size
 
 
 func _init() -> void:
-	if !resized.is_connected(_handle_resize):
-		resized.connect(_handle_resize, CONNECT_DEFERRED)
-	if !size_flags_changed.is_connected(_handle_resize):
-		size_flags_changed.connect(_handle_resize)
+	resized.connect(_handle_resize, CONNECT_DEFERRED)
+	size_flags_changed.connect(_handle_resize)
 func _handle_resize() -> void:
 	pre_sort_children.emit()
 	for child : Node in get_children():

@@ -141,8 +141,7 @@ func _on_unmount(control : AnimatableControl) -> void:
 
 
 func _init() -> void:
-	if !size_flags_changed.is_connected(update_minimum_size):
-		size_flags_changed.connect(update_minimum_size, CONNECT_DEFERRED)
+	size_flags_changed.connect(update_minimum_size, CONNECT_DEFERRED)
 	super()
 
 # Made by Xavier Alvarez. A part of the "FreeControl" Godot addon.

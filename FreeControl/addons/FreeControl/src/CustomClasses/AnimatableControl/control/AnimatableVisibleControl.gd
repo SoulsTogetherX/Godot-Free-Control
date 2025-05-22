@@ -92,8 +92,7 @@ var _last_visible : bool
 
 
 func _init() -> void:
-	if !item_rect_changed.is_connected(queue_redraw) && Engine.is_editor_hint():
-		item_rect_changed.connect(queue_redraw)
+	item_rect_changed.connect(queue_redraw)
 	super()
 
 func _get_property_list() -> Array[Dictionary]:

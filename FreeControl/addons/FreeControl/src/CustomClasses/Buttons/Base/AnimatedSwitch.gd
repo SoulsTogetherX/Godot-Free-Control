@@ -29,6 +29,12 @@ class_name AnimatedSwitch extends BaseButton
 			knob_size = val
 			_handle_resize()
 			update_minimum_size()
+@export var knob_offset : Vector2 = Vector2.ZERO:
+	set(val):
+		if knob_offset != val:
+			knob_offset = val
+			_handle_resize()
+			update_minimum_size()
 @export var knob_overextend : float = 10:
 	set(val):
 		if knob_overextend != val:
@@ -52,49 +58,137 @@ class_name AnimatedSwitch extends BaseButton
 			switch_bg = val
 			
 			if knob_bg:
-				_bg.add_theme_stylebox_override("panel", switch_bg)
+				_switch.add_theme_stylebox_override("panel", switch_bg)
 			else:
-				_knob.remove_theme_stylebox_override("panel")
+				_switch.remove_theme_stylebox_override("panel")
+
+@export_group("Colors")
+@export_subgroup("Knob")
+@export var knob_bg_normal : Color:
+	set(val):
+		if knob_bg_normal != val:
+			knob_bg_normal = val
+			
+			_kill_color_animation()
+			_animate_color(false)
+@export var knob_bg_focus : Color:
+	set(val):
+		if knob_bg_focus != val:
+			knob_bg_focus = val
+			
+			_kill_color_animation()
+			_animate_color(false)
+@export var knob_bg_disabled : Color:
+	set(val):
+		if knob_bg_disabled != val:
+			knob_bg_disabled = val
+			
+			_kill_color_animation()
+			_animate_color(false)
+
+@export_subgroup("Switch")
+@export var switch_bg_normal : Color:
+	set(val):
+		if switch_bg_normal != val:
+			switch_bg_normal = val
+			
+			_kill_color_animation()
+			_animate_color(false)
+@export var switch_bg_focus : Color:
+	set(val):
+		if switch_bg_focus != val:
+			switch_bg_focus = val
+			
+			_kill_color_animation()
+			_animate_color(false)
+@export var switch_bg_disabled : Color:
+	set(val):
+		if switch_bg_disabled != val:
+			switch_bg_disabled = val
+			
+			_kill_color_animation()
+			_animate_color(false)
+
 
 @export_group("Animation Properties")
-@export var knob_ease : Tween.EaseType
-@export var knob_transition : Tween.TransitionType
-@export_range(0.001, 0.5, 0.001, "or_greater") var knob_duration : float = 0.25
+@export_subgroup("Main")
+@export var main_ease : Tween.EaseType
+@export var main_transition : Tween.TransitionType
+@export_range(0.001, 0.5, 0.001, "or_greater") var main_duration : float = 0.15
+
+@export_subgroup("Knob Color")
+@export var animate_knob_color : bool = true
+@export var knob_color_ease : Tween.EaseType
+@export var knob_color_transition : Tween.TransitionType
+@export_range(0.001, 0.5, 0.001, "or_greater") var knob_color_duration : float = 0.1
+
+@export_subgroup("Switch Color")
+@export var animate_switch_color : bool = true
+@export var switch_color_ease : Tween.EaseType
+@export var switch_color_transition : Tween.TransitionType
+@export_range(0.001, 0.5, 0.001, "or_greater") var switch_color_duration : float = 0.1
 
 
 
 var _knob : Panel
-var _bg : Panel
+var _switch : Panel
 
-var _animate_tween : Tween
+var _main_animate_tween : Tween
+var _knob_color_animate_tween : Tween
+var _switch_color_animate_tween : Tween
+
 
 
 func force_state(knob_state : bool) -> void:
-	_kill_animation()
-	button_pressed = knob_state
-	_position_knob(int(knob_state))
+	_handle_animations(false, knob_state)
 func toggle_state(knob_state : bool) -> void:
+	_handle_animations(true, knob_state)
+
+
+func get_knob_color() -> Color:
+	if disabled:
+		return knob_bg_disabled
+	return knob_bg_focus if button_pressed else knob_bg_normal
+func get_switch_color() -> Color:
+	if disabled:
+		return switch_bg_disabled
+	return switch_bg_focus if button_pressed else switch_bg_normal
+
+
+
+func _kill_main_animation() -> void:
+	if _main_animate_tween && _main_animate_tween.is_running():
+		_main_animate_tween.kill()
+func _kill_color_animation() -> void:
+	if _knob_color_animate_tween && _knob_color_animate_tween.is_running():
+		_knob_color_animate_tween.kill()
+	if _switch_color_animate_tween && _switch_color_animate_tween.is_running():
+		_main_animate_tween.kill()
+
+
+func _handle_animations(animate : bool, knob_state : bool) -> void:
+	_kill_main_animation()
+	_kill_color_animation()
 	button_pressed = knob_state
-	await _animate_knob(knob_state)
-
-
-func _kill_animation() -> void:
-	if _animate_tween && _animate_tween.is_running():
-		_animate_tween.finished.emit()
-		_animate_tween.kill()
-func _animate_knob(knob_state : bool) -> void:
-	_kill_animation()
 	
-	_animate_tween = create_tween()
-	_animate_tween.set_ease(knob_ease)
-	_animate_tween.set_trans(knob_transition)
-	_animate_tween.tween_method(
+	if animate:
+		_animate_knob(knob_state)
+		_animate_color(true)
+		return
+	
+	_position_knob(float(knob_state))
+	_animate_color(false)
+
+func _animate_knob(knob_state : bool) -> void:
+	_main_animate_tween = create_tween()
+	_main_animate_tween.set_ease(main_ease)
+	_main_animate_tween.set_trans(main_transition)
+	_main_animate_tween.tween_method(
 		_position_knob,
 		1.0 - float(knob_state),
 		0.0 + float(knob_state),
-		knob_duration
+		main_duration
 	)
-	await _animate_tween.finished
 func _position_knob(delta : float) -> void:
 	if flip:
 		delta = 1.0 - delta
@@ -110,32 +204,66 @@ func _position_knob(delta : float) -> void:
 	
 	_knob.position = (
 		(switch_size - knob_size + offset + offset) * delta_v # Size
-		+ (_bg.position - offset) # Position
+		+ (_switch.position - offset) # Position
+		+ knob_offset # Offset
 	)
+func _animate_color(animate : bool = false) -> void:
+	if animate && animate_knob_color:
+		_knob_color_animate_tween = create_tween()
+		_knob_color_animate_tween.set_ease(knob_color_ease)
+		_knob_color_animate_tween.set_trans(knob_color_transition)
+		_knob_color_animate_tween.tween_property(
+			_knob,
+			"self_modulate",
+			get_knob_color(),
+			knob_color_duration
+		)
+	else:
+		_knob.self_modulate = get_knob_color()
+	
+	if animate && animate_switch_color:
+		_switch_color_animate_tween = create_tween()
+		_switch_color_animate_tween.set_ease(switch_color_ease)
+		_switch_color_animate_tween.set_trans(switch_color_transition)
+		_switch_color_animate_tween.tween_property(
+			_switch,
+			"self_modulate",
+			get_switch_color(),
+			switch_color_duration
+		)
+	else:
+		_switch.self_modulate = get_switch_color()
 
 
 
 func _init() -> void:
 	toggle_mode = true
-	_bg = Panel.new()
+	_switch = Panel.new()
 	_knob = Panel.new()
 	
-	add_child(_bg)
+	add_child(_switch)
 	add_child(_knob)
 	
 	resized.connect(_handle_resize)
 	toggled.connect(toggle_state)
-	_handle_resize()
 func _handle_resize() -> void:
-	_bg.position = (size - switch_size) * 0.5
-	_bg.size = switch_size
+	_switch.position = (size - switch_size) * 0.5
+	_switch.size = switch_size
 	
 	_knob.size = knob_size
 	force_state(button_pressed)
+
 func _get_minimum_size() -> Vector2:
-	return knob_size.max(switch_size + Vector2(max(0, knob_overextend) * 2, 0))
+	return (knob_size + (knob_offset.abs() * 0.5)).max(switch_size + Vector2(max(0, knob_overextend) * 2, 0))
 func _validate_property(property: Dictionary) -> void:
 	if property.name == "toggle_mode":
 		property.usage &= ~PROPERTY_USAGE_EDITOR
+
+func _set(property: StringName, value: Variant) -> bool:
+	if property == "disabled":
+		disabled = value
+		_animate_color()
+		return true
+	return false
 
 # Made by Xavier Alvarez. A part of the "FreeControl" Godot addon.
