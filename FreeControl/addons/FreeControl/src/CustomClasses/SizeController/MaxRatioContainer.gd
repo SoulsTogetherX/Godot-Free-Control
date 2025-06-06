@@ -26,36 +26,51 @@ enum MAX_RATIO_MODE {
 			ratio = val
 			queue_sort()
 
-
-
 func _validate_property(property: Dictionary) -> void:
 	if property.name == "max_size":
 		property.usage |= PROPERTY_USAGE_READ_ONLY
+func _get_minimum_size() -> Vector2:
+	var parent := get_parent_area_size()
+	var min_size := super()
+	
+	var current_size := min_size.max(size)
+	match mode:
+		MAX_RATIO_MODE.NONE:
+			current_size = Vector2(0, 0)
+		MAX_RATIO_MODE.WIDTH, MAX_RATIO_MODE.WIDTH_PROPORTION:
+			current_size = Vector2(0, minf(current_size.x * ratio, parent.y))
+		MAX_RATIO_MODE.HEIGHT, MAX_RATIO_MODE.HEIGHT_PROPORTION:
+			current_size = Vector2(minf(current_size.y * ratio, parent.x), 0)
+	
+	min_size = min_size.max(current_size)
+	return min_size
+
+
 
 ## Updates the _max_size according to the ratio mode and current dimentions
-func _update_childrend() -> void:
+func _update_children() -> void:
 	var parent := get_parent_area_size()
 	var min_size := get_combined_minimum_size()
 	
 	# Adjusts max_size itself accouring to the ratio mode and current dimentions
 	match mode:
 		MAX_RATIO_MODE.NONE:
-			max_size = Vector2(-1, -1)
+			_max_size = Vector2(-1, -1)
 		MAX_RATIO_MODE.WIDTH:
-			max_size = Vector2(-1, minf(size.x * ratio, parent.y))
+			_max_size = Vector2(-1, minf(size.x * ratio, parent.y))
 		MAX_RATIO_MODE.WIDTH_PROPORTION:
-			max_size = Vector2(-1, min(size.x * ratio, min_size.y, parent.y))
+			_max_size = Vector2(-1, min(size.x * ratio, parent.y, min_size.y))
 		MAX_RATIO_MODE.HEIGHT:
-			max_size = Vector2(minf(size.y * ratio, parent.x), -1)
+			_max_size = Vector2(minf(size.y * ratio, parent.x), -1)
 		MAX_RATIO_MODE.HEIGHT_PROPORTION:
-			max_size = Vector2(min(size.y * ratio, min_size.x, parent.x), -1)
+			_max_size = Vector2(min(size.y * ratio, parent.x, min_size.x), -1)
 	
-	var newSize := size
-	if max_size.x >= 0:
-		newSize.x = max_size.x
-	if max_size.y >= 0:
-		newSize.y = max_size.y
-	size = newSize.max(min_size)
+	var new_size := size
+	if _max_size.x >= 0:
+		new_size.x = _max_size.x
+	if _max_size.y >= 0:
+		new_size.y = _max_size.y
+	set_deferred("size", new_size)
 	
 	super()
 

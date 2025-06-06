@@ -3,7 +3,6 @@
 class_name AnimatableTransformationMount extends AnimatableMount
 ## An [AnimatableMount] that adjusts for it's children 2D transformations: Rotation, Position, and Scale.
 
-
 ## If [code]true[/code] this node will adjust it's size to fit its children's scales.
 @export var adjust_scale : bool:
 	set(val):
@@ -25,15 +24,6 @@ class_name AnimatableTransformationMount extends AnimatableMount
 			update_minimum_size()
 
 var _child_min_size : Vector2
-
-
-
-## Returns the adjusted size of this mount.
-func get_relative_size(control : AnimatableControl) -> Vector2:
-	if adjust_scale:
-		return _child_min_size / control.scale
-	return _child_min_size
-
 
 func _update_children_minimum_size() -> void:
 	var _old_min_size := _min_size
@@ -131,17 +121,18 @@ func _get_rotated_rect_bounding_box(rect : Rect2, pivot : Vector2, angle : float
 	
 	return Rect2(bb_pos, bb_size)
 
-
+func _init() -> void:
+	size_flags_changed.connect(update_minimum_size, CONNECT_DEFERRED)
 
 func _on_mount(control : AnimatableControl) -> void:
 	control.transformation_changed.connect(update_minimum_size, CONNECT_DEFERRED)
 func _on_unmount(control : AnimatableControl) -> void:
 	control.transformation_changed.disconnect(update_minimum_size)
 
-
-
-func _init() -> void:
-	size_flags_changed.connect(update_minimum_size, CONNECT_DEFERRED)
-	super()
+## Returns the adjusted size of this mount.
+func get_relative_size(control : AnimatableControl) -> Vector2:
+	if adjust_scale:
+		return _child_min_size / control.scale
+	return _child_min_size
 
 # Made by Xavier Alvarez. A part of the "FreeControl" Godot addon.

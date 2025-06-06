@@ -3,6 +3,8 @@
 class_name Carousel extends Container
 ## A container for Carousel Display of [Control] nodes.
 
+
+
 ## Changes the behavior of how draging scrolls the carousel items. Also see [member snap_carousel_transtion_type], [member snap_carousel_ease_type], and [member paging_requirement].
 enum SNAP_BEHAVIOR {
 	NONE = 0b00, ## No behavior.
@@ -16,6 +18,7 @@ enum ANIMATION_TYPE {
 	SNAP = 0b10 ## Currently animating via an auto-item snapping request.
 }
 
+
 ## This signal is emited when a snap reaches it's destination.
 signal snap_end
 ## This signal is emited when a snap begins.
@@ -28,6 +31,8 @@ signal drag_begin
 signal slowdown_end
 ## This signal is emited when the slowdown, caused when [member hard_stop] is [code]false[/code], is interrupted by another drag or other feature. 
 signal slowdown_interupted
+
+
 
 @export_group("Carousel Options")
 ## The index of the item this carousel will start at.
@@ -184,6 +189,7 @@ signal slowdown_interupted
 ## This property does nothing if [member hard_stop] is [code]true[/code].
 @export_range(0.01, 10.0, 0.001, "or_greater", "hide_slider") var slowdown_cutoff : float = 0.01
 
+
 var _scroll_value : int
 var _drag_scroll_value : int
 var _drag_velocity : float
@@ -197,6 +203,112 @@ var _is_dragging : bool = false
 var _last_animation : ANIMATION_TYPE = ANIMATION_TYPE.NONE
 
 var _angle_vec : Vector2
+var _mouse_checking : bool
+
+
+
+
+# Public Functions
+
+## Gets the index of the current carousel item.[br]
+## If [param with_drag] is [code]true[/code] the current drag will also be considered.[br]
+## If [param with_clamp] is [code]true[/code] the index will be looped if [member allow_loop] is true or clamped to a vaild index within the carousel.
+func get_carousel_index(with_drag : bool = false, with_clamp : bool = true) -> int:
+	if _item_count == 0: return -1
+	
+	var scroll : int = _scroll_value
+	if with_drag: scroll += _drag_scroll_value
+	
+	var calculated := floori((float(scroll) / float(_get_relevant_axis())) + 0.5)
+	if with_clamp:
+		if allow_loop:
+			calculated = posmod(calculated, _item_count)
+		else:
+			calculated = clampi(calculated, 0, _item_count - 1)
+	
+	return calculated
+## Moves to an item of the given index within the carousel. If an invalid index is given, it will be posmod into a vaild index.
+func go_to_index(idx : int, animation : bool = true) -> void:
+	if _item_count == 0: return
+	
+	if allow_loop:
+		idx = (((idx % _item_count) - _item_count) % _item_count)
+	else:
+		idx = clamp(idx, 0, _item_count - 1)
+	
+	if animation:
+		_create_animation(idx, ANIMATION_TYPE.MANUAL)
+	else:
+		_kill_animation()
+		_scroll_value = -_get_relevant_axis() * idx
+		_adjust_children()
+## Moves to the previous item in the carousel, if there is one.
+func prev(animation : bool = true) -> void:
+	go_to_index(get_carousel_index() - 1, animation)
+## Moves to the next item in the carousel, if there is one.
+func next(animation : bool = true) -> void:
+	go_to_index(get_carousel_index() + 1, animation)
+## Enacts a manual drag on the carousel. This can be used even if [member can_drag] is [code]false[/code].
+## Note that [param from] and [param dir] are considered in local coordinates.
+## [br][br]
+## Is not affected by [member hard_stop], [member drag_outside], and [member drag_limit].
+func flick(from : Vector2, dir : Vector2) -> void:
+	drag_begin.emit()
+	_kill_animation()
+	_end_drag_slowdown()
+	
+	_handle_drag_angle(dir - from)
+	
+	_on_drag_release()
+## Returns if the carousel is currening scrolling via na animation
+func is_animating() -> bool:
+	return _scroll_tween.is_running()
+## Returns if the carousel is currening being dragged by player input.
+func being_dragged() -> bool:
+	return _is_dragging
+## Returns the current scroll value.
+func get_scroll(with_drag : bool = false) -> int:
+	if with_drag:
+		return _scroll_value + _drag_scroll_value
+	return _scroll_value
+## Returns the current number of items in the carousel
+func get_item_count() -> int:
+	return _item_count
+
+
+# Virtual Functions
+
+## A virtual function that is is called whenever the scroll changes.
+func _on_progress(scroll : int) -> void: pass
+## A virtual function that is is called whenever the scroll changes, for each visible item in the carousel
+func _on_item_progress(item : Control, local_scroll : int, scroll : int, local_index : int, index : int) -> void: pass
+
+
+
+func _handle_drag_angle(local_pos : Vector2) -> void:
+	var projected_scalar : float = -local_pos.dot(_angle_vec) / _angle_vec.length_squared()
+	_drag_velocity = projected_scalar
+	_drag_scroll_value += projected_scalar
+	
+	if drag_limit != 0:
+		_drag_scroll_value = clampi(_drag_scroll_value, -drag_limit, drag_limit)
+	
+	if snap_behavior == SNAP_BEHAVIOR.PAGING:
+		if paging_requirement < _drag_scroll_value:
+			_drag_scroll_value = 0
+			var desired := get_carousel_index() + 1
+			if allow_loop || desired < _item_count:
+				_create_animation(desired, ANIMATION_TYPE.SNAP)
+		elif -paging_requirement > _drag_scroll_value:
+			_drag_scroll_value = 0
+			var desired := get_carousel_index() - 1
+			if allow_loop || desired >= 0:
+				_create_animation(desired, ANIMATION_TYPE.SNAP)
+	else:
+		_adjust_children()
+
+
+# Private Functions
 
 func _get_child_rect(child : Control) -> Rect2:
 	var child_pos : Vector2 = (size - item_size) * 0.5
@@ -413,9 +525,11 @@ func _handle_drag_slowdown() -> void:
 	_adjust_children()
 
 
+
 func _init() -> void:
 	sort_children.connect(_sort_children)
 	tree_exiting.connect(_end_drag_slowdown)
+	mouse_exited.connect(_mouse_check)
 	
 	_angle_vec = Vector2.RIGHT.rotated(deg_to_rad(carousel_angle))
 func _ready() -> void:
@@ -423,6 +537,7 @@ func _ready() -> void:
 	if _item_count > 0:
 		starting_index = posmod(starting_index, _item_count)
 		go_to_index(-starting_index, false)
+
 func _validate_property(property: Dictionary) -> void:
 	if property.name == "enforce_border":
 		if display_loop:
@@ -445,18 +560,19 @@ func _validate_property(property: Dictionary) -> void:
 	
 
 func _gui_input(event: InputEvent) -> void:
-	if !can_drag || !(
-		event is InputEventMouseMotion || event is InputEventScreenDrag
-	) || !(drag_outside || _mouse_in_rect()): return
+	var has_point := get_viewport_rect().has_point(event.position)
 	
-	if (event is InputEventScreenDrag || event is InputEventMouseMotion):
+	if (
+		(event is InputEventScreenDrag || event is InputEventMouseMotion) &&
+		(drag_outside || has_point)
+	):
 		if event.pressure == 0:
 			if _is_dragging: _on_drag_release()
 			return
 		
-		if !_is_dragging:
+		if !_is_dragging && has_point:
 			drag_begin.emit()
-			_start_mouse_check()
+			_mouse_checking = true
 			_end_drag_slowdown()
 			_kill_animation()
 		_is_dragging = true
@@ -465,7 +581,7 @@ func _gui_input(event: InputEvent) -> void:
 	elif (event is InputEventScreenTouch || event is InputEventMouseButton):
 		if !event.pressed: _on_drag_release()
 func _on_drag_release() -> void:
-	_end_mouse_check()
+	_mouse_checking = false
 	_is_dragging = false
 	drag_end.emit()
 	
@@ -478,124 +594,15 @@ func _on_drag_release() -> void:
 			if hard_stop: _create_animation(get_carousel_index(), ANIMATION_TYPE.SNAP)
 			else: _start_drag_slowdown()
 
-func _start_mouse_check() -> void:
-	if is_inside_tree() && !get_tree().process_frame.is_connected(_mouse_check):
-		get_tree().process_frame.connect(_mouse_check)
-func _end_mouse_check() -> void:
-	if is_inside_tree() && get_tree().process_frame.is_connected(_mouse_check):
-		get_tree().process_frame.disconnect(_mouse_check)
 func _mouse_check() -> void:
-	if !_mouse_in_rect():
+	if _mouse_checking:
 		_on_drag_release()
 
-func _mouse_in_rect() -> bool:
-	return Rect2(Vector2.ZERO, size).has_point(get_local_mouse_position())
 
 func _get_allowed_size_flags_horizontal() -> PackedInt32Array:
 	return [SIZE_FILL, SIZE_SHRINK_BEGIN, SIZE_SHRINK_CENTER, SIZE_SHRINK_END]
 func _get_allowed_size_flags_vertical() -> PackedInt32Array:
 	return [SIZE_FILL, SIZE_SHRINK_BEGIN, SIZE_SHRINK_CENTER, SIZE_SHRINK_END]
-
-
-
-# Public Functions
-
-## Gets the index of the current carousel item.[br]
-## If [param with_drag] is [code]true[/code] the current drag will also be considered.[br]
-## If [param with_clamp] is [code]true[/code] the index will be looped if [member allow_loop] is true or clamped to a vaild index within the carousel.
-func get_carousel_index(with_drag : bool = false, with_clamp : bool = true) -> int:
-	if _item_count == 0: return -1
-	
-	var scroll : int = _scroll_value
-	if with_drag: scroll += _drag_scroll_value
-	
-	var calculated := floori((float(scroll) / float(_get_relevant_axis())) + 0.5)
-	if with_clamp:
-		if allow_loop:
-			calculated = posmod(calculated, _item_count)
-		else:
-			calculated = clampi(calculated, 0, _item_count - 1)
-	
-	return calculated
-## Moves to an item of the given index within the carousel. If an invalid index is given, it will be posmod into a vaild index.
-func go_to_index(idx : int, animation : bool = true) -> void:
-	if _item_count == 0: return
-	
-	if allow_loop:
-		idx = (((idx % _item_count) - _item_count) % _item_count)
-	else:
-		idx = clamp(idx, 0, _item_count - 1)
-	
-	if animation:
-		_create_animation(idx, ANIMATION_TYPE.MANUAL)
-	else:
-		_kill_animation()
-		_scroll_value = -_get_relevant_axis() * idx
-		_adjust_children()
-## Moves to the previous item in the carousel, if there is one.
-func prev(animation : bool = true) -> void:
-	go_to_index(get_carousel_index() - 1, animation)
-## Moves to the next item in the carousel, if there is one.
-func next(animation : bool = true) -> void:
-	go_to_index(get_carousel_index() + 1, animation)
-## Enacts a manual drag on the carousel. This can be used even if [member can_drag] is [code]false[/code].
-## Note that [param from] and [param dir] are considered in local coordinates.
-## [br][br]
-## Is not affected by [member hard_stop], [member drag_outside], and [member drag_limit].
-func flick(from : Vector2, dir : Vector2) -> void:
-	drag_begin.emit()
-	_kill_animation()
-	_end_drag_slowdown()
-	
-	_handle_drag_angle(dir - from)
-	
-	_on_drag_release()
-## Returns if the carousel is currening scrolling via na animation
-func is_animating() -> bool:
-	return _scroll_tween.is_running()
-## Returns if the carousel is currening being dragged by player input.
-func being_dragged() -> bool:
-	return _is_dragging
-## Returns the current scroll value.
-func get_scroll(with_drag : bool = false) -> int:
-	if with_drag:
-		return _scroll_value + _drag_scroll_value
-	return _scroll_value
-## Returns the current number of items in the carousel
-func get_item_count() -> int:
-	return _item_count
-
-
-# Virtual Functions
-
-## A virtual function that is is called whenever the scroll changes.
-func _on_progress(scroll : int) -> void: pass
-## A virtual function that is is called whenever the scroll changes, for each visible item in the carousel
-func _on_item_progress(item : Control, local_scroll : int, scroll : int, local_index : int, index : int) -> void: pass
-
-
-
-func _handle_drag_angle(local_pos : Vector2) -> void:
-	var projected_scalar : float = -local_pos.dot(_angle_vec) / _angle_vec.length_squared()
-	_drag_velocity = projected_scalar
-	_drag_scroll_value += projected_scalar
-	
-	if drag_limit != 0:
-		_drag_scroll_value = clampi(_drag_scroll_value, -drag_limit, drag_limit)
-	
-	if snap_behavior == SNAP_BEHAVIOR.PAGING:
-		if paging_requirement < _drag_scroll_value:
-			_drag_scroll_value = 0
-			var desired := get_carousel_index() + 1
-			if allow_loop || desired < _item_count:
-				_create_animation(desired, ANIMATION_TYPE.SNAP)
-		elif -paging_requirement > _drag_scroll_value:
-			_drag_scroll_value = 0
-			var desired := get_carousel_index() - 1
-			if allow_loop || desired >= 0:
-				_create_animation(desired, ANIMATION_TYPE.SNAP)
-	else:
-		_adjust_children()
  
 
 # Used to hold data about a carousel item

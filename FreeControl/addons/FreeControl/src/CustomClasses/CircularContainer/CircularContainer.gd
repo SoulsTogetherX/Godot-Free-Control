@@ -3,6 +3,8 @@
 class_name CircularContainer extends Container
 ## A container that positions children in a ellipse within the bounds of this node.
 
+
+
 ## Behavior the auto angle setter will exhibit.
 enum BOUND_BEHAVIOR {
 	NONE, ## No end bound for angles
@@ -10,6 +12,7 @@ enum BOUND_BEHAVIOR {
 	LOOP, ## Angles, if exceeding the max, will loop back to the begining.
 	MIRRIOR ## Angles, if exceeding the max, will bounce back and forth between the min and max angles.
 }
+
 
 ## The horizontal offset of the ellipse's center.
 ## [br][br]
@@ -115,9 +118,13 @@ var angles : PackedFloat32Array:
 			ret[i] = rad_to_deg(_container_angles[i])
 		return ret
 
+
+
 func _init() -> void:
 	sort_children.connect(_fix_childrend)
 	child_order_changed.connect(_childrend_changed)
+func _ready() -> void:
+	_fix_childrend()
 
 func _childrend_changed() -> void:
 	_calculate_angles()

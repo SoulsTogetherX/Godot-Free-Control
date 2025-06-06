@@ -3,7 +3,7 @@
 class_name ProportionalContainer extends Container
 ## A container that preserves the proportions of its [member ancher] size.
 ## [br][br]
-## [b]WARNING[b]: Is this a buggy node. Try to use [PaddingContainer] instead, unless required.
+## [b]WARNING[b]: Is this can cause crashes if misused. Try to use [PaddingContainer] instead, unless required.
 
 
 ## The method this node will change in proportion of its [member ancher] size.
@@ -25,10 +25,10 @@ enum PROPORTION_MODE {
 @export var ancher : Control:
 	set(val):
 		if ancher != val:
-			if ancher && ancher.resized.is_connected(_handel_resize):
-				ancher.resized.disconnect(_handel_resize)
-			if val && !val.resized.is_connected(_handel_resize):
-				val.resized.connect(_handel_resize)
+			if ancher && ancher.resized.is_connected(_sort_children):
+				ancher.resized.disconnect(_sort_children)
+			if val && !val.resized.is_connected(_sort_children):
+				val.resized.connect(_sort_children)
 			ancher = val
 			queue_sort()
 
@@ -62,7 +62,10 @@ var _ignore_resize : bool
 
 func _init() -> void:
 	layout_mode = 0
-	sort_children.connect(_handel_resize)
+	sort_children.connect(_sort_children)
+func _ready() -> void:
+	_sort_children()
+
 func _validate_property(property: Dictionary) -> void:
 	if property.name in [
 		"layout_mode",
@@ -80,7 +83,7 @@ func _get_minimum_size() -> Vector2:
 
 
 
-func _handel_resize() -> void:
+func _sort_children() -> void:
 	if _ignore_resize: return
 	_ignore_resize = true
 	

@@ -64,7 +64,7 @@ var state : bool:
 	get: return _state
 	set(val):
 		if _state != val:
-			_state = val
+			_toggle_drawer(val)
 
 #@export_group("Drawer Angle")
 ## The angle in which the drawer will open/close from.
@@ -144,11 +144,6 @@ var action_mode : ActionMode = ActionMode.ACTION_MODE_BUTTON_PRESS:
 		if val != action_mode:
 			action_mode = val
 			_is_dragging = false
-
-## Prevents a single click to be processed multiple times
-## [br][br]
-## Also see: [member action_mode].
-var single_input : bool = true
 
 #@export_subgroup("Margins")
 ## Extra pixels to where the open drawer lies when open.
@@ -234,8 +229,7 @@ var _animation_tween : Tween
 var _current_progress : float
 var _drag_value : float
 var _is_dragging : bool
-
-var _single_input : bool
+var _has_dragged : bool
 
 var _inner_offset : Vector2
 var _outer_offset : Vector2
@@ -741,56 +735,51 @@ func _confirm_input_accept(event : InputEvent, drag : bool = false) -> bool:
 		get_viewport().set_input_as_handled()
 	return true
 func _gui_input(event: InputEvent) -> void:
-	if action_mode & ActionMode.ACTION_MODE_BUTTON_DRAG:
-		if event is InputEventMouseMotion || event is InputEventScreenDrag:
-			if event.pressure == 0:
+	if event is InputEventMouseButton || event is InputEventScreenTouch:
+		if event.pressed:
+			if !_is_dragging:
+				if action_mode & ActionMode.ACTION_MODE_BUTTON_PRESS:
+					if !_confirm_input_accept(event, false): return
+					_toggle_drawer(!is_open())
+					return
+				
+				if action_mode & ActionMode.ACTION_MODE_BUTTON_DRAG:
+					if !_confirm_input_accept(event, true): return
+					drag_start.emit()
+					_is_dragging = true
+		else:
+			if action_mode & ActionMode.ACTION_MODE_BUTTON_RELEASE:
+				if _confirm_input_accept(event, false) && !_has_dragged:
+					_toggle_drawer(!is_open())
+					
+					_has_dragged = false
+					_is_dragging = false
+					_drag_value = 0.0
+					return
+			
+			if action_mode & ActionMode.ACTION_MODE_BUTTON_DRAG:
 				if _is_dragging:
 					drag_end.emit()
 					if is_open():
-						if _drag_value < -open_drag_threshold:
-							_toggle_drawer(false, true)
-						else:
-							_toggle_drawer(true, true)
+						_toggle_drawer(_drag_value > -open_drag_threshold, true)
 					else:
-						if _drag_value > close_drag_threshold:
-							_toggle_drawer(true, true)
-						else:
-							_toggle_drawer(false, true)
+						_toggle_drawer(_drag_value > close_drag_threshold, true)
 					
-					_is_dragging = false
-					_drag_value = 0.0
-			else:
-				if _single_input_lock(): return
-				if !_is_dragging:
-					if !_confirm_input_accept(event, true): return
-					drag_start.emit()
-				
-				_is_dragging = true
-				var projected_scalar : float = event.relative.dot(_angle_vec) / _angle_vec.length_squared()
-				_drag_value += projected_scalar
-				
-				_progress_changed(get_progress_adjusted(true))
-				if smooth_drag: _adjust_children()
+					set_deferred("_has_dragged", false)
+					set_deferred("_is_dragging", false)
+					set_deferred("_drag_value", 0.0)
+					return
 	
-	if event is InputEventMouseButton || event is InputEventScreenTouch:
-		if event.pressed:
-			if action_mode & ActionMode.ACTION_MODE_BUTTON_PRESS:
-				if _single_input_lock(): return
-				if !_confirm_input_accept(event): return
-				_toggle_drawer(!is_open())
-				return
-		else:
-			if action_mode & ActionMode.ACTION_MODE_BUTTON_RELEASE:
-				if _single_input_lock(): return
-				if !_confirm_input_accept(event): return
-				_toggle_drawer(!is_open())
-				return
-func _single_input_lock() -> bool:
-	if !single_input: return true
-	if _single_input: return false
-	_single_input = true
-	set_deferred("_single_input", false)
-	return true
+	if _is_dragging:
+		if event is InputEventMouseMotion || event is InputEventScreenDrag:
+			var projected_scalar : float = event.relative.dot(_angle_vec) / _angle_vec.length_squared()
+			_drag_value += projected_scalar
+			
+			if is_zero_approx(_drag_value):
+				_has_dragged = true
+			
+			_progress_changed(get_progress_adjusted(true))
+			if smooth_drag: _adjust_children()
 
 
 

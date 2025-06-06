@@ -1,94 +1,112 @@
-# Made by Xavier Alvarez. A part of the "FreeControl" Godot addon.
 @tool
 class_name ModulateTransitionButton  extends ModulateTransitionContainer
+## A button that inherts from [ModulateTransitionContainer] and uses [HoldButton] as
+## input.
 
 
+
+## Emits the state of the button as it is released.
 signal release_state(toggle : bool)
+
+## Emits when button is released with all vaild conditions.
 signal press_vaild
+
+## Emits when press starts.
 signal press_start
+## Emits when press ends.
 signal press_end
+
+
+
+@export_group("Toggleable")
+## If [code]true[/code], the button's state is pressed. Means the button is pressed down
+## or toggled (if [member toggle_mode] is active). Only works if [member toggle_mode] is
+## [code]false[/code].
+@export var button_pressed : bool:
+	set(val):
+		if button_pressed != val:
+			button_pressed = val
+			_set_button_color(val)
+## If [code]true[/code], the button is in [member toggle_mode]. Makes the button
+## flip state between pressed and unpressed each time its area is clicked.
+@export var toggle_mode : bool:
+	set(val):
+		if toggle_mode != val:
+			toggle_mode = val
+			button_pressed = false
+			notify_property_list_changed()
+			
+			if _button: _button.toggle_mode = val
+## If [code]true[/code], then this node does not accept input.
+@export var disabled : bool:
+	set = _set_disabled
+
+@export_group("Alpha")
+## The color to modulate to when this node is unfocused.
+@export var normal_color : Color = Color(1.0, 1.0, 1.0, 1.0):
+	set(val):
+		if normal_color != val:
+			normal_color = val
+			if is_node_ready(): colors[0] = val
+			force_color(focused_color)
+## The color to modulate to when this node is focused.
+@export var focus_color : Color = Color(1.0, 1.0, 1.0, 0.75):
+	set(val):
+		if focus_color != val:
+			focus_color = val
+			if is_node_ready(): colors[1] = val
+			force_color(focused_color)
+## The color to modulate to when this node is disabled.
+@export var disabled_color : Color = Color(1.0, 1.0, 1.0, 0.5):
+	set(val):
+		if disabled_color != val:
+			disabled_color = val
+			if is_node_ready(): colors[2] = val
+			force_color(focused_color)
 
 
 var _button : HoldButton
 
 
 
-@export_group("Toggleable")
-@export var pressed : bool:
-	set(val):
-		if pressed != val:
-			pressed = val
-			_set_button_color(val)
-var _disabled : bool:
-	set = _set_disabled
-@export var disabled : bool:
-	set(val):
-		if disabled != val:
-			disabled = val
-			_set_disabled(_disabled)
-@export var toggle_mode : bool:
-	set(val):
-		if toggle_mode != val:
-			toggle_mode = val
-			pressed = false
-			notify_property_list_changed()
-			
-			if _button: _button.toggle_mode = val
-@export var load_affected : bool = true:
-	set(val):
-		if load_affected != val:
-			load_affected = val
+## Forcibly stops this node's check.
+func force_release() -> void:
+	if _button: _button.force_release()
+## Returns if mouse or touch is being held (mouse or touch outside of limit without being released).
 
-@export_group("Alpha")
-@export var normal_color : Color = Color(1.0, 1.0, 1.0, 1.0):
-	set(val):
-		if normal_color != val:
-			normal_color = val
-			colors[0] = val
-			force_color(focused_color)
-@export var focus_color : Color = Color(1.0, 1.0, 1.0, 0.75):
-	set(val):
-		if focus_color != val:
-			focus_color = val
-			colors[1] = val
-			force_color(focused_color)
-@export var disabled_color : Color = Color(1.0, 1.0, 1.0, 0.5):
-	set(val):
-		if disabled_color != val:
-			disabled_color = val
-			colors[2] = val
-			force_color(focused_color)
+func is_held() -> bool:
+	return _button && _button.is_held()
 
 
-func is_held() -> bool: return _button && _button.is_held()
-func force_release() -> void: if _button: _button.force_release()
 
 func _init() -> void:
 	super()
-	colors = [normal_color, focus_color, disabled_color]
 	
 	_button = HoldButton.new()
 	add_child(_button)
 	_button.move_to_front()
 	
 	if !Engine.is_editor_hint():
-		_button.pressed_state.connect(_set_button_color)
+		child_order_changed.connect(_button.move_to_front, CONNECT_DEFERRED)
+		
+		_button.button_state.connect(_set_button_color)
 		_button.release_state.connect(_emit_vaild_release)
 		
 		_button.press_start.connect(press_start.emit)
 		_button.press_end.connect(press_end.emit)
-		_button.press_released_vaild.connect(press_vaild.emit)
+		_button.press_vaild.connect(press_vaild.emit)
 	
 	_button.mouse_filter = mouse_filter
 	_button.mouse_force_pass_scroll_events = mouse_force_pass_scroll_events
 	_button.mouse_default_cursor_shape = mouse_default_cursor_shape
 	
 	_button.toggle_mode = toggle_mode
-	_button.button_pressed_state = pressed
-	_button.disabled = _disabled
+	_button.button_pressed = button_pressed
+	_button.disabled = disabled
 func _ready() -> void:
-	if !Engine.is_editor_hint():
-		child_order_changed.connect(_button.move_to_front, CONNECT_DEFERRED)
+	colors = [normal_color, focus_color, disabled_color]
+	force_color(2 if disabled else (1 if button_pressed else 0))
+
 func _validate_property(property: Dictionary) -> void:
 	match property.name:
 		"pressed":
@@ -119,17 +137,15 @@ func _get(property: StringName) -> Variant:
 	return null
 
 func _set_disabled(val : bool) -> void:
-	_disabled = val || disabled
+	disabled = val
 	
-	_set_button_color(pressed)
+	_set_button_color(button_pressed)
 	if _button:
-		_button.disabled = _disabled
+		_button.disabled = disabled
 func _set_button_color(val : bool) -> void:
-	if _disabled: set_color(2)
+	if disabled: set_color(2)
 	else: set_color(int(val))
 
 func _emit_vaild_release(release : bool) -> void:
 	_set_button_color(release)
 	release_state.emit(release)
-
-# Made by Xavier Alvarez. A part of the "FreeControl" Godot addon.

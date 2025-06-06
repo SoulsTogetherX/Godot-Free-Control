@@ -1,7 +1,7 @@
-# Made by Xavier Alvarez. A part of the "FreeControl" Godot addon.
 @tool
 class_name StyleTransitionPanel extends Panel
 ## A [Panel] node with changable that allows easy [member CanvasItem.self_modulate] animation between colors.
+
 
 
 @export_group("Colors Override")
@@ -44,7 +44,6 @@ var _focused_color : int = 0
 
 var _color_tween : Tween = null
 var _current_focused_color : int
-
 
 
 ## Sets the current color index.
@@ -98,15 +97,10 @@ func _on_set_color():
 	_color_tween.finished.connect(_on_set_color, CONNECT_ONE_SHOT)
 
 
-
 func _init() -> void:
 	_current_focused_color = _focused_color
-	focused_color = focused_color
-	
 	_safe_base_set_background()
 func _property_can_revert(property: StringName) -> bool:
 	if property == "colors":
 		return colors.size() == 2 && colors[0] == Color.WEB_GRAY && colors[1] == Color.DIM_GRAY
 	return false
-
-# Made by Xavier Alvarez. A part of the "FreeControl" Godot addon.

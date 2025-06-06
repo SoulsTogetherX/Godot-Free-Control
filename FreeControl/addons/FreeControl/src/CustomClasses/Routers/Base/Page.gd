@@ -1,31 +1,41 @@
 @tool
 class_name Page extends Container
-## A [Control] node for routers.
+## A standardized [Container] node for Routers to use, such as [RouterStack].
 
-## A signal that is emited when this page enters a router display and finished animation.
-@warning_ignore("unused_signal")
-signal entered
-## A signal that is emited before this page's enter animation begins playing.
-@warning_ignore("unused_signal")
-signal entering
-## A signal that is emited when this page exits a router display and finished animation.
-@warning_ignore("unused_signal")
-signal exited
-## A signal that is emited before this page's exit animation begins playing.
-@warning_ignore("unused_signal")
-signal exiting
-## A signal that is manually emited to transfer events through it's attached router.
+
+## Emits when an event is requested to the attached Router parent.
+## [br][br]
+## If this Router is a decedent of another [Page], connect that [Page]'s
+## [method emit_event] with this [Signal].
 signal event_action(event_name : String, args : Variant)
 
+@warning_ignore("unused_signal")
+## Emits when this page is added as a child and finished animation by a Router.
+signal entered
+@warning_ignore("unused_signal")
+## Emits when this page is added as a child.
+signal entering
+@warning_ignore("unused_signal")
+## Emits when this page is about to be removed as a child and finished animation by a Router.
+signal exited
+@warning_ignore("unused_signal")
+## Emits when this page is marked to be removed as a child.
+signal exiting
 
-## Emits the [signal event_action] signal.
+
+
+## Requests an event to the attached Router parent.
 func emit_event(event_name : String, args : Variant) -> void:
 	event_action.emit(event_name, args)
 
 
 
+func _enter_tree() -> void:
+	if !Engine.is_editor_hint():
+		clip_contents = true
 func _init() -> void:
 	sort_children.connect(_sort_children)
+
 
 
 func _sort_children() -> void:

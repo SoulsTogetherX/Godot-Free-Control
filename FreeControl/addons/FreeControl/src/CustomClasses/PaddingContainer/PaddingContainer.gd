@@ -1,7 +1,11 @@
 # Made by Xavier Alvarez. A part of the "FreeControl" Godot addon.
 @tool
 class_name PaddingContainer extends Container
+## A [Container] that provides percentage and numerical padding to it's children.
 
+
+## If [code]true[/code], this [Container]'s minimum size will update according to it's
+## children and numerical pixel padding.
 @export var minimum_size : bool = true:
 	set(val):
 		if minimum_size != val:
@@ -9,24 +13,28 @@ class_name PaddingContainer extends Container
 			
 			update_minimum_size()
 
+## The percentage left padding.
 var child_anchor_left : float = 0:
 	set(val):
 		if child_anchor_left != val:
 			child_anchor_left = val
 			
 			child_anchor_right = max(val, child_anchor_right)
+## The percentage top padding.
 var child_anchor_top : float = 0:
 	set(val):
 		if child_anchor_top != val:
 			child_anchor_top = val
 			
 			child_anchor_bottom = max(val, child_anchor_bottom)
+## The percentage right padding.
 var child_anchor_right : float = 1:
 	set(val):
 		if child_anchor_right != val:
 			child_anchor_right = val
 			
 			child_anchor_left = min(val, child_anchor_left)
+## The percentage bottom padding.
 var child_anchor_bottom : float = 1:
 	set(val):
 		if child_anchor_bottom != val:
@@ -34,24 +42,28 @@ var child_anchor_bottom : float = 1:
 			
 			child_anchor_top = min(val, child_anchor_top)
 
+## The numerical pixel left padding.
 var child_offset_left : int = 0:
 	set(val):
 		if child_offset_left != val:
 			child_offset_left = val
 			
 			update_minimum_size()
+## The numerical pixel top padding.
 var child_offset_top : int = 0:
 	set(val):
 		if child_offset_top != val:
 			child_offset_top = val
 			
 			update_minimum_size()
+## The numerical pixel right padding.
 var child_offset_right : int = 0:
 	set(val):
 		if child_offset_right != val:
 			child_offset_right = val
 			
 			update_minimum_size()
+## The numerical pixel bottom padding.
 var child_offset_bottom : int = 0:
 	set(val):
 		if child_offset_bottom != val:
@@ -62,6 +74,8 @@ var child_offset_bottom : int = 0:
 
 func _init() -> void:
 	sort_children.connect(_handel_resize)
+func _ready() -> void:
+	_handel_resize()
 func _get_property_list() -> Array[Dictionary]:
 	var properties : Array[Dictionary] = []
 	

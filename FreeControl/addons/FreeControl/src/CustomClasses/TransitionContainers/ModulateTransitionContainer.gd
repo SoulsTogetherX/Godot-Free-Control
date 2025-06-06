@@ -1,7 +1,7 @@
-# Made by Xavier Alvarez. A part of the "FreeControl" Godot addon.
 @tool
 class_name ModulateTransitionContainer extends Container
 ## A [Control] node with changable that allows easy [member CanvasItem.modulate] animation between colors.
+
 
 
 @export_group("Alpha Override")
@@ -44,7 +44,6 @@ var _focused_color : int = 0
 
 var _color_tween : Tween = null
 var _current_focused_color : int
-
 
 
 ## Sets the current color index.
@@ -90,11 +89,9 @@ func _on_set_color():
 
 
 func _init() -> void:
-	sort_children.connect(_handle_children)
 	_current_focused_color = _focused_color
-	focused_color = focused_color
-	
-	modulate = colors[_focused_color]
+	sort_children.connect(_handle_children)
+
 func _property_can_revert(property: StringName) -> bool:
 	if property == "colors":
 		return colors.size() == 2 && colors[0] == Color.WHITE && colors[1] == Color(1.0, 1.0, 1.0, 0.5)
@@ -110,5 +107,3 @@ func _get_minimum_size() -> Vector2:
 		if child is Control:
 			min_size = min_size.max(child.get_combined_minimum_size())
 	return min_size
-
-# Made by Xavier Alvarez. A part of the "FreeControl" Godot addon.

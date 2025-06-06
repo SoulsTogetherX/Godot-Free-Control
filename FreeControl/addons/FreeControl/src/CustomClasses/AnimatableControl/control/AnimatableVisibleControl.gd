@@ -89,12 +89,6 @@ var _last_threshold_horizontal : float
 var _last_threshold_vertical : float
 var _last_visible : bool
 
-
-
-func _init() -> void:
-	item_rect_changed.connect(queue_redraw)
-	super()
-
 func _get_property_list() -> Array[Dictionary]:
 	var ret : Array[Dictionary] = []
 	var horizontal : int = 0 if check_mode & CHECK_MODE.HORIZONTAL else PROPERTY_USAGE_READ_ONLY
@@ -165,7 +159,8 @@ func _property_get_revert(property: StringName) -> Variant:
 		return true
 	return null
 
-
+func _init() -> void:
+	item_rect_changed.connect(queue_redraw)
 
 func _get_threshold_size() -> Array[Vector2]:
 	var ratio_thr : Vector2

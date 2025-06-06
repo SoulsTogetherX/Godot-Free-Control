@@ -3,22 +3,22 @@
 class_name MaxSizeContainer extends Container
 ## A container that limits it's size to a maximum value.
 
+var _max_size := -Vector2.ONE
 ## The maximum size this container can possess.
 ## [br][br]
 ## If one of the axis is [code]-1[/code], then it is boundless.
 @export var max_size : Vector2 = -Vector2.ONE:
+	get: return _max_size
 	set(val):
-		if max_size != val:
-			max_size = val
-			queue_sort()
+		_max_size = val
+		queue_sort()
 
 func _init() -> void:
-	sort_children.connect(_update_childrend, CONNECT_DEFERRED)
+	sort_children.connect(_handle_sort, CONNECT_DEFERRED)
 func _set(property: StringName, value: Variant) -> bool:
 	if property == "size":
 		return true
 	return false
-
 func _get_minimum_size() -> Vector2:
 	var min_size : Vector2 = Vector2.ZERO
 	for child : Control in _get_control_children():
@@ -31,15 +31,20 @@ func _get_control_children() -> Array[Control]:
 
 
 
-func _update_childrend() -> void:
+## A helper function that should be called whenever this node's size needs to be changed, or when it's children are changed.
+func _handle_sort() -> void:
+	update_minimum_size()
+	_update_children()
+
+func _update_children() -> void:
 	for child : Control in _get_control_children():
 		_update_child(child)
 func _update_child(child : Control):
 	var child_min_size := child.get_minimum_size()
 	var set_pos : Vector2
 	var result_size := Vector2(
-		size.x if max_size.x < 0 else minf(size.x, max_size.x),
-		size.y if max_size.y < 0 else minf(size.y, max_size.y)
+		size.x if _max_size.x < 0 else minf(size.x, _max_size.x),
+		size.y if _max_size.y < 0 else minf(size.y, _max_size.y)
 	)
 	
 	if child.size_flags_horizontal & SIZE_EXPAND_FILL:

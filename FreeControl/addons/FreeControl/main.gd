@@ -53,33 +53,46 @@ func _enter_tree() -> void:
 		"AnimatedSwitch",
 		"BaseButton",
 		load(CUSTOM_CLASS_FOLDER + "Buttons/Base/AnimatedSwitch.gd"), 
-		null
+		load(ICON_FOLDER + "AnimatedSwitch.svg")
 	)
 	add_custom_type(
 		"HoldButton",
 		"BaseButton",
 		load(CUSTOM_CLASS_FOLDER + "Buttons/Base/HoldButton.gd"), 
-		null
+		load(ICON_FOLDER + "HoldButton.svg")
+	)
+			# MotionCheck
+	add_custom_type(
+		"BoundsCheck",
+		"Control",
+		load(CUSTOM_CLASS_FOLDER + "Buttons/Base/MotionCheck/BoundsCheck.gd"), 
+		load(ICON_FOLDER + "BoundsCheck.svg")
+	)
+	add_custom_type(
+		"DistanceCheck",
+		"Control",
+		load(CUSTOM_CLASS_FOLDER + "Buttons/Base/MotionCheck/DistanceCheck.gd"), 
+		load(ICON_FOLDER + "DistanceCheck.svg")
+	)
+	add_custom_type(
+		"MotionCheck",
+		"Control",
+		load(CUSTOM_CLASS_FOLDER + "Buttons/Base/MotionCheck/MotionCheck.gd"), 
+		load(ICON_FOLDER + "MotionCheck.svg")
 	)
 	
 		# Complex
 	add_custom_type(
-		"AnimatedSwitch",
-		"BaseButton",
-		load(CUSTOM_CLASS_FOLDER + "Buttons/Base/AnimatedSwitch.gd"), 
-		null
-	)
-	add_custom_type(
 		"ModulateTransitionButton",
 		"Container",
 		load(CUSTOM_CLASS_FOLDER + "Buttons/Complex/ModulateTransitionButton.gd"), 
-		null
+		load(ICON_FOLDER + "ModulateTransitionButton.svg")
 	)
 	add_custom_type(
 		"StyleTransitionButton",
 		"Container",
 		load(CUSTOM_CLASS_FOLDER + "Buttons/Complex/StyleTransitionButton.gd"), 
-		null
+		load(ICON_FOLDER + "StyleTransitionButton.svg")
 	)
 	
 	# Carousel
@@ -123,37 +136,35 @@ func _enter_tree() -> void:
 	)
 	
 	# Routers
-		# Base
-			# Page
-	add_custom_type(
-		"Page",
-		"Container",
-		load(CUSTOM_CLASS_FOLDER + "Routers/Base/Page.gd"), 
-		null
-	)
-			# PageInfo
-	add_custom_type(
-		"PageInfo",
-		"Resource",
-		load(CUSTOM_CLASS_FOLDER + "Routers/Base/PageInfo.gd"), 
-		null
-	)
-	
-		# RouterStack
 	add_custom_type(
 		"RouterStack",
 		"Container",
 		load(CUSTOM_CLASS_FOLDER + "Routers/RouterStack.gd"), 
-		null
+		load(ICON_FOLDER + "RouterStack.svg")
+	)
+		# Base
+	add_custom_type(
+		"Page",
+		"Container",
+		load(CUSTOM_CLASS_FOLDER + "Routers/Base/Page.gd"), 
+		load(ICON_FOLDER + "Page.svg")
+	)
+	add_custom_type(
+		"PageInfo",
+		"Resource",
+		load(CUSTOM_CLASS_FOLDER + "Routers/Base/PageInfo.gd"), 
+		load(ICON_FOLDER + "PageInfo.svg")
 	)
 	
 	# SizeControllers
+		# MaxSizeContainer
 	add_custom_type(
 		"MaxSizeContainer",
 		"Container",
 		load(CUSTOM_CLASS_FOLDER + "SizeController/MaxSizeContainer.gd"), 
 		load(ICON_FOLDER + "MaxSizeContainer.svg")
 	)
+		# MaxRatioContainer
 	add_custom_type(
 		"MaxRatioContainer",
 		"Container",
@@ -166,7 +177,7 @@ func _enter_tree() -> void:
 		"SwapContainer",
 		"Container",
 		load(CUSTOM_CLASS_FOLDER + "SwapContainer/SwapContainer.gd"), 
-		null
+		load(ICON_FOLDER + "SwapContainer.svg")
 	)
 	
 	# TransitionContainers
@@ -174,19 +185,19 @@ func _enter_tree() -> void:
 		"ModulateTransitionContainer",
 		"Container",
 		load(CUSTOM_CLASS_FOLDER + "TransitionContainers/ModulateTransitionContainer.gd"), 
-		null
+		load(ICON_FOLDER + "ModulateTransitionContainer.svg")
 	)
 	add_custom_type(
 		"StyleTransitionContainer",
 		"Container",
 		load(CUSTOM_CLASS_FOLDER + "TransitionContainers/StyleTransitionContainer.gd"), 
-		null
+		load(ICON_FOLDER + "StyleTransitionContainer.svg")
 	)
 	add_custom_type(
 		"StyleTransitionPanel",
 		"Container",
 		load(CUSTOM_CLASS_FOLDER + "TransitionContainers/StyleTransitionPanel.gd"), 
-		null
+		load(ICON_FOLDER + "StyleTransitionPanel.svg")
 	)
 
 func _exit_tree() -> void:
@@ -204,9 +215,12 @@ func _exit_tree() -> void:
 		# Base
 	remove_custom_type("AnimatedSwitch")
 	remove_custom_type("HoldButton")
+			# MotionCheck
+	remove_custom_type("BoundsCheck")
+	remove_custom_type("DistanceCheck")
+	remove_custom_type("MotionCheck")
 	
 		# Complex
-	remove_custom_type("AnimatedSwitch")
 	remove_custom_type("ModulateTransitionButton")
 	remove_custom_type("StyleTransitionButton")
 	
@@ -226,14 +240,10 @@ func _exit_tree() -> void:
 	remove_custom_type("ProportionalContainer")
 	
 	# Routers
-		# Base
-			# Page
-	remove_custom_type("Page")
-			# PageInfo
-	remove_custom_type("PageInfo")
-	
-		# RouterStack
 	remove_custom_type("RouterStack")
+		# Base
+	remove_custom_type("Page")
+	remove_custom_type("PageInfo")
 	
 	# SizeControllers
 	remove_custom_type("MaxSizeContainer")

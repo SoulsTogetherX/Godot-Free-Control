@@ -1,17 +1,21 @@
 # Made by Xavier Alvarez. A part of the "FreeControl" Godot addon.
 @tool
 class_name SwapContainer extends Container
+## A [Container] node that provides transitions between different [Control] nodes.
 
+## The Animation type to transition with.
 enum ANIMATION_TYPE {
-	DEFAULT,
-	NONE,
-	LEFT,
-	RIGHT,
-	TOP,
-	BOTTOM
+	DEFAULT, ## The same as [constant LEFT].
+	NONE, ## No Transition
+	LEFT, ## Either moves towards or away the left
+	RIGHT, ## Either moves towards or away the right
+	TOP, ## Either moves towards or away the top
+	BOTTOM ## Either moves towards or away the bottom
 }
 
+## Emits at the start of a transition.
 signal start_animation
+## Emits at the end of a transition.
 signal end_animation
 
 
@@ -21,24 +25,33 @@ var _current_node : Control
 
 
 @export_group("Animation")
-@export var await_animations : bool = true
+## Starts animation with the [Control] node outside of the visisble screen.
 @export var from_outside_screen : bool
+## Starts animation an offset of this amount of pixels (away from the center), start
+## at the position the [Control] originally would be placed at.
 @export var offset : float
 
 @export_group("Easing")
+## The [enum Tween.EaseType] that will be used as the new [Control] transitions in.
 @export var ease_enter : Tween.EaseType = Tween.EaseType.EASE_IN_OUT
+## The [enum Tween.EaseType] that will be used as the current [Control] transitions out.
 @export var ease_exit : Tween.EaseType = Tween.EaseType.EASE_IN_OUT
 
 @export_group("Transition")
+## The [enum Tween.TransitionType] that will be used as the new [Control] transitions in.
 @export var transition_enter : Tween.TransitionType = Tween.TransitionType.TRANS_CUBIC
+## The [enum Tween.TransitionType] that will be used as the current [Control] transitions out.
 @export var transition_exit : Tween.TransitionType = Tween.TransitionType.TRANS_CUBIC
 
 @export_group("Duration")
+## The duration of the animation used as the new [Control] transitions in.
 @export var duration_enter : float = 0.35
+## The duration of the animation used as the current [Control] transitions out.
 @export var duration_exit : float = 0.35
 
 
-
+## Causes the current [Control] node to transition out and [param node]
+## to transition in.
 func swap_control(
 	node : Control,
 	enter_animation: ANIMATION_TYPE = ANIMATION_TYPE.DEFAULT,
@@ -61,6 +74,7 @@ func swap_control(
 	end_animation.emit()
 	
 	return _old_node
+## Sets all export members with a simple  [Dictionary].
 func set_modifers(args : Dictionary) -> void:
 	if args.has("ease_enter"):
 		ease_enter = args.get("ease_enter")
@@ -78,7 +92,8 @@ func set_modifers(args : Dictionary) -> void:
 		duration_exit = args.get("duration_exit")
 
 
-
+## Gets the current [Control] displayed. [code]null[/code] if there is currently no such
+## [Control].
 func get_current() -> Control:
 	return _current_node
 
@@ -89,8 +104,14 @@ func _parent_control(node: Control, front : bool) -> void:
 	if !node.get_parent():
 		add_child(node)
 	
-	if front: node.move_to_front()
-	else: move_child(node, 0)
+	if is_inside_tree():
+		node.hide()
+		get_tree().process_frame.connect(node.show, CONNECT_ONE_SHOT)
+	
+	if front:
+		node.move_to_front()
+	else:
+		move_child(node, 0)
 	
 	node.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 func _unparent_control(node: Control) -> void:
@@ -105,14 +126,10 @@ func _perform_animations(
 	exit_animation: ANIMATION_TYPE
 ) -> void:
 	if enter_animation == ANIMATION_TYPE.NONE && exit_animation == ANIMATION_TYPE.NONE:
-		start_animation.emit()
-		
 		if enter_node:
 			enter_node.position = Vector2.ZERO
-		
-		end_animation.emit()
 		return
-	await _tween_settup()
+	_tween_settup()
 	
 	if enter_node:
 		_handle_enter_animation(
@@ -221,9 +238,6 @@ func _handle_exit_animation(
 
 
 func _tween_settup() -> void:
-	if await_animations:
-		await _await_animations()
-	
 	if _enter_tween && _enter_tween.is_running():
 		_enter_tween.finished.emit()
 		_enter_tween.kill()
