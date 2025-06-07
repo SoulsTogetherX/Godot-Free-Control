@@ -1,5 +1,5 @@
 @tool
-class_name ModulateTransitionButton  extends ModulateTransitionContainer
+class_name ModulateTransitionButton extends ModulateTransitionContainer
 ## A button that inherts from [ModulateTransitionContainer] and uses [HoldButton] as
 ## input.
 
