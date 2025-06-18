@@ -50,14 +50,14 @@ signal slowdown_interupted
 			_settup_children()
 			go_to_index(current_index, false)
 ## The space between each item in the carousel.
-@export var item_seperation : int = 0:
+@export_range(0, 100, 1, "or_less", "or_greater", "suffix:px") var item_seperation : int = 0:
 	set(val):
 		if item_seperation != val:
 			item_seperation = val
 			_kill_animation()
 			_adjust_children()
 ## The orientation the carousel items will be displayed in.
-@export_range(0, 360, 0.001, "or_less", "or_greater") var carousel_angle : float = 0.0:
+@export_range(0, 360, 0.001, "or_less", "or_greater", "suffix:deg") var carousel_angle : float = 0.0:
 	set(val):
 		if carousel_angle != val:
 			var current_index := get_carousel_index()
@@ -100,7 +100,7 @@ signal slowdown_interupted
 			_create_animation(get_carousel_index(), ANIMATION_TYPE.SNAP)
 			notify_property_list_changed()
 ## If [member snap_behavior] is [SNAP_BEHAVIOR.PAGING], this is the draging threshold needed to page to the next carousel item.
-@export var paging_requirement : int = 200:
+@export_range(0, 100, 1, "or_greater", "hide_slider", "suffix:px") var paging_requirement : int = 200:
 	set(val):
 		val = max(1, val)
 		if val != paging_requirement:
@@ -110,7 +110,7 @@ signal slowdown_interupted
 @export_group("Animation Options")
 @export_subgroup("Manual")
 ## The duration of the animation any call to [method go_to_index] will cause, if the animation option is requested. 
-@export_range(0.001, 2.0, 0.001, "or_greater") var manual_carousel_duration : float = 0.4
+@export_range(0.001, 2.0, 0.001, "or_greater", "suffix:sec") var manual_carousel_duration : float = 0.4
 ## The [enum Tween.TransitionType] of the animation any call to [method go_to_index] will cause, if the animation option is requested. 
 @export var manual_carousel_transtion_type : Tween.TransitionType
 ## The [enum Tween.EaseType] of the animation any call to [method go_to_index] will cause, if the animation option is requested. 
@@ -118,7 +118,7 @@ signal slowdown_interupted
 
 @export_subgroup("Snap")
 ## The duration of the animation when snapping to an item.
-@export_range(0.001, 2.0, 0.001, "or_greater") var snap_carousel_duration : float = 0.2
+@export_range(0.001, 2.0, 0.001, "or_greater", "suffix:sec") var snap_carousel_duration : float = 0.2
 ## The [enum Tween.TransitionType] of the animation when snapping to an item.
 @export var snap_carousel_transtion_type : Tween.TransitionType
 ## The [enum Tween.EaseType] of the animation when snapping to an item.
@@ -144,7 +144,7 @@ signal slowdown_interupted
 			drag_outside = val
 @export_subgroup("Limits")
 ## The max amount a user can drag in either direction. If [code]0[/code], then the user can drag any amount they wish.
-@export var drag_limit : int = 0:
+@export_range(0, 100, 1, "or_less", "or_greater", "suffix:px") var drag_limit : int = 0:
 	set(val):
 		val = max(0, val)
 		if val != drag_limit: drag_limit = val
@@ -160,7 +160,7 @@ signal slowdown_interupted
 ## The amount of extra pixels a user can drag past the last and before the first item in the carousel.
 ## [br][br]
 ## This property does nothing if enforce_border is [code]false[/code].
-@export var border_limit : int = 0:
+@export_range(0, 100, 1, "or_less", "or_greater", "suffix:px") var border_limit : int = 0:
 	set(val):
 		if val != border_limit:
 			border_limit = val
@@ -527,11 +527,14 @@ func _handle_drag_slowdown() -> void:
 
 
 func _init() -> void:
-	sort_children.connect(_sort_children)
-	tree_exiting.connect(_end_drag_slowdown)
-	mouse_exited.connect(_mouse_check)
-	
 	_angle_vec = Vector2.RIGHT.rotated(deg_to_rad(carousel_angle))
+	
+	if !sort_children.is_connected(_sort_children):
+		sort_children.connect(_sort_children)
+	if !tree_exiting.is_connected(_end_drag_slowdown):
+		tree_exiting.connect(_end_drag_slowdown)
+	if !mouse_exited.is_connected(_mouse_check):
+		mouse_exited.connect(_mouse_check)
 func _ready() -> void:
 	_settup_children()
 	if _item_count > 0:

@@ -4,6 +4,7 @@ class_name PaddingContainer extends Container
 ## A [Container] that provides percentage and numerical padding to it's children.
 
 
+
 ## If [code]true[/code], this [Container]'s minimum size will update according to it's
 ## children and numerical pixel padding.
 @export var minimum_size : bool = true:
@@ -12,6 +13,7 @@ class_name PaddingContainer extends Container
 			minimum_size = val
 			
 			update_minimum_size()
+			queue_sort()
 
 ## The percentage left padding.
 var child_anchor_left : float = 0:
@@ -20,6 +22,7 @@ var child_anchor_left : float = 0:
 			child_anchor_left = val
 			
 			child_anchor_right = max(val, child_anchor_right)
+			queue_sort()
 ## The percentage top padding.
 var child_anchor_top : float = 0:
 	set(val):
@@ -27,6 +30,7 @@ var child_anchor_top : float = 0:
 			child_anchor_top = val
 			
 			child_anchor_bottom = max(val, child_anchor_bottom)
+			queue_sort()
 ## The percentage right padding.
 var child_anchor_right : float = 1:
 	set(val):
@@ -34,6 +38,7 @@ var child_anchor_right : float = 1:
 			child_anchor_right = val
 			
 			child_anchor_left = min(val, child_anchor_left)
+			queue_sort()
 ## The percentage bottom padding.
 var child_anchor_bottom : float = 1:
 	set(val):
@@ -41,6 +46,7 @@ var child_anchor_bottom : float = 1:
 			child_anchor_bottom = val
 			
 			child_anchor_top = min(val, child_anchor_top)
+			queue_sort()
 
 ## The numerical pixel left padding.
 var child_offset_left : int = 0:
@@ -49,6 +55,7 @@ var child_offset_left : int = 0:
 			child_offset_left = val
 			
 			update_minimum_size()
+			queue_sort()
 ## The numerical pixel top padding.
 var child_offset_top : int = 0:
 	set(val):
@@ -56,6 +63,7 @@ var child_offset_top : int = 0:
 			child_offset_top = val
 			
 			update_minimum_size()
+			queue_sort()
 ## The numerical pixel right padding.
 var child_offset_right : int = 0:
 	set(val):
@@ -63,6 +71,7 @@ var child_offset_right : int = 0:
 			child_offset_right = val
 			
 			update_minimum_size()
+			queue_sort()
 ## The numerical pixel bottom padding.
 var child_offset_bottom : int = 0:
 	set(val):
@@ -70,10 +79,12 @@ var child_offset_bottom : int = 0:
 			child_offset_bottom = val
 			
 			update_minimum_size()
+			queue_sort()
 
 
 func _init() -> void:
-	sort_children.connect(_handel_resize)
+	if !sort_children.is_connected(_handel_resize):
+		sort_children.connect(_handel_resize)
 func _ready() -> void:
 	_handel_resize()
 func _get_property_list() -> Array[Dictionary]:
@@ -90,28 +101,28 @@ func _get_property_list() -> Array[Dictionary]:
 		"type": TYPE_FLOAT,
 		"usage": PROPERTY_USAGE_DEFAULT,
 		"hint": PROPERTY_HINT_RANGE,
-		"hint_string": "0,1,0.001,or_greater,or_less"
+		"hint_string": "0,1,0.001,or_greater, or_less"
 	})
 	properties.append({
 		"name": "child_anchor_top",
 		"type": TYPE_FLOAT,
 		"usage": PROPERTY_USAGE_DEFAULT,
 		"hint": PROPERTY_HINT_RANGE,
-		"hint_string": "0,1,0.001,or_greater,or_less"
+		"hint_string": "0, 1, 0.001, or_greater, or_less"
 	})
 	properties.append({
 		"name": "child_anchor_right",
 		"type": TYPE_FLOAT,
 		"usage": PROPERTY_USAGE_DEFAULT,
 		"hint": PROPERTY_HINT_RANGE,
-		"hint_string": "0,1,0.001,or_greater,or_less"
+		"hint_string": "0, 1, 0.001, or_greater, or_less"
 	})
 	properties.append({
 		"name": "child_anchor_bottom",
 		"type": TYPE_FLOAT,
 		"usage": PROPERTY_USAGE_DEFAULT,
 		"hint": PROPERTY_HINT_RANGE,
-		"hint_string": "0,1,0.001,or_greater,or_less"
+		"hint_string": "0, 1, 0.001, or_greater, or_less"
 	})
 	
 	properties.append({
@@ -123,22 +134,30 @@ func _get_property_list() -> Array[Dictionary]:
 	properties.append({
 		"name": "child_offset_left",
 		"type": TYPE_FLOAT,
-		"usage": PROPERTY_USAGE_DEFAULT
+		"usage": PROPERTY_USAGE_DEFAULT,
+		"hint": PROPERTY_HINT_RANGE,
+		"hint_string": "0, 1, 1, or_greater, hide_slider, suffix:px"
 	})
 	properties.append({
 		"name": "child_offset_top",
 		"type": TYPE_FLOAT,
-		"usage": PROPERTY_USAGE_DEFAULT
+		"usage": PROPERTY_USAGE_DEFAULT,
+		"hint": PROPERTY_HINT_RANGE,
+		"hint_string": "0, 1, 1, or_greater, hide_slider, suffix:px"
 	})
 	properties.append({
 		"name": "child_offset_right",
 		"type": TYPE_FLOAT,
-		"usage": PROPERTY_USAGE_DEFAULT
+		"usage": PROPERTY_USAGE_DEFAULT,
+		"hint": PROPERTY_HINT_RANGE,
+		"hint_string": "0, 1, 1, or_greater, hide_slider, suffix:px"
 	})
 	properties.append({
 		"name": "child_offset_bottom",
 		"type": TYPE_FLOAT,
-		"usage": PROPERTY_USAGE_DEFAULT
+		"usage": PROPERTY_USAGE_DEFAULT,
+		"hint": PROPERTY_HINT_RANGE,
+		"hint_string": "0, 1, 1, or_greater, hide_slider, suffix:px"
 	})
 	
 	return properties

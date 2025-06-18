@@ -28,8 +28,10 @@ func _update_children_minimum_size() -> void:
 				_min_size = _min_size.max(child.get_combined_minimum_size())
 
 func _init() -> void:
-	resized.connect(_sort_children, CONNECT_DEFERRED)
-	size_flags_changed.connect(_sort_children, CONNECT_DEFERRED)
+	if !resized.is_connected(_sort_children):
+		resized.connect(_sort_children, CONNECT_DEFERRED)
+	if !size_flags_changed.is_connected(_sort_children):
+		size_flags_changed.connect(_sort_children, CONNECT_DEFERRED)
 func _sort_children() -> void:
 	pre_sort_children.emit()
 	for child : Node in get_children():

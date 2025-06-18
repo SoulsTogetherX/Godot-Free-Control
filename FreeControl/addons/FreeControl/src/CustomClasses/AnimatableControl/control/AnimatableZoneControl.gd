@@ -4,6 +4,8 @@ class_name AnimatableZoneControl extends AnimatableScrollControl
 ## A container to be used for free transformation, within a UI, depended on a
 ## [ScrollContainer]'s scroll progress.
 
+
+
 ## Modes of zone type checking.
 enum CHECK_MODE {
 	NONE = 0b000, ## No behavior.
@@ -20,13 +22,15 @@ enum ZONE_EDITOR_DIMS {
 	Both = 0b11, ## Both horizontal and vertical axis are based on exact pixel.
 }
 
+## Color for inner highlighting - Indicates when visiblity is required to met threshold.
+const HIGHLIGHT_COLOR := Color(Color.RED, 0.3)
+
 ## Emitted when this node's [AnimatableMount]'s entered the zone area.
 signal entered_zone
 ## Emitted when this node's [AnimatableMount]'s exited the zone area.
 signal exited_zone
 
-## Color for inner highlighting - Indicates when visiblity is required to met threshold.
-const HIGHLIGHT_COLOR := Color(Color.RED, 0.3)
+
 
 @export_group("Mode")
 ## Sets the mode of zone checking.
@@ -167,19 +171,23 @@ func _get_property_list() -> Array[Dictionary]:
 	ret.append({
 		"name": "zone_horizontal",
 		"type": TYPE_FLOAT,
-		"usage": PROPERTY_USAGE_DEFAULT | horizontal
+		"usage": PROPERTY_USAGE_DEFAULT | horizontal,
+		"hint": PROPERTY_HINT_RANGE,
+		"hint_string": "0, 100, 0.001, or_less, or_greater, suffix:px"
 	}.merged({} if zone_point_pixel & 1 else {
 		"hint": PROPERTY_HINT_RANGE,
 		"hint_string": "0,1,0.001,or_less,or_greater"
-	}))
+	}, true))
 	ret.append({
 		"name": "zone_vertical",
 		"type": TYPE_FLOAT,
-		"usage": PROPERTY_USAGE_DEFAULT | vertical
+		"usage": PROPERTY_USAGE_DEFAULT | vertical,
+		"hint": PROPERTY_HINT_RANGE,
+		"hint_string": "0, 100, 0.001, or_less, or_greater, suffix:px"
 	}.merged({} if zone_point_pixel & 2 else {
 		"hint": PROPERTY_HINT_RANGE,
-		"hint_string": "0,1,0.001,or_less,or_greater"
-	}))
+		"hint_string": "0, 1, 0.001, or_less, or_greater"
+	}, true))
 	
 	ret.append({
 		"name": "Zone Range",
@@ -197,19 +205,22 @@ func _get_property_list() -> Array[Dictionary]:
 	ret.append({
 		"name": "zone_range_horizontal",
 		"type": TYPE_FLOAT,
-		"usage": PROPERTY_USAGE_DEFAULT | horizontal
-	}.merged({} if zone_range_by_pixel & 1 else {
+		"usage": PROPERTY_USAGE_DEFAULT | horizontal,
 		"hint": PROPERTY_HINT_RANGE,
-		"hint_string": "0,1,0.001,or_less,or_greater"
-	}))
+		"hint_string": "0, 100, 0.001, or_less, or_greater, suffix:px"
+	}.merged({} if zone_range_by_pixel & 1 else {
+		"hint_string": "0, 1, 0.001, or_less, or_greater"
+	}, true))
 	ret.append({
 		"name": "zone_range_vertical",
 		"type": TYPE_FLOAT,
-		"usage": PROPERTY_USAGE_DEFAULT | vertical
+		"usage": PROPERTY_USAGE_DEFAULT | vertical,
+		"hint": PROPERTY_HINT_RANGE,
+		"hint_string": "0, 100, 0.001, or_less, or_greater, suffix:px"
 	}.merged({} if zone_range_by_pixel & 2 else {
 		"hint": PROPERTY_HINT_RANGE,
-		"hint_string": "0,1,0.001,or_less,or_greater"
-	}))
+		"hint_string": "0, 1, 0.001, or_less, or_greater"
+	}, true))
 	
 	ret.append({
 		"name": "Indicator",

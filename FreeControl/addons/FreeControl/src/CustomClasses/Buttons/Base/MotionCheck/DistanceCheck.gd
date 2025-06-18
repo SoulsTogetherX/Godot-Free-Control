@@ -21,7 +21,7 @@ enum CHECK_MODE {
 ## Also see [enum CHECK_MODE].
 @export var mode : CHECK_MODE
 ## The max pixels difference, between the start and current position, that can be tolerated.
-@export var distance : float = 30
+@export_range(0, 500, 0.001, "or_greater", "suffix:px") var distance : float = 30
 
 
 

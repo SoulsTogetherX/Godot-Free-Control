@@ -121,8 +121,10 @@ var angles : PackedFloat32Array:
 
 
 func _init() -> void:
-	sort_children.connect(_fix_childrend)
-	child_order_changed.connect(_childrend_changed)
+	if !sort_children.is_connected(_fix_childrend):
+		sort_children.connect(_fix_childrend)
+	if !child_order_changed.is_connected(_childrend_changed):
+		child_order_changed.connect(_childrend_changed)
 func _ready() -> void:
 	_fix_childrend()
 
@@ -197,17 +199,23 @@ func _get_property_list() -> Array[Dictionary]:
 		properties.append({
 			"name": "angle_start",
 			"type": TYPE_FLOAT,
-			"usage" : PROPERTY_USAGE_DEFAULT
+			"usage" : PROPERTY_USAGE_DEFAULT,
+			"hint": PROPERTY_HINT_RANGE,
+			"hint_string": "0, 360, 0.001, or_less, or_greater, suffix:deg"
 		})
 		properties.append({
 			"name": "angle_step",
 			"type": TYPE_FLOAT,
-			"usage" : PROPERTY_USAGE_DEFAULT | allow_step
+			"usage" : PROPERTY_USAGE_DEFAULT | allow_step,
+			"hint": PROPERTY_HINT_RANGE,
+			"hint_string": "0, 360, 0.001, or_less, or_greater, suffix:deg"
 		})
 		properties.append({
 			"name": "angle_end",
 			"type": TYPE_FLOAT,
-			"usage" : PROPERTY_USAGE_DEFAULT | unbounded
+			"usage" : PROPERTY_USAGE_DEFAULT | unbounded,
+			"hint": PROPERTY_HINT_RANGE,
+			"hint_string": "0, 360, 0.001, or_less, or_greater, suffix:deg"
 		})
 	
 	return properties

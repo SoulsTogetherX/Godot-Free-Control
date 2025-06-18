@@ -57,7 +57,7 @@ func _enter_tree() -> void:
 	)
 	add_custom_type(
 		"HoldButton",
-		"BaseButton",
+		"Control",
 		load(CUSTOM_CLASS_FOLDER + "Buttons/Base/HoldButton.gd"), 
 		load(ICON_FOLDER + "HoldButton.svg")
 	)
@@ -138,7 +138,7 @@ func _enter_tree() -> void:
 	# Routers
 	add_custom_type(
 		"RouterStack",
-		"Container",
+		"PanelContainer",
 		load(CUSTOM_CLASS_FOLDER + "Routers/RouterStack.gd"), 
 		load(ICON_FOLDER + "RouterStack.svg")
 	)
@@ -195,7 +195,7 @@ func _enter_tree() -> void:
 	)
 	add_custom_type(
 		"StyleTransitionPanel",
-		"Container",
+		"Panel",
 		load(CUSTOM_CLASS_FOLDER + "TransitionContainers/StyleTransitionPanel.gd"), 
 		load(ICON_FOLDER + "StyleTransitionPanel.svg")
 	)

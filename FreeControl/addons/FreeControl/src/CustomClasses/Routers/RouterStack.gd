@@ -41,7 +41,7 @@ signal end_animation
 			_stack.from_outside_screen = val
 ## Starts animation an offset of this amount of pixels (away from the center), start
 ## at the position the [Control] originally would be placed at.
-@export var offset : float:
+@export_range(0, 500, 1, "or_less", "or_greater", "suffix:px") var offset : float:
 	set(val):
 		if val != offset:
 			offset = val
@@ -77,13 +77,13 @@ signal end_animation
 
 @export_group("Duration")
 ## The duration of the animation used as the new [Control] transitions in.
-@export var duration_enter : float = 0.35:
+@export_range(0, 5, 0.001, "or_greater", "suffix:sec") var duration_enter : float = 0.35:
 	set(val):
 		if val != duration_enter:
 			duration_enter = val
 			_stack.duration_enter = val
 ## The duration of the animation used as the current [Control] transitions out.
-@export var duration_exit : float = 0.35:
+@export_range(0, 5, 0.001, "or_greater", "suffix:sec") var duration_exit : float = 0.35:
 	set(val):
 		if val != duration_exit:
 			duration_exit = val
@@ -377,6 +377,8 @@ func _clear_all_pages() -> void:
 
 
 func _init() -> void:
+	if _stack && is_instance_valid(_stack):
+		_stack.queue_free()
 	_stack = SwapContainer.new()
 	add_child(_stack)
 	_stack.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)

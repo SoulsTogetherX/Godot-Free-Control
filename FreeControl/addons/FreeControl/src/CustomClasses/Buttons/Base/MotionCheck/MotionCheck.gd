@@ -94,7 +94,9 @@ func _on_check_exceeded(event: InputEvent) -> void:
 
 func _init() -> void:
 	mouse_filter = MOUSE_FILTER_PASS
-	tree_exiting.connect(force_release)
+	
+	if !tree_exiting.is_connected(force_release):
+		tree_exiting.connect(force_release)
 func _property_can_revert(property: StringName) -> bool:
 	if property == "mouse_filter":
 		return mouse_filter == MOUSE_FILTER_PASS

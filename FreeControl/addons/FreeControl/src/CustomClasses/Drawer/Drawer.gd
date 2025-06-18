@@ -396,10 +396,12 @@ func force_drawer(open : bool) -> void:
 
 
 func _init() -> void:
-	resized.connect(_calculate_childrend)
-	sort_children.connect(_calculate_childrend)
-	
 	_angle_vec = Vector2.RIGHT.rotated(deg_to_rad(drawer_angle))
+	
+	if !resized.is_connected(_calculate_childrend):
+		resized.connect(_calculate_childrend)
+	if !sort_children.is_connected(_calculate_childrend):
+		sort_children.connect(_calculate_childrend)
 func _get_minimum_size() -> Vector2:
 	_min_size = _find_minimum_size()
 	return _min_size
@@ -422,9 +424,9 @@ func _get_property_list() -> Array[Dictionary]:
 	ret.append({
 		"name": "drawer_angle",
 		"type": TYPE_FLOAT,
+		"usage": PROPERTY_USAGE_DEFAULT,
 		"hint": PROPERTY_HINT_RANGE,
-		"hint_string": "0, 360, 0.001, or_less, or_greater",
-		"usage": PROPERTY_USAGE_DEFAULT
+		"hint_string": "0, 360, 0.001, or_less, or_greater, suffix:sec",
 	})
 	ret.append({
 		"name": "drawer_angle_axis_snap",
@@ -447,9 +449,10 @@ func _get_property_list() -> Array[Dictionary]:
 	ret.append({
 		"name": "drawer_width",
 		"type": TYPE_FLOAT,
-		"usage": PROPERTY_USAGE_DEFAULT
-	}.merged({} if drawer_width_by_pixel else {
+		"usage": PROPERTY_USAGE_DEFAULT,
 		"hint": PROPERTY_HINT_RANGE,
+		"hint_string": "0, 1, 0.001, or_less, or_greater, suffix:px",
+	}.merged({} if drawer_width_by_pixel else {
 		"hint_string": "0, 1, 0.001, or_less, or_greater",
 	}))
 	ret.append({
@@ -460,9 +463,10 @@ func _get_property_list() -> Array[Dictionary]:
 	ret.append({
 		"name": "drawer_height",
 		"type": TYPE_FLOAT,
-		"usage": PROPERTY_USAGE_DEFAULT
-	}.merged({} if drawer_height_by_pixel else {
+		"usage": PROPERTY_USAGE_DEFAULT,
 		"hint": PROPERTY_HINT_RANGE,
+		"hint_string": "0, 1, 0.001, or_less, or_greater, suffix:px",
+	}.merged({} if drawer_height_by_pixel else {
 		"hint_string": "0, 1, 0.001, or_less, or_greater",
 	}))
 	
@@ -488,12 +492,16 @@ func _get_property_list() -> Array[Dictionary]:
 	ret.append({
 		"name": "open_margin",
 		"type": TYPE_INT,
-		"usage": PROPERTY_USAGE_DEFAULT
+		"usage": PROPERTY_USAGE_DEFAULT,
+		"hint": PROPERTY_HINT_RANGE,
+		"hint_string": "0, 1, 1, or_less, or_greater, suffix:px",
 	})
 	ret.append({
 		"name": "close_margin",
 		"type": TYPE_INT,
-		"usage": PROPERTY_USAGE_DEFAULT
+		"usage": PROPERTY_USAGE_DEFAULT,
+		"hint": PROPERTY_HINT_RANGE,
+		"hint_string": "0, 1, 1, or_less, or_greater, suffix:px",
 	})
 	
 	ret.append({
@@ -504,9 +512,9 @@ func _get_property_list() -> Array[Dictionary]:
 	ret.append({
 		"name": "allow_drag",
 		"type": TYPE_INT,
+		"usage": PROPERTY_USAGE_DEFAULT,
 		"hint": PROPERTY_HINT_ENUM,
 		"hint_string": _convert_to_enum(DragMode.keys()),
-		"usage": PROPERTY_USAGE_DEFAULT
 	})
 	ret.append({
 		"name": "smooth_drag",
@@ -516,7 +524,9 @@ func _get_property_list() -> Array[Dictionary]:
 	ret.append({
 		"name": "drag_give",
 		"type": TYPE_INT,
-		"usage": PROPERTY_USAGE_DEFAULT
+		"usage": PROPERTY_USAGE_DEFAULT,
+		"hint": PROPERTY_HINT_RANGE,
+		"hint_string": "0, 1, 1, or_less, or_greater, suffix:px",
 	})
 	
 	ret.append({
@@ -528,16 +538,16 @@ func _get_property_list() -> Array[Dictionary]:
 	ret.append({
 		"name": "open_bounds",
 		"type": TYPE_INT,
+		"usage": PROPERTY_USAGE_DEFAULT,
 		"hint": PROPERTY_HINT_ENUM,
 		"hint_string": _convert_to_enum(InputAreaMode.keys()),
-		"usage": PROPERTY_USAGE_DEFAULT
 	})
 	ret.append({
 		"name": "open_drag_threshold",
 		"type": TYPE_INT,
+		"usage": PROPERTY_USAGE_DEFAULT,
 		"hint": PROPERTY_HINT_RANGE,
-		"hint_string": "0, 1, 1, or_greater",
-		"usage": PROPERTY_USAGE_DEFAULT
+		"hint_string": "0, 1, 1, or_greater, suffix:px",
 	})
 	
 	ret.append({
@@ -549,16 +559,16 @@ func _get_property_list() -> Array[Dictionary]:
 	ret.append({
 		"name": "close_bounds",
 		"type": TYPE_INT,
+		"usage": PROPERTY_USAGE_DEFAULT,
 		"hint": PROPERTY_HINT_ENUM,
 		"hint_string": _convert_to_enum(InputAreaMode.keys()),
-		"usage": PROPERTY_USAGE_DEFAULT
 	})
 	ret.append({
 		"name": "close_drag_threshold",
 		"type": TYPE_INT,
+		"usage": PROPERTY_USAGE_DEFAULT,
 		"hint": PROPERTY_HINT_RANGE,
-		"hint_string": "0, 1, 1, or_greater",
-		"usage": PROPERTY_USAGE_DEFAULT
+		"hint_string": "0, 1, 1, or_greater, suffix:px",
 	})
 	
 	
@@ -577,51 +587,51 @@ func _get_property_list() -> Array[Dictionary]:
 	ret.append({
 		"name": "manual_drawer_translate",
 		"type": TYPE_INT,
+		"usage": PROPERTY_USAGE_DEFAULT,
 		"hint": PROPERTY_HINT_ENUM,
 		"hint_string": _get_enum_string("Tween", "TransitionType"),
-		"usage": PROPERTY_USAGE_DEFAULT
 	})
 	ret.append({
 		"name": "manual_drawer_ease",
 		"type": TYPE_INT,
+		"usage": PROPERTY_USAGE_DEFAULT,
 		"hint": PROPERTY_HINT_ENUM,
 		"hint_string": _get_enum_string("Tween", "EaseType"),
-		"usage": PROPERTY_USAGE_DEFAULT
 	})
 	ret.append({
 		"name": "manual_drawer_duration",
 		"type": TYPE_FLOAT,
+		"usage": PROPERTY_USAGE_DEFAULT,
 		"hint": PROPERTY_HINT_RANGE,
-		"hint_string": "0, 1, 0.001, or_greater",
-		"usage": PROPERTY_USAGE_DEFAULT
+		"hint_string": "0, 1, 0.001, or_greater, suffix:sec",
 	})
 	
 	ret.append({
 		"name": "Drag Animation",
 		"type": TYPE_NIL,
+		"usage": PROPERTY_USAGE_SUBGROUP,
 		"hint_string": "drag_drawer_",
-		"usage": PROPERTY_USAGE_SUBGROUP
 	})
 	ret.append({
 		"name": "drag_drawer_translate",
 		"type": TYPE_INT,
+		"usage": PROPERTY_USAGE_DEFAULT,
 		"hint": PROPERTY_HINT_ENUM,
 		"hint_string": _get_enum_string("Tween", "TransitionType"),
-		"usage": PROPERTY_USAGE_DEFAULT
 	})
 	ret.append({
 		"name": "drag_drawer_ease",
 		"type": TYPE_INT,
+		"usage": PROPERTY_USAGE_DEFAULT,
 		"hint": PROPERTY_HINT_ENUM,
 		"hint_string": _get_enum_string("Tween", "EaseType"),
-		"usage": PROPERTY_USAGE_DEFAULT
 	})
 	ret.append({
 		"name": "drag_drawer_duration",
 		"type": TYPE_FLOAT,
+		"usage": PROPERTY_USAGE_DEFAULT,
 		"hint": PROPERTY_HINT_RANGE,
-		"hint_string": "0, 1, 0.001, or_greater",
-		"usage": PROPERTY_USAGE_DEFAULT
+		"hint_string": "0, 1, 0.001, or_greater, suffix:sec",
 	})
 	
 	return ret

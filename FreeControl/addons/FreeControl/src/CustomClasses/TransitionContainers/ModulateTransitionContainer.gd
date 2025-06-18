@@ -32,7 +32,7 @@ var _focused_color : int = 0
 
 @export_group("Tween Override")
 ## The duration of color animations.
-@export var transitionTime : float = 0.2
+@export_range(0, 5, 0.001, "or_greater", "suffix:sec") var transitionTime : float = 0.2
 ## The [Tween.EaseType] of color animations.
 @export var easeType : Tween.EaseType = Tween.EaseType.EASE_OUT_IN
 ## The [Tween.TransitionType] of color animations.
@@ -90,7 +90,9 @@ func _on_set_color():
 
 func _init() -> void:
 	_current_focused_color = _focused_color
-	sort_children.connect(_handle_children)
+	
+	if !sort_children.is_connected(_handle_children):
+		sort_children.connect(_handle_children)
 
 func _property_can_revert(property: StringName) -> bool:
 	if property == "colors":

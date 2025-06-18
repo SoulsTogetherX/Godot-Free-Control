@@ -84,6 +84,10 @@ func is_held() -> bool:
 
 
 func _init() -> void:
+	super()
+	
+	if _button && is_instance_valid(_button):
+		_button.queue_free()
 	_button = HoldButton.new()
 	add_child(_button)
 	

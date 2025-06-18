@@ -81,7 +81,7 @@ signal press_end
 		mode = val
 		_distance_check.mode = val
 ## The max pixels difference, between the start and current position, that can be tolerated.
-@export var distance : float = 30:
+@export_range(0, 500, 0.001, "or_greater", "suffix:px") var distance : float = 30:
 	set(val):
 		distance = val
 		_distance_check.distance = val
@@ -107,6 +107,8 @@ func is_held() -> bool:
 
 
 func _init() -> void:
+	if _distance_check && is_instance_valid(_distance_check):
+		_distance_check.queue_free()
 	_distance_check = DistanceCheck.new()
 	_distance_check.name = "distance_check"
 	_distance_check.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -118,9 +120,12 @@ func _init() -> void:
 	_distance_check.mode = mode
 	_distance_check.distance = distance
 	
+	
 	_distance_check.pos_exceeded.connect(force_release)
 	
 	
+	if _bounds_check && is_instance_valid(_bounds_check):
+		_bounds_check.queue_free()
 	_bounds_check = BoundsCheck.new()
 	_bounds_check.name = "bounds_check"
 	_bounds_check.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)

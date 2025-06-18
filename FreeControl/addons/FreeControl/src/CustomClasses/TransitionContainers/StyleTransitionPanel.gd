@@ -32,7 +32,7 @@ var _focused_color : int = 0
 
 @export_group("Tween Override")
 ## The duration of color animations.
-@export var transitionTime : float = 0.2
+@export_range(0, 5, 0.001, "or_greater", "suffix:sec") var transitionTime : float = 0.2
 ## The [Tween.EaseType] of color animations.
 @export var easeType : Tween.EaseType = Tween.EaseType.EASE_OUT_IN
 ## The [Tween.TransitionType] of color animations.

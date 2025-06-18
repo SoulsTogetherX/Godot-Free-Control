@@ -39,7 +39,7 @@ class_name StyleTransitionContainer extends Container
 
 @export_group("Tween Override")
 ## The duration of color animations.
-@export var transitionTime : float = 0.2:
+@export_range(0, 5, 0.001, "or_greater", "suffix:sec") var transitionTime : float = 0.2:
 	set(val):
 		if _panel:
 			_panel.transitionTime = val
@@ -101,9 +101,9 @@ func _init() -> void:
 	_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_panel.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	add_child(_panel)
-	move_child(_panel, 0)
 	
-	sort_children.connect(_handle_children)
+	if !sort_children.is_connected(_handle_children):
+		sort_children.connect(_handle_children)
 func _ready() -> void:
 	if background:
 		_panel.add_theme_stylebox_override("panel", background)

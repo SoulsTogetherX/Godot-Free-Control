@@ -14,7 +14,8 @@ var _max_size := -Vector2.ONE
 		queue_sort()
 
 func _init() -> void:
-	sort_children.connect(_handle_sort, CONNECT_DEFERRED)
+	if !sort_children.is_connected(_handle_sort):
+		sort_children.connect(_handle_sort, CONNECT_DEFERRED)
 func _set(property: StringName, value: Variant) -> bool:
 	if property == "size":
 		return true

@@ -134,7 +134,7 @@ class_name AnimatedSwitch extends BaseButton
 ## The transition of the knob's movement across the base.
 @export var main_transition : Tween.TransitionType
 ## The duration of the knob's movement across the base.
-@export_range(0.001, 0.5, 0.001, "or_greater") var main_duration : float = 0.15
+@export_range(0.001, 0.5, 0.001, "or_greater", "suffix:sec") var main_duration : float = 0.15
 
 @export_subgroup("Knob Color")
 ## If [code]true[/code], then the knob will change color according to this node's state.
@@ -144,7 +144,7 @@ class_name AnimatedSwitch extends BaseButton
 ## The transition of the knob's color change.
 @export var knob_color_transition : Tween.TransitionType
 ## The duration of the knob's color change.
-@export_range(0.001, 0.5, 0.001, "or_greater") var knob_color_duration : float = 0.1
+@export_range(0.001, 0.5, 0.001, "or_greater", "suffix:sec") var knob_color_duration : float = 0.1
 
 @export_subgroup("Switch Color")
 ## If [code]true[/code], then the base will change color according to this node's state.
@@ -154,7 +154,7 @@ class_name AnimatedSwitch extends BaseButton
 ## The transition of the base's color change.
 @export var switch_color_transition : Tween.TransitionType
 ## The duration of the base's color change.
-@export_range(0.001, 0.5, 0.001, "or_greater") var switch_color_duration : float = 0.1
+@export_range(0.001, 0.5, 0.001, "or_greater", "suffix:sec") var switch_color_duration : float = 0.1
 
 
 
@@ -269,8 +269,16 @@ func _animate_color(animate : bool = false) -> void:
 
 
 func _init() -> void:
-	toggle_mode = true
+	if !resized.is_connected(_handle_resize):
+		resized.connect(_handle_resize)
+	if !toggled.is_connected(toggle_state):
+		toggled.connect(toggle_state)
+	
+	if _switch && is_instance_valid(_switch):
+		_switch.queue_free()
 	_switch = Panel.new()
+	if _knob && is_instance_valid(_knob):
+		_knob.queue_free()
 	_knob = Panel.new()
 	
 	_switch.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -279,10 +287,8 @@ func _init() -> void:
 	add_child(_switch)
 	add_child(_knob)
 	
-	resized.connect(_handle_resize)
-	toggled.connect(toggle_state)
+	toggle_mode = true
 	_handle_resize()
-	
 	_animate_color(false)
 func _handle_resize() -> void:
 	_switch.position = (size - switch_size) * 0.5

@@ -62,7 +62,8 @@ var _ignore_resize : bool
 
 func _init() -> void:
 	layout_mode = 0
-	sort_children.connect(_sort_children)
+	if !sort_children.is_connected(_sort_children):
+		sort_children.connect(_sort_children)
 func _ready() -> void:
 	_sort_children()
 

@@ -34,7 +34,8 @@ func _enter_tree() -> void:
 	if !Engine.is_editor_hint():
 		clip_contents = true
 func _init() -> void:
-	sort_children.connect(_sort_children)
+	if !sort_children.is_connected(_sort_children):
+		sort_children.connect(_sort_children)
 
 
 

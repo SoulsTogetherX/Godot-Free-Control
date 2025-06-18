@@ -122,7 +122,8 @@ func _get_rotated_rect_bounding_box(rect : Rect2, pivot : Vector2, angle : float
 	return Rect2(bb_pos, bb_size)
 
 func _init() -> void:
-	size_flags_changed.connect(update_minimum_size, CONNECT_DEFERRED)
+	if !size_flags_changed.is_connected(update_minimum_size):
+		size_flags_changed.connect(update_minimum_size, CONNECT_DEFERRED)
 
 func _on_mount(control : AnimatableControl) -> void:
 	control.transformation_changed.connect(update_minimum_size, CONNECT_DEFERRED)

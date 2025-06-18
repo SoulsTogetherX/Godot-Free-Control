@@ -115,19 +115,21 @@ func _get_property_list() -> Array[Dictionary]:
 	ret.append({
 		"name": "threshold_horizontal",
 		"type": TYPE_FLOAT,
-		"usage": PROPERTY_USAGE_DEFAULT | horizontal
-	}.merged({} if threshold_pixel & 1 else {
+		"usage": PROPERTY_USAGE_DEFAULT | horizontal,
 		"hint": PROPERTY_HINT_RANGE,
-		"hint_string": "0,1,0.001"
-	}))
+		"hint_string": "0, 100, 0.001, suffix:px"
+	}.merged({} if threshold_pixel & 1 else {
+		"hint_string": "0, 1, 0.001"
+	}, true))
 	ret.append({
 		"name": "threshold_vertical",
 		"type": TYPE_FLOAT,
-		"usage": PROPERTY_USAGE_DEFAULT | vertical
-	}.merged({} if threshold_pixel & 2 else {
+		"usage": PROPERTY_USAGE_DEFAULT | vertical,
 		"hint": PROPERTY_HINT_RANGE,
-		"hint_string": "0,1,0.001"
-	}))
+		"hint_string": "0, 100, 0.001, suffix:px"
+	}.merged({} if threshold_pixel & 2 else {
+		"hint_string": "0, 1, 0.001"
+	}, true))
 	
 	ret.append({
 		"name": "Indicator",
@@ -160,9 +162,13 @@ func _property_get_revert(property: StringName) -> Variant:
 	return null
 
 func _init() -> void:
-	item_rect_changed.connect(queue_redraw)
+	if !item_rect_changed.is_connected(queue_redraw):
+		item_rect_changed.connect(queue_redraw)
 
 func _get_threshold_size() -> Array[Vector2]:
+	if !_mount:
+		return [Vector2.ZERO, Vector2.ZERO]
+		
 	var ratio_thr : Vector2
 	var full_thr : Vector2
 	
