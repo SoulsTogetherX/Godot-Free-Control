@@ -1,9 +1,10 @@
+# Made by Xavier Alvarez. A part of the "FreeControl" Godot addon.
 @tool
 class_name StyleTransitionPanel extends Panel
 ## A [Panel] node with changable that allows easy [member CanvasItem.self_modulate] animation between colors.
 
 
-
+#region External Variables
 @export_group("Colors Override")
 ## The colors to animate between.
 @export var colors : PackedColorArray = [
@@ -40,12 +41,56 @@ var _focused_color : int = 0
 ## If [code]true[/code] animations can be interupted midway. Otherwise, any change in the [param focused_color]
 ## will be queued to be reflected after any currently running animation.
 @export var can_cancle : bool = true
+#endregion
 
 
+#region Private Variables
 var _color_tween : Tween = null
 var _current_focused_color : int
+#endregion
 
 
+#region Virtual Methods
+func _init() -> void:
+	_current_focused_color = _focused_color
+	_safe_base_set_background()
+func _property_can_revert(property: StringName) -> bool:
+	if property == "colors":
+		return colors.size() == 2 && colors[0] == Color.WEB_GRAY && colors[1] == Color.DIM_GRAY
+	return false
+#endregion
+
+
+#region Private Methods
+func _safe_base_set_background() -> void:
+	if has_theme_stylebox_override("panel"): return
+	
+	var background = StyleBoxFlat.new()
+	background.resource_local_to_scene = true
+	background.bg_color = Color.WHITE
+	add_theme_stylebox_override("panel", background)
+func _on_set_color():
+	if _focused_color == _current_focused_color:
+		return
+	if can_cancle:
+		if _color_tween: _color_tween.kill()
+	elif _color_tween && _color_tween.is_running():
+		return
+	_current_focused_color = _focused_color
+	
+	_safe_base_set_background()
+	_color_tween = create_tween()
+	_color_tween.tween_property(
+		self,
+		"self_modulate",
+		get_current_color(),
+		transitionTime
+	)
+	_color_tween.finished.connect(_on_set_color, CONNECT_ONE_SHOT)
+#endregion
+
+
+#region Public Methods
 ## Sets the current color index.
 ## [br][br]
 ## Also see: [member focused_color].
@@ -66,41 +111,6 @@ func force_color(color: int) -> void:
 func get_current_color() -> Color:
 	if _focused_color == -1: return Color.BLACK
 	return colors[_focused_color]
+#endregion
 
-
-
-func _safe_base_set_background() -> void:
-	if has_theme_stylebox_override("panel"): return
-	
-	var background = StyleBoxFlat.new()
-	background.resource_local_to_scene = true
-	background.bg_color = Color.WHITE
-	add_theme_stylebox_override("panel", background)
-
-func _on_set_color():
-	if _focused_color == _current_focused_color:
-		return
-	if can_cancle:
-		if _color_tween: _color_tween.kill()
-	elif _color_tween && _color_tween.is_running():
-		return
-	_current_focused_color = _focused_color
-	
-	_safe_base_set_background()
-	_color_tween = create_tween()
-	_color_tween.tween_property(
-		self,
-		"self_modulate",
-		get_current_color(),
-		transitionTime
-	)
-	_color_tween.finished.connect(_on_set_color, CONNECT_ONE_SHOT)
-
-
-func _init() -> void:
-	_current_focused_color = _focused_color
-	_safe_base_set_background()
-func _property_can_revert(property: StringName) -> bool:
-	if property == "colors":
-		return colors.size() == 2 && colors[0] == Color.WEB_GRAY && colors[1] == Color.DIM_GRAY
-	return false
+# Made by Xavier Alvarez. A part of the "FreeControl" Godot addon.

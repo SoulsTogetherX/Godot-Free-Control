@@ -3,6 +3,16 @@
 class_name SwapContainer extends Container
 ## A [Container] node that provides transitions between different [Control] nodes.
 
+
+#region Signals
+## Emits at the start of a transition.
+signal start_animation
+## Emits at the end of a transition.
+signal end_animation
+#endregion
+
+
+#region Enums
 ## The Animation type to transition with.
 enum ANIMATION_TYPE {
 	DEFAULT, ## The same as [constant LEFT].
@@ -12,18 +22,10 @@ enum ANIMATION_TYPE {
 	TOP, ## Either moves towards or away the top
 	BOTTOM ## Either moves towards or away the bottom
 }
-
-## Emits at the start of a transition.
-signal start_animation
-## Emits at the end of a transition.
-signal end_animation
+#endregion
 
 
-var _enter_tween : Tween = null
-var _exit_tween : Tween = null
-var _current_node : Control
-
-
+#region External Variables
 @export_group("Animation")
 ## Starts animation with the [Control] node outside of the visisble screen.
 @export var from_outside_screen : bool
@@ -48,57 +50,17 @@ var _current_node : Control
 @export var duration_enter : float = 0.35
 ## The duration of the animation used as the current [Control] transitions out.
 @export var duration_exit : float = 0.35
+#endregion
 
 
-## Causes the current [Control] node to transition out and [param node]
-## to transition in.
-func swap_control(
-	node : Control,
-	enter_animation: ANIMATION_TYPE = ANIMATION_TYPE.DEFAULT,
-	exit_animation: ANIMATION_TYPE = ANIMATION_TYPE.DEFAULT,
-	front : bool = true
-) -> Control:
-	var _old_node := _current_node
-	_parent_control(node, front)
-	
-	start_animation.emit()
-	_current_node = node
-	await _perform_animations(
-		node,
-		_old_node,
-		enter_animation,
-		exit_animation
-	)
-	
-	if _old_node: _unparent_control(_old_node)
-	end_animation.emit()
-	
-	return _old_node
-## Sets all export members with a simple  [Dictionary].
-func set_modifers(args : Dictionary) -> void:
-	if args.has("ease_enter"):
-		ease_enter = args.get("ease_enter")
-	if args.has("ease_exit"):
-		ease_exit = args.get("ease_exit")
-	
-	if args.has("transition_enter"):
-		transition_enter = args.get("transition_enter")
-	if args.has("transition_exit"):
-		transition_exit = args.get("transition_exit")
-	
-	if args.has("duration_enter"):
-		duration_enter = args.get("duration_enter")
-	if args.has("duration_exit"):
-		duration_exit = args.get("duration_exit")
+#region Private Variables
+var _enter_tween : Tween = null
+var _exit_tween : Tween = null
+var _current_node : Control
+#endregion
 
 
-## Gets the current [Control] displayed. [code]null[/code] if there is currently no such
-## [Control].
-func get_current() -> Control:
-	return _current_node
-
-
-
+#region Private Methods
 func _parent_control(node: Control, front : bool) -> void:
 	if !node: return
 	if !node.get_parent():
@@ -116,8 +78,6 @@ func _parent_control(node: Control, front : bool) -> void:
 	node.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 func _unparent_control(node: Control) -> void:
 	remove_child(node)
-
-
 
 func _perform_animations(
 	enter_node: Control,
@@ -272,13 +232,65 @@ func _get_border() -> Rect2:
 
 func _await_animations() -> void:
 	@warning_ignore("incompatible_ternary")
-	await _SignalMerge.new(
+	await SignalMerge.new(
 		_enter_tween.finished if _enter_tween && _enter_tween.is_running() else null,
 		_exit_tween.finished if _exit_tween && _exit_tween.is_running() else null
-	) .finished
+	).finished
+#endregion
 
 
-class _SignalMerge:
+#region Public Methods
+## Causes the current [Control] node to transition out and [param node]
+## to transition in.
+func swap_control(
+	node : Control,
+	enter_animation: ANIMATION_TYPE = ANIMATION_TYPE.DEFAULT,
+	exit_animation: ANIMATION_TYPE = ANIMATION_TYPE.DEFAULT,
+	front : bool = true
+) -> Control:
+	var _old_node := _current_node
+	_parent_control(node, front)
+	
+	start_animation.emit()
+	_current_node = node
+	await _perform_animations(
+		node,
+		_old_node,
+		enter_animation,
+		exit_animation
+	)
+	
+	if _old_node: _unparent_control(_old_node)
+	end_animation.emit()
+	
+	return _old_node
+## Sets all export members with a simple  [Dictionary].
+func set_modifers(args : Dictionary) -> void:
+	if args.has("ease_enter"):
+		ease_enter = args.get("ease_enter")
+	if args.has("ease_exit"):
+		ease_exit = args.get("ease_exit")
+	
+	if args.has("transition_enter"):
+		transition_enter = args.get("transition_enter")
+	if args.has("transition_exit"):
+		transition_exit = args.get("transition_exit")
+	
+	if args.has("duration_enter"):
+		duration_enter = args.get("duration_enter")
+	if args.has("duration_exit"):
+		duration_exit = args.get("duration_exit")
+
+
+## Gets the current [Control] displayed. [code]null[/code] if there is currently no such
+## [Control].
+func get_current() -> Control:
+	return _current_node
+#endregion
+
+
+#region Subclasses
+class SignalMerge:
 	signal finished
 	var _activate : bool = false
 	
@@ -293,5 +305,6 @@ class _SignalMerge:
 	func _unleash() -> void:
 		if _activate: finished.emit()
 		_activate = true
+#endregion
 
 # Made by Xavier Alvarez. A part of the "FreeControl" Godot addon.

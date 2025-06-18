@@ -1,9 +1,10 @@
+# Made by Xavier Alvarez. A part of the "FreeControl" Godot addon.
 @tool
 class_name ModulateTransitionContainer extends Container
 ## A [Control] node with changable that allows easy [member CanvasItem.modulate] animation between colors.
 
 
-
+#region External Variables
 @export_group("Alpha Override")
 ## The colors to animate between.
 @export var colors : PackedColorArray = [Color.WHITE, Color(1.0, 1.0, 1.0, 0.5)]:
@@ -40,12 +41,62 @@ var _focused_color : int = 0
 ## If [code]true[/code] animations can be interupted midway. Otherwise, any change in the [param focused_color]
 ## will be queued to be reflected after any currently running animation.
 @export var can_cancle : bool = true
+#endregion
 
 
+
+#region Private Variables
 var _color_tween : Tween = null
 var _current_focused_color : int
+#endregion
 
 
+#region Virtual Methods
+func _init() -> void:
+	_current_focused_color = _focused_color
+	
+	if !sort_children.is_connected(_handle_children):
+		sort_children.connect(_handle_children)
+func _get_minimum_size() -> Vector2:
+	var min_size : Vector2
+	for child : Node in get_children():
+		if child is Control:
+			min_size = min_size.max(child.get_combined_minimum_size())
+	return min_size
+
+func _property_can_revert(property: StringName) -> bool:
+	if property == "colors":
+		return colors.size() == 2 && colors[0] == Color.WHITE && colors[1] == Color(1.0, 1.0, 1.0, 0.5)
+	return false
+#endregion
+
+
+#region Private Methods
+func _on_set_color():
+	if _focused_color == _current_focused_color:
+		return
+	if can_cancle:
+		if _color_tween: _color_tween.kill()
+	elif _color_tween && _color_tween.is_running():
+		return
+	_current_focused_color = _focused_color
+		
+	_color_tween = create_tween()
+	_color_tween.tween_property(
+		self,
+		"self_modulate" if modulate_self else "modulate", 
+		get_current_color(),
+		transitionTime
+	)
+	_color_tween.finished.connect(_on_set_color, CONNECT_ONE_SHOT)
+
+func _handle_children() -> void:
+	for child in get_children():
+		fit_child_in_rect(child, Rect2(Vector2.ZERO, size))
+#endregion
+
+
+#region Public Methods
 ## Sets the current color index.
 ## [br][br]
 ## Also see: [member focused_color].
@@ -65,47 +116,6 @@ func force_color(color: int) -> void:
 func get_current_color() -> Color:
 	if _focused_color == -1: return 1
 	return colors[_focused_color]
+#endregion
 
-
-
-func _on_set_color():
-	if _focused_color == _current_focused_color:
-		return
-	if can_cancle:
-		if _color_tween: _color_tween.kill()
-	elif _color_tween && _color_tween.is_running():
-		return
-	_current_focused_color = _focused_color
-		
-	_color_tween = create_tween()
-	_color_tween.tween_property(
-		self,
-		"self_modulate" if modulate_self else "modulate", 
-		get_current_color(),
-		transitionTime
-	)
-	_color_tween.finished.connect(_on_set_color, CONNECT_ONE_SHOT)
-
-
-
-func _init() -> void:
-	_current_focused_color = _focused_color
-	
-	if !sort_children.is_connected(_handle_children):
-		sort_children.connect(_handle_children)
-
-func _property_can_revert(property: StringName) -> bool:
-	if property == "colors":
-		return colors.size() == 2 && colors[0] == Color.WHITE && colors[1] == Color(1.0, 1.0, 1.0, 0.5)
-	return false
-
-
-func _handle_children() -> void:
-	for child in get_children():
-		fit_child_in_rect(child, Rect2(Vector2.ZERO, size))
-func _get_minimum_size() -> Vector2:
-	var min_size : Vector2
-	for child : Node in get_children():
-		if child is Control:
-			min_size = min_size.max(child.get_combined_minimum_size())
-	return min_size
+# Made by Xavier Alvarez. A part of the "FreeControl" Godot addon.

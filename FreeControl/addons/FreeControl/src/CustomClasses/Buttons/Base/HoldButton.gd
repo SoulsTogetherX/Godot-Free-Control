@@ -1,9 +1,10 @@
+# Made by Xavier Alvarez. A part of the "FreeControl" Godot addon.
 @tool
 class_name HoldButton extends Control
 ## A [Control] node used for hold buttons.
 
 
-
+#region Signals
 ## Emits the state of the button as it is pressed.
 ## [br][br]
 ## Also see [member toggle_mode] and [signal button_state].
@@ -32,9 +33,10 @@ signal press_invaild
 signal press_start
 ## Emits when press ends.
 signal press_end
+#endregion
 
 
-
+#region External Variables
 ## If [code]true[/code], the button's state is pressed. Means the button is pressed down
 ## or toggled (if [member toggle_mode] is active). Only works if [member toggle_mode] is
 ## [code]false[/code].
@@ -85,27 +87,16 @@ signal press_end
 	set(val):
 		distance = val
 		_distance_check.distance = val
+#endregion
 
 
+#region Private Variables
 var _bounds_check : BoundsCheck
 var _distance_check : DistanceCheck
+#endregion
 
 
-
-## Forcibly stops this node's check.
-func force_release() -> void:
-	_bounds_check.force_release()
-	_distance_check.force_release()
-	
-	_on_end_invaild()
-## Returns if mouse or touch is being held (mouse or touch outside of limit without being released).
-## [br][br]
-## Also see [method force_release].
-func is_held() -> bool:
-	return _bounds_check.is_checking()
-
-
-
+#region Virtual Methods
 func _init() -> void:
 	if _distance_check && is_instance_valid(_distance_check):
 		_distance_check.queue_free()
@@ -151,8 +142,10 @@ func _gui_input(event: InputEvent) -> void:
 		event.position += global_position
 		_bounds_check._gui_input(event)
 		_distance_check._gui_input(event)
+#endregion
 
 
+#region Private Methods
 func _on_start_check() -> void:
 	press_start.emit()
 	
@@ -181,3 +174,21 @@ func _on_end_invaild() -> void:
 		button_pressed = false
 	button_state.emit(button_pressed)
 	release_state.emit(button_pressed)
+#endregion
+
+
+#region Public Methods
+## Forcibly stops this node's check.
+func force_release() -> void:
+	_bounds_check.force_release()
+	_distance_check.force_release()
+	
+	_on_end_invaild()
+## Returns if mouse or touch is being held (mouse or touch outside of limit without being released).
+## [br][br]
+## Also see [method force_release].
+func is_held() -> bool:
+	return _bounds_check.is_checking()
+#endregion
+
+# Made by Xavier Alvarez. A part of the "FreeControl" Godot addon.

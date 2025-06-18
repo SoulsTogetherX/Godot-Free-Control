@@ -5,7 +5,15 @@ class_name AnimatableZoneControl extends AnimatableScrollControl
 ## [ScrollContainer]'s scroll progress.
 
 
+#region Signals
+## Emitted when this node's [AnimatableMount]'s entered the zone area.
+signal entered_zone
+## Emitted when this node's [AnimatableMount]'s exited the zone area.
+signal exited_zone
+#endregion
 
+
+#region Enums
 ## Modes of zone type checking.
 enum CHECK_MODE {
 	NONE = 0b000, ## No behavior.
@@ -21,17 +29,16 @@ enum ZONE_EDITOR_DIMS {
 	Vertical = 0b10, ## Horizontal axis is based on ratio and vertical on exact pixel.
 	Both = 0b11, ## Both horizontal and vertical axis are based on exact pixel.
 }
+#endregion
 
+
+#region Constants
 ## Color for inner highlighting - Indicates when visiblity is required to met threshold.
 const HIGHLIGHT_COLOR := Color(Color.RED, 0.3)
-
-## Emitted when this node's [AnimatableMount]'s entered the zone area.
-signal entered_zone
-## Emitted when this node's [AnimatableMount]'s exited the zone area.
-signal exited_zone
+#endregion
 
 
-
+#region External Variables
 @export_group("Mode")
 ## Sets the mode of zone checking.
 @export var check_mode: CHECK_MODE = CHECK_MODE.NONE:
@@ -131,9 +138,15 @@ var hide_indicator : bool = true:
 		if hide_indicator != val:
 			hide_indicator = val
 			queue_redraw()
+#endregion
 
+
+#region Private Variables
 var _last_overlapped : int = 2
+#endregion
 
+
+#region Virtual Methods
 func _draw() -> void:
 	if !_mount || !Engine.is_editor_hint() || hide_indicator || !scroll || check_mode == CHECK_MODE.NONE: return
 	
@@ -255,7 +268,10 @@ func _property_get_revert(property: StringName) -> Variant:
 	elif property == "hide_indicator":
 		return true
 	return null
+#endregion
 
+
+#region Custom Methods Overwriting
 func _scrolled_horizontal(scroll_hor : float) -> void:
 	if !(check_mode & CHECK_MODE.HORIZONTAL) || !scroll: return
 	
@@ -282,7 +298,19 @@ func _scrolled_vertical(scroll_ver : float) -> void:
 		_last_overlapped = 0
 		_while_in_zone(1 if zone_local_scroll().y > 0.5 else 0)
 		exited_zone.emit()
+#endregion
 
+
+#region Custom Virtual Methods
+## A virtual function that is called while this node is in the zone area. Is called
+## after each scroll of [member scroll].
+## [br][br]
+## Paramter [param _scroll] is the local scroll within the zone.
+func _while_in_zone(scroll : float) -> void: pass
+#endregion
+
+
+#region Private Methods
 func _get_zone_pos() -> Vector2:
 	var ret := Vector2(zone_horizontal, zone_vertical)
 	if zone_point_pixel == ZONE_EDITOR_DIMS.None:
@@ -301,11 +329,10 @@ func _get_zone_range() -> Vector2:
 	elif zone_range_by_pixel == ZONE_EDITOR_DIMS.Horizontal:
 		ret.y *= scroll.size.y
 	return ret
+#endregion
 
 
-
-# Public Functions
-
+#region Public Methods
 ## Returns [code]true[/code] if this node's mount is overlaping the zone area.[br]
 ## This function's value is dependant on the value of [member check_mode].
 func is_overlaped_with_activate_zone() -> bool:
@@ -383,15 +410,6 @@ func zone_local_scroll() -> Vector2:
 	
 	if zone.size + mount.size == Vector2.ZERO: return Vector2.ZERO
 	return Vector2.ONE + ((zone.position - _mount.global_position - mount.size) / (zone.size + mount.size)).clampf(-1, 0)
-
-
-
-# Virtual Functions
-
-## A virtual function that is called while this node is in the zone area. Is called
-## after each scroll of [member scroll].
-## [br][br]
-## Paramter [param _scroll] is the local scroll within the zone.
-func _while_in_zone(scroll : float) -> void: pass
+#endregion
 
 # Made by Xavier Alvarez. A part of the "FreeControl" Godot addon.

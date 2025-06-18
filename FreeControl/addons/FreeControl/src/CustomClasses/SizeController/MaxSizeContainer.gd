@@ -3,6 +3,8 @@
 class_name MaxSizeContainer extends Container
 ## A container that limits it's size to a maximum value.
 
+
+#region External Variables
 var _max_size := -Vector2.ONE
 ## The maximum size this container can possess.
 ## [br][br]
@@ -12,7 +14,10 @@ var _max_size := -Vector2.ONE
 	set(val):
 		_max_size = val
 		queue_sort()
+#endregion
 
+
+#region Virtual Methods
 func _init() -> void:
 	if !sort_children.is_connected(_handle_sort):
 		sort_children.connect(_handle_sort, CONNECT_DEFERRED)
@@ -25,14 +30,15 @@ func _get_minimum_size() -> Vector2:
 	for child : Control in _get_control_children():
 		min_size = min_size.max(child.get_combined_minimum_size())
 	return min_size
+#endregion
+
+
+#region Private Methods
 func _get_control_children() -> Array[Control]:
 	var ret : Array[Control]
 	ret.assign(get_children().filter(func(child : Node): return child is Control && child.visible))
 	return ret
 
-
-
-## A helper function that should be called whenever this node's size needs to be changed, or when it's children are changed.
 func _handle_sort() -> void:
 	update_minimum_size()
 	_update_children()
@@ -75,5 +81,6 @@ func _update_child(child : Control):
 	
 	child.position = set_pos
 	child.size = result_size
+#endregion
 
 # Made by Xavier Alvarez. A part of the "FreeControl" Godot addon.

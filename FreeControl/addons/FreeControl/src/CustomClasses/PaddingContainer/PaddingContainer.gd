@@ -4,7 +4,7 @@ class_name PaddingContainer extends Container
 ## A [Container] that provides percentage and numerical padding to it's children.
 
 
-
+#region External Variables
 ## If [code]true[/code], this [Container]'s minimum size will update according to it's
 ## children and numerical pixel padding.
 @export var minimum_size : bool = true:
@@ -80,8 +80,10 @@ var child_offset_bottom : int = 0:
 			
 			update_minimum_size()
 			queue_sort()
+#endregion
 
 
+#region Virtual Methods
 func _init() -> void:
 	if !sort_children.is_connected(_handel_resize):
 		sort_children.connect(_handel_resize)
@@ -214,7 +216,10 @@ func _get_minimum_size() -> Vector2:
 	)
 	
 	return min
+#endregion
 
+
+#region Private Methods
 func _handel_resize() -> void:
 	for child in get_children():
 		if child is Control:
@@ -238,4 +243,6 @@ func _handel_resize() -> void:
 				child_anchor_bottom,
 				-child_offset_bottom
 			)
+#endregion
+
 # Made by Xavier Alvarez. A part of the "FreeControl" Godot addon.

@@ -1,10 +1,11 @@
+# Made by Xavier Alvarez. A part of the "FreeControl" Godot addon.
 @tool
 class_name StyleTransitionButton extends StyleTransitionContainer
 ## A button that inherts from [StyleTransitionContainer] and uses [HoldButton] as
 ## input.
 
 
-
+#region Signals
 ## Emits the state of the button as it is released.
 signal release_state(toggle : bool)
 
@@ -15,9 +16,10 @@ signal press_vaild
 signal press_start
 ## Emits when press ends.
 signal press_end
+#endregion
 
 
-
+#region External Variables
 @export_group("Toggleable")
 ## If [code]true[/code], the button's state is pressed. Means the button is pressed down
 ## or toggled (if [member toggle_mode] is active). Only works if [member toggle_mode] is
@@ -68,21 +70,15 @@ var _disabled : bool:
 			disabled_color = val
 			if is_node_ready(): colors[2] = val
 			force_color(focused_color)
+#endregion
 
 
+#region Private Variables
 var _button : HoldButton
+#endregion
 
 
-
-## Forcibly stops this node's check.
-func force_release() -> void:
-	if _button: _button.force_release()
-## Returns if mouse or touch is being held (mouse or touch outside of limit without being released).
-func is_held() -> bool:
-	return _button && _button.is_held()
-
-
-
+#region Virtual Methods
 func _init() -> void:
 	super()
 	
@@ -145,7 +141,10 @@ func _get(property: StringName) -> Variant:
 			"mouse_default_cursor_shape":
 				return _button.mouse_default_cursor_shape
 	return null
+#endregion
 
+
+#region Private Methods
 func _set_disabled(val : bool) -> void:
 	_disabled = val || disabled
 	
@@ -156,7 +155,19 @@ func _set_button_color(val : bool) -> void:
 	if _disabled: set_color(2)
 	else: set_color(int(val))
 
-
 func _emit_vaild_release(release : bool) -> void:
 	_set_button_color(release)
 	release_state.emit(release)
+#endregion
+
+
+#region Public Methods
+## Forcibly stops this node's check.
+func force_release() -> void:
+	if _button: _button.force_release()
+## Returns if mouse or touch is being held (mouse or touch outside of limit without being released).
+func is_held() -> bool:
+	return _button && _button.is_held()
+#endregion
+
+# Made by Xavier Alvarez. A part of the "FreeControl" Godot addon.

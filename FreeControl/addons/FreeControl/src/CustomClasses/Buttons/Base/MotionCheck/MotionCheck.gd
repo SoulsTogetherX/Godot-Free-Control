@@ -1,7 +1,10 @@
+# Made by Xavier Alvarez. A part of the "FreeControl" Godot addon.
 @tool
 class_name MotionCheck extends Control
 ## Checks for motion of the mouse or touch input after a press.
 
+
+#region Signals
 ## Emited when check has started (mouse or touch is pressed).
 signal start_check
 ## Emited when check has ended (mouse or touch is released or distance limit has exceeded).
@@ -20,8 +23,10 @@ signal end_invaild
 signal pos_exceeded
 ## Emited when the current held state changes.
 signal held_state(state : bool)
+#endregion
 
 
+#region External Variables
 ## If [code]true[/code], the button's held state is released if input moves outside of
 ## bounds.
 ## [br][br]
@@ -44,54 +49,16 @@ signal held_state(state : bool)
 			disabled = val
 			if val:
 				force_release()
+#endregion
 
 
+#region Private Variables
 var _checking : bool = false
 var _holding : bool = false
+#endregion
 
 
-# Public Methods
-
-## Forcibly stops this node's check.
-func force_release() -> void:
-	if _holding:
-		held_state.emit(false)
-		_holding = false
-	if _checking:
-		_invaild_end()
-		_checking = false
-## Returns if this node is currently checking a mouse or touch press.
-func is_checking() -> bool: return _checking
-## Returns if mouse or touch is being held (mouse or touch outside of limit without being released).
-## [br][br]
-## Also see [method force_release].
-func is_held() -> bool: return _holding
-
-
-# Virtual Methods
-
-## A virtual method that should be overloaded. Returns [code]true[/code] if [param pos] is
-## within the distance limit. [code]false[/code] otherwise.
-func _pos_check(pos : Vector2) -> bool:
-	return false
-## A virtual method that should be overloaded. This is called when an input starts a
-## check.
-func _on_check_start(event: InputEvent) -> void:
-	pass
-## A virtual method that should be overloaded. This is called when an input releases a
-## check.
-func _on_check_release(event: InputEvent) -> void:
-	pass
-## A virtual method that should be overloaded. This is called when an input exceeds a
-## check.
-## [br][br]
-## Also see [method _pos_check].
-func _on_check_exceeded(event: InputEvent) -> void:
-	pass 
-
-
-# Private Methods
-
+#region Virtual Methods
 func _init() -> void:
 	mouse_filter = MOUSE_FILTER_PASS
 	
@@ -105,6 +72,7 @@ func _property_get_revert(property: StringName) -> Variant:
 	if property == "mouse_filter":
 		return MOUSE_FILTER_PASS
 	return null
+#endregion
 
 
 func _gui_input(event: InputEvent) -> void:
@@ -158,10 +126,56 @@ func _gui_input(event: InputEvent) -> void:
 					return
 		
 			if mouse_filter == MOUSE_FILTER_STOP: accept_event()
+#endregion
 
+
+#region Custom Virtual Methods
+## A virtual method that should be overloaded. Returns [code]true[/code] if [param pos] is
+## within the distance limit. [code]false[/code] otherwise.
+func _pos_check(pos : Vector2) -> bool:
+	return false
+## A virtual method that should be overloaded. This is called when an input starts a
+## check.
+func _on_check_start(event: InputEvent) -> void:
+	pass
+## A virtual method that should be overloaded. This is called when an input releases a
+## check.
+func _on_check_release(event: InputEvent) -> void:
+	pass
+## A virtual method that should be overloaded. This is called when an input exceeds a
+## check.
+## [br][br]
+## Also see [method _pos_check].
+func _on_check_exceeded(event: InputEvent) -> void:
+	pass 
+#endregion
+
+
+#region Private Methods
 func _invaild_end() -> void:
 	end_invaild.emit()
 	end_check.emit()
 func _vaild_end() -> void:
 	end_vaild.emit()
 	end_check.emit()
+#endregion
+
+
+#region Public Methods
+## Forcibly stops this node's check.
+func force_release() -> void:
+	if _holding:
+		held_state.emit(false)
+		_holding = false
+	if _checking:
+		_invaild_end()
+		_checking = false
+## Returns if this node is currently checking a mouse or touch press.
+func is_checking() -> bool: return _checking
+## Returns if mouse or touch is being held (mouse or touch outside of limit without being released).
+## [br][br]
+## Also see [method force_release].
+func is_held() -> bool: return _holding
+#endregion
+
+# Made by Xavier Alvarez. A part of the "FreeControl" Godot addon.

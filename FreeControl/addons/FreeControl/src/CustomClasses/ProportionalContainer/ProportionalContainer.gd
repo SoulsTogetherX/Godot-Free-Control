@@ -6,6 +6,7 @@ class_name ProportionalContainer extends Container
 ## [b]WARNING[b]: Is this can cause crashes if misused. Try to use [PaddingContainer] instead, unless required.
 
 
+#region Enums
 ## The method this node will change in proportion of its [member ancher] size.
 enum PROPORTION_MODE {
 	NONE = 0b000, ## No action. Minimum size will be set at [constant Vector2.ZERO].
@@ -15,9 +16,10 @@ enum PROPORTION_MODE {
 	HEIGHT_PROPORTION = 0b010, ## Sets the minimum height to be equal to the [member ancher] height multipled by [member vertical_ratio].
 	BOTH = 0b011 ## Sets the minimum size to be equal to the [member ancher] size multipled by [member horizontal_ratio] and [member vertical_ratio] respectively.
 }
+#endregion
 
 
-
+#region External Variables
 @export_group("Ancher")
 ## The ancher node this container proportions itself to. Is used if [member ancher_to_parent] is [code]false[/code].
 ## [br][br]
@@ -52,14 +54,16 @@ enum PROPORTION_MODE {
 		if vertical_ratio != val:
 			vertical_ratio = val
 			queue_sort()
+#endregion
 
 
-
+#region Private Variables
 var _min_size : Vector2
 var _ignore_resize : bool
+#endregion
 
 
-
+#region Virtual Methods
 func _init() -> void:
 	layout_mode = 0
 	if !sort_children.is_connected(_sort_children):
@@ -82,8 +86,14 @@ func _validate_property(property: Dictionary) -> void:
 func _get_minimum_size() -> Vector2:
 	return _min_size
 
+func _get_allowed_size_flags_horizontal() -> PackedInt32Array:
+	return [SIZE_FILL, SIZE_SHRINK_BEGIN, SIZE_SHRINK_CENTER, SIZE_SHRINK_END]
+func _get_allowed_size_flags_vertical() -> PackedInt32Array:
+	return [SIZE_FILL, SIZE_SHRINK_BEGIN, SIZE_SHRINK_CENTER, SIZE_SHRINK_END]
+#endregion
 
 
+#region Private Methods
 func _sort_children() -> void:
 	if _ignore_resize: return
 	_ignore_resize = true
@@ -115,7 +125,6 @@ func _sort_children() -> void:
 	
 	_ignore_resize = false
 	_fit_children()
-
 
 
 func _fit_children() -> void:
@@ -178,12 +187,6 @@ func _get_control_children() -> Array[Control]:
 	var ret : Array[Control]
 	ret.assign(get_children().filter(func(child : Node): return child is Control && child.visible))
 	return ret
-
-
-
-func _get_allowed_size_flags_horizontal() -> PackedInt32Array:
-	return [SIZE_FILL, SIZE_SHRINK_BEGIN, SIZE_SHRINK_CENTER, SIZE_SHRINK_END]
-func _get_allowed_size_flags_vertical() -> PackedInt32Array:
-	return [SIZE_FILL, SIZE_SHRINK_BEGIN, SIZE_SHRINK_CENTER, SIZE_SHRINK_END]
+#endregion
 
 # Made by Xavier Alvarez. A part of the "FreeControl" Godot addon.

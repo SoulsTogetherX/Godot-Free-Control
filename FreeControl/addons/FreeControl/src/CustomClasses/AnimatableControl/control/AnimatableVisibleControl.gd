@@ -4,6 +4,7 @@ class_name AnimatableVisibleControl extends AnimatableScrollControl
 ## A container to be used for free transformation, within a UI, depending on if
 ## the node is visible in a [ScrollContainer] scroll.
 
+#region Signals
 ## Emitted when requested threshold has been entered.
 signal entered_threshold
 ## Emitted when requested threshold has been exited.
@@ -12,7 +13,10 @@ signal exited_threshold
 signal entered_screen
 ## Emitted when this node's [AnimatableMount]'s rect exited visible range.
 signal exited_screen
+#endregion
 
+
+#region Enums
 ## Modes of threshold type checking.
 enum CHECK_MODE {
 	NONE = 0b000, ## No behavior.
@@ -28,7 +32,10 @@ enum THRESHOLD_EDITOR_DIMS {
 	Vertical = 0b10, ## Horizontal axis is based on ratio and vertical on exact pixel.
 	Both = 0b11, ## Both horizontal and vertical axis are based on exact pixel.
 }
+#endregion
 
+
+#region Constants
 ## Color for inner highlighting - Indicates when visiblity is required to met
 ## threshold.
 const HIGHLIGHT_COLOR := Color(Color.RED, 0.3)
@@ -37,7 +44,10 @@ const HIGHLIGHT_COLOR := Color(Color.RED, 0.3)
 const ANTI_HIGHLIGHT_COLOR := Color(Color.DARK_CYAN, 1)
 ## Color for helpful lines to make highlighting for clear.
 const INTERSECT_HIGHLIGHT_COLOR := Color(Color.RED, 0.8)
+#endregion
 
+
+#region External Methods
 @export_group("Mode")
 ## Sets the mode of threshold type checking.
 @export var check_mode: CHECK_MODE = CHECK_MODE.NONE:
@@ -84,10 +94,21 @@ var hide_indicator : bool = true:
 		if hide_indicator != val:
 			hide_indicator = val
 			queue_redraw()
+#endregion
 
+
+#region Private Variables
 var _last_threshold_horizontal : float
 var _last_threshold_vertical : float
 var _last_visible : bool
+#endregion
+
+
+
+#region Virtual Methods
+func _init() -> void:
+	if !item_rect_changed.is_connected(queue_redraw):
+		item_rect_changed.connect(queue_redraw)
 
 func _get_property_list() -> Array[Dictionary]:
 	var ret : Array[Dictionary] = []
@@ -160,10 +181,6 @@ func _property_get_revert(property: StringName) -> Variant:
 	elif property == "hide_indicator":
 		return true
 	return null
-
-func _init() -> void:
-	if !item_rect_changed.is_connected(queue_redraw):
-		item_rect_changed.connect(queue_redraw)
 
 func _get_threshold_size() -> Array[Vector2]:
 	if !_mount:
@@ -308,7 +325,10 @@ func _draw_highlight(
 	draw_rect(Rect2(Vector2(left, 0), Vector2(right - left, top)), ANTI_HIGHLIGHT_COLOR)
 		# Bottom
 	draw_rect(Rect2(Vector2(left, bottom), Vector2(right - left, size.y - bottom)), ANTI_HIGHLIGHT_COLOR)
+#endregion
 
+
+#region Custom Methods Overwriting
 func _scrolled_horizontal(_scroll_hor : float) -> void:
 	if !(check_mode & CHECK_MODE.HORIZONTAL): return
 	
@@ -375,20 +395,10 @@ func _scrolled_vertical(_scroll_ver : float) -> void:
 		_while_threshold(0)
 		exited_threshold.emit()
 	_last_threshold_vertical = val
+#endregion
 
 
-
-# Public Functions
-
-## Returns the rect [threshold_horizontal] and [threshold_vertical] create.
-func get_threshold_rect(consider_mode : bool = false) -> Rect2:
-	var threshold_adjust := _get_threshold_size()
-	return Rect2(threshold_adjust[1], size - threshold_adjust[1])
-
-
-
-# Virtual Functions
-
+#region Custom Virtual Methods
 ## A virtual function that is called while this node is in the visible area of it's
 ## scroll. Is called after each scroll of [member scroll].
 ## [br][br]
@@ -399,5 +409,14 @@ func _while_visible(intersect : float) -> void: pass
 ## [br][br]
 ## Paramter [param intersect] is the current threshold value met.
 func _while_threshold(intersect : float) -> void: pass
+#endregion
+
+
+#region Public Methods
+## Returns the rect [threshold_horizontal] and [threshold_vertical] create.
+func get_threshold_rect(consider_mode : bool = false) -> Rect2:
+	var threshold_adjust := _get_threshold_size()
+	return Rect2(threshold_adjust[1], size - threshold_adjust[1])
+#endregion
 
 # Made by Xavier Alvarez. A part of the "FreeControl" Godot addon.

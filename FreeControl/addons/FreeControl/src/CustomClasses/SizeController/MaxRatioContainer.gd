@@ -4,6 +4,8 @@ class_name MaxRatioContainer extends MaxSizeContainer
 ## A container that limits an axis of it's size, to a maximum value, relative
 ## to the value of it's other axis.
 
+
+#region Enums
 ## The behavior this node will exhibit based on an axis.
 enum MAX_RATIO_MODE {
 	NONE, ## No maximum value for either axis on this container.
@@ -12,7 +14,10 @@ enum MAX_RATIO_MODE {
 	HEIGHT, ## Sets and expands children width to be proportionate of height.
 	HEIGHT_PROPORTION ## Sets the maximum width value of this container to be proportionate of height.
 }
+#endregion
 
+
+#region External Variables
 ## The ratio mode used to expand and limit children.
 @export var mode : MAX_RATIO_MODE = MAX_RATIO_MODE.NONE:
 	set(val):
@@ -25,7 +30,10 @@ enum MAX_RATIO_MODE {
 		if val != ratio:
 			ratio = val
 			queue_sort()
+#endregion
 
+
+#region Virtual Methods
 func _validate_property(property: Dictionary) -> void:
 	if property.name == "max_size":
 		property.usage |= PROPERTY_USAGE_READ_ONLY
@@ -44,9 +52,10 @@ func _get_minimum_size() -> Vector2:
 	
 	min_size = min_size.max(current_size)
 	return min_size
+#endregion
 
 
-
+#region Custom Methods Overwriting
 ## Updates the _max_size according to the ratio mode and current dimentions
 func _update_children() -> void:
 	var parent := get_parent_area_size()
@@ -73,5 +82,6 @@ func _update_children() -> void:
 	set_deferred("size", new_size)
 	
 	super()
+#endregion
 
 # Made by Xavier Alvarez. A part of the "FreeControl" Godot addon.

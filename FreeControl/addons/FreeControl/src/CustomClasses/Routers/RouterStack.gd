@@ -1,10 +1,10 @@
+# Made by Xavier Alvarez. A part of the "FreeControl" Godot addon.
 @tool
 class_name RouterStack extends PanelContainer
 ## Handles a [Control] stack, between [Page] nodes, using [SwapContainer].
 
-## The Animation type to transition with.
-const ANIMATION_TYPE = SwapContainer.ANIMATION_TYPE
 
+#region Signals
 ## Emits when the current [Page] requests an event.
 signal event_action(event : String, args : Variant)
 
@@ -12,7 +12,16 @@ signal event_action(event : String, args : Variant)
 signal start_animation
 ## Emits at the end of a transition.
 signal end_animation
+#endregion
 
+
+#region Enums
+## The Animation type to transition with.
+const ANIMATION_TYPE = SwapContainer.ANIMATION_TYPE
+#endregion
+
+
+#region External Variables
 ## The filepath to the [Page] node this to load on ready. If this path is invaild,
 ## or not to a [PackedScene] with a [Page] node root, nothing will be loaded on ready.
 @export_file("*.tscn") var starting_page : String:
@@ -88,14 +97,101 @@ signal end_animation
 		if val != duration_exit:
 			duration_exit = val
 			_stack.duration_exit = val
+#endregion
 
 
+#region Private Variables
 var _page_stack : Array[PageInfo] = []
 var _params : Dictionary = {}
 var _stack : SwapContainer
+#endregion
 
 
+#region Virtual Methods
+func _init() -> void:
+	if _stack && is_instance_valid(_stack):
+		_stack.queue_free()
+	_stack = SwapContainer.new()
+	add_child(_stack)
+	_stack.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	
+	_stack.start_animation.connect(start_animation.emit)
+	_stack.end_animation.connect(end_animation.emit)
+	
+	_stack.from_outside_screen = from_outside_screen
+	_stack.offset = offset
+	
+	_stack.ease_enter = ease_enter
+	_stack.ease_exit = ease_exit
+	
+	_stack.transition_enter = transition_enter
+	_stack.transition_exit = transition_exit
+	
+	_stack.duration_enter = duration_enter
+	_stack.duration_exit = duration_exit
+#endregion
 
+
+#region Private Methods
+func _handle_swap(
+	enter_page : Page,
+	enter_animation: ANIMATION_TYPE = ANIMATION_TYPE.DEFAULT,
+	exit_animation: ANIMATION_TYPE = ANIMATION_TYPE.DEFAULT,
+	front : bool = true
+) -> void:
+	var exit_page : Page = _stack.get_current()
+	
+	if enter_page:
+		enter_page.entering.emit()
+	if exit_page:
+		exit_page.exiting.emit()
+	
+	await _stack.swap_control(
+		enter_page,
+		enter_animation,
+		exit_animation,
+		front
+	)
+	
+	if enter_page:
+		enter_page.entered.emit()
+	if exit_page:
+		exit_page.exited.emit()
+
+func _append_to_page_queue(page_node: PageInfo) -> void:
+	if !_page_stack.is_empty():
+		_page_stack.back().get_page().event_action.disconnect(event_action.emit)
+	if _page_stack.size() > max_stack:
+		_page_stack.pop_front()
+	_page_stack.append(page_node)
+	
+	var page := page_node.get_page()
+	if !page.event_action.is_connected(event_action.emit):
+		page.event_action.connect(event_action.emit)
+
+func _reverse_animate(animation : ANIMATION_TYPE) -> ANIMATION_TYPE:
+	match animation:
+		ANIMATION_TYPE.NONE:
+			return ANIMATION_TYPE.NONE
+		ANIMATION_TYPE.LEFT:
+			return ANIMATION_TYPE.RIGHT
+		ANIMATION_TYPE.RIGHT:
+			return ANIMATION_TYPE.LEFT
+		ANIMATION_TYPE.TOP:
+			return ANIMATION_TYPE.BOTTOM
+		ANIMATION_TYPE.BOTTOM:
+			return ANIMATION_TYPE.TOP
+	return ANIMATION_TYPE.NONE
+
+
+func _clear_stack() -> void:
+	_page_stack = [_page_stack.back()]
+func _clear_all_pages() -> void:
+	_page_stack = []
+#endregion
+
+
+#region Public Methods
 ## Emits the [Signal Page.entered] signal on the current [Page] displayed.
 ## [br][br]
 ## If this Router is a decedent of another [Page], connect that [Page]'s
@@ -138,7 +234,7 @@ func route(
 	params : Dictionary = {},
 	args : Dictionary = {}
 ) -> Page:
-	var packed : PackedScene = await _ResourceLoader.new(get_tree().process_frame, page_path).finished
+	var packed : PackedScene = await LocalResourceLoader.new(get_tree().process_frame, page_path).finished
 	if packed == null:
 		push_error("An error occured while attempting to load file at filepath '", page_path, "'")
 		return null
@@ -209,7 +305,7 @@ func navigate(
 	params : Dictionary = {},
 	args : Dictionary = {}
 ) -> Page:
-	var packed : PackedScene = await _ResourceLoader.new(get_tree().process_frame, page_path).finished
+	var packed : PackedScene = await LocalResourceLoader.new(get_tree().process_frame, page_path).finished
 	if packed == null:
 		push_error("An error occured while attempting to load file at filepath '", page_path, "'")
 		return null
@@ -314,93 +410,11 @@ func is_empty() -> bool:
 ## Returns the current [Page] on display.
 func get_current_page() -> PageInfo:
 	return null if _page_stack.is_empty() else _page_stack.back()
+#endregion
 
 
-func _handle_swap(
-	enter_page : Page,
-	enter_animation: ANIMATION_TYPE = ANIMATION_TYPE.DEFAULT,
-	exit_animation: ANIMATION_TYPE = ANIMATION_TYPE.DEFAULT,
-	front : bool = true
-) -> void:
-	var exit_page : Page = _stack.get_current()
-	
-	if enter_page:
-		enter_page.entering.emit()
-	if exit_page:
-		exit_page.exiting.emit()
-	
-	await _stack.swap_control(
-		enter_page,
-		enter_animation,
-		exit_animation,
-		front
-	)
-	
-	if enter_page:
-		enter_page.entered.emit()
-	if exit_page:
-		exit_page.exited.emit()
-	
-	
-
-func _append_to_page_queue(page_node: PageInfo) -> void:
-	if !_page_stack.is_empty():
-		_page_stack.back().get_page().event_action.disconnect(event_action.emit)
-	if _page_stack.size() > max_stack:
-		_page_stack.pop_front()
-	_page_stack.append(page_node)
-	
-	var page := page_node.get_page()
-	if !page.event_action.is_connected(event_action.emit):
-		page.event_action.connect(event_action.emit)
-
-func _reverse_animate(animation : ANIMATION_TYPE) -> ANIMATION_TYPE:
-	match animation:
-		ANIMATION_TYPE.NONE:
-			return ANIMATION_TYPE.NONE
-		ANIMATION_TYPE.LEFT:
-			return ANIMATION_TYPE.RIGHT
-		ANIMATION_TYPE.RIGHT:
-			return ANIMATION_TYPE.LEFT
-		ANIMATION_TYPE.TOP:
-			return ANIMATION_TYPE.BOTTOM
-		ANIMATION_TYPE.BOTTOM:
-			return ANIMATION_TYPE.TOP
-	return ANIMATION_TYPE.NONE
-
-
-func _clear_stack() -> void:
-	_page_stack = [_page_stack.back()]
-func _clear_all_pages() -> void:
-	_page_stack = []
-
-
-
-func _init() -> void:
-	if _stack && is_instance_valid(_stack):
-		_stack.queue_free()
-	_stack = SwapContainer.new()
-	add_child(_stack)
-	_stack.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	
-	_stack.start_animation.connect(start_animation.emit)
-	_stack.end_animation.connect(end_animation.emit)
-	
-	_stack.from_outside_screen = from_outside_screen
-	_stack.offset = offset
-	
-	_stack.ease_enter = ease_enter
-	_stack.ease_exit = ease_exit
-	
-	_stack.transition_enter = transition_enter
-	_stack.transition_exit = transition_exit
-	
-	_stack.duration_enter = duration_enter
-	_stack.duration_exit = duration_exit
-
-
-
-class _ResourceLoader:
+#region Subclasses
+class LocalResourceLoader:
 	signal finished(scene : PackedScene)
 	
 	var _resource_name : String
@@ -427,3 +441,6 @@ class _ResourceLoader:
 				finished.emit(ResourceLoader.load_threaded_get(_resource_name))
 	func _delay_failsave() -> void:
 		finished.emit(null)
+#endregion
+
+# Made by Xavier Alvarez. A part of the "FreeControl" Godot addon.

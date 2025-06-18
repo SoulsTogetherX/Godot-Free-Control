@@ -4,7 +4,7 @@ class_name CircularContainer extends Container
 ## A container that positions children in a ellipse within the bounds of this node.
 
 
-
+#region Enums
 ## Behavior the auto angle setter will exhibit.
 enum BOUND_BEHAVIOR {
 	NONE, ## No end bound for angles
@@ -12,8 +12,10 @@ enum BOUND_BEHAVIOR {
 	LOOP, ## Angles, if exceeding the max, will loop back to the begining.
 	MIRRIOR ## Angles, if exceeding the max, will bounce back and forth between the min and max angles.
 }
+#endregion
 
 
+#region External Variables
 ## The horizontal offset of the ellipse's center.
 ## [br][br]
 ## [code]0[/code] is fully left and [code]1[/code] is fully right.
@@ -117,9 +119,10 @@ var angles : PackedFloat32Array:
 		for i in range(0, _container_angles.size()):
 			ret[i] = rad_to_deg(_container_angles[i])
 		return ret
+#endregion
 
 
-
+#region Virtual Methods
 func _init() -> void:
 	if !sort_children.is_connected(_fix_childrend):
 		sort_children.connect(_fix_childrend)
@@ -127,43 +130,6 @@ func _init() -> void:
 		child_order_changed.connect(_childrend_changed)
 func _ready() -> void:
 	_fix_childrend()
-
-func _childrend_changed() -> void:
-	_calculate_angles()
-	_fix_childrend()
-func _get_control_children() -> Array[Control]:
-	var ret : Array[Control]
-	ret.assign(get_children().filter(func(child : Node): return child is Control && child.visible))
-	return ret
-func _fix_childrend() -> void:
-	var children := _get_control_children()
-	
-	for index : int in range(0, children.size()):
-		var child : Control = children[index]
-		if child: _fix_child(child, index)
-func _fix_child(child : Control, index : int) -> void:
-	if _container_angles.is_empty(): return
-	child.reset_size()
-	
-	# Calculates child position
-	var child_size := child.get_combined_minimum_size()
-	var child_pos := -(child_size * 0.5) + (Vector2(origin_x, origin_y) + (Vector2(xRadius, yRadius) * Vector2(cos(_container_angles[index]), sin(_container_angles[index])))) * size
-	
-	# Keeps children in the rect's top-left boundards
-	if child_pos.x < 0:
-		child_pos.x = 0
-	if child_pos.y < 0:
-		child_pos.y = 0
-	
-	# Keeps children in the rect's bottom-right boundards
-	if child_pos.x + child_size.x > size.x:
-		child_pos.x += size.x - (child_pos.x + child_size.x)
-	if child_pos.y + child_size.y > size.y:
-		child_pos.y += size.y - (child_pos.y + child_size.y)
-	if child_pos.y + child_size.y > size.y:
-		child_size.y = size.y - child_pos.y
-	
-	fit_child_in_rect(child, Rect2(child_pos, child_size))
 
 func _get_property_list() -> Array[Dictionary]:
 	var properties : Array[Dictionary]
@@ -248,6 +214,52 @@ func _property_get_revert(property: StringName) -> Variant:
 	
 	return null
 
+func _get_allowed_size_flags_horizontal() -> PackedInt32Array:
+	return []
+func _get_allowed_size_flags_vertical() -> PackedInt32Array:
+	return []
+#endregion
+
+
+#region Private Methods
+func _childrend_changed() -> void:
+	_calculate_angles()
+	_fix_childrend()
+func _get_control_children() -> Array[Control]:
+	var ret : Array[Control]
+	ret.assign(get_children().filter(func(child : Node): return child is Control && child.visible))
+	return ret
+func _fix_childrend() -> void:
+	var children := _get_control_children()
+	
+	for index : int in range(0, children.size()):
+		var child : Control = children[index]
+		if child: _fix_child(child, index)
+func _fix_child(child : Control, index : int) -> void:
+	if _container_angles.is_empty(): return
+	child.reset_size()
+	
+	# Calculates child position
+	var child_size := child.get_combined_minimum_size()
+	var child_pos := -(child_size * 0.5) + (Vector2(origin_x, origin_y) + (Vector2(xRadius, yRadius) * Vector2(cos(_container_angles[index]), sin(_container_angles[index])))) * size
+	
+	# Keeps children in the rect's top-left boundards
+	if child_pos.x < 0:
+		child_pos.x = 0
+	if child_pos.y < 0:
+		child_pos.y = 0
+	
+	# Keeps children in the rect's bottom-right boundards
+	if child_pos.x + child_size.x > size.x:
+		child_pos.x += size.x - (child_pos.x + child_size.x)
+	if child_pos.y + child_size.y > size.y:
+		child_pos.y += size.y - (child_pos.y + child_size.y)
+	if child_pos.y + child_size.y > size.y:
+		child_size.y = size.y - child_pos.y
+	
+	fit_child_in_rect(child, Rect2(child_pos, child_size))
+
+
 func _calculate_angles() -> void:
 	if manual: return
 	
@@ -276,10 +288,6 @@ func _calculate_angles() -> void:
 	for i : int in range(0, _container_angles.size()):
 		_container_angles[i] = fposmod(inc_func.call(i), TAU)
 	_fix_childrend()
-
-func _get_allowed_size_flags_horizontal() -> PackedInt32Array:
-	return []
-func _get_allowed_size_flags_vertical() -> PackedInt32Array:
-	return []
+#endregion
 
 # Made by Xavier Alvarez. A part of the "FreeControl" Godot addon.

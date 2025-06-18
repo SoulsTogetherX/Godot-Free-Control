@@ -3,6 +3,8 @@
 class_name AnimatableTransformationMount extends AnimatableMount
 ## An [AnimatableMount] that adjusts for it's children 2D transformations: Rotation, Position, and Scale.
 
+
+#region External Variables
 ## If [code]true[/code] this node will adjust it's size to fit its children's scales.
 @export var adjust_scale : bool:
 	set(val):
@@ -22,8 +24,18 @@ class_name AnimatableTransformationMount extends AnimatableMount
 		if val != adjust_position:
 			adjust_position = val
 			update_minimum_size()
+#endregion
 
+
+#region Private Variables
 var _child_min_size : Vector2
+#endregion
+
+
+#region Virtual Methods
+func _init() -> void:
+	if !size_flags_changed.is_connected(update_minimum_size):
+		size_flags_changed.connect(update_minimum_size, CONNECT_DEFERRED)
 
 func _update_children_minimum_size() -> void:
 	var _old_min_size := _min_size
@@ -120,20 +132,23 @@ func _get_rotated_rect_bounding_box(rect : Rect2, pivot : Vector2, angle : float
 	)
 	
 	return Rect2(bb_pos, bb_size)
+#endregion
 
-func _init() -> void:
-	if !size_flags_changed.is_connected(update_minimum_size):
-		size_flags_changed.connect(update_minimum_size, CONNECT_DEFERRED)
 
+#region Custom Methods Overwriting
 func _on_mount(control : AnimatableControl) -> void:
 	control.transformation_changed.connect(update_minimum_size, CONNECT_DEFERRED)
 func _on_unmount(control : AnimatableControl) -> void:
 	control.transformation_changed.disconnect(update_minimum_size)
+#endregion
 
+
+#region Public Methods
 ## Returns the adjusted size of this mount.
 func get_relative_size(control : AnimatableControl) -> Vector2:
 	if adjust_scale:
 		return _child_min_size / control.scale
 	return _child_min_size
+#endregion
 
 # Made by Xavier Alvarez. A part of the "FreeControl" Godot addon.

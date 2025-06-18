@@ -4,7 +4,7 @@ class_name AnimatedSwitch extends BaseButton
 ## Animated verison of a switch button.
 
 
-
+#region External Variables
 @export_group("Redirect")
 ## If [code]true[/code], the switch will be displayed vertical.
 @export var vertical : bool = false:
@@ -155,39 +155,65 @@ class_name AnimatedSwitch extends BaseButton
 @export var switch_color_transition : Tween.TransitionType
 ## The duration of the base's color change.
 @export_range(0.001, 0.5, 0.001, "or_greater", "suffix:sec") var switch_color_duration : float = 0.1
+#endregion
 
 
-
+#region Private Variables
 var _knob : Panel
 var _switch : Panel
 
 var _main_animate_tween : Tween
 var _knob_color_animate_tween : Tween
 var _switch_color_animate_tween : Tween
+#endregion
 
 
+#region Virtual Methods
+func _init() -> void:
+	if !resized.is_connected(_handle_resize):
+		resized.connect(_handle_resize)
+	if !toggled.is_connected(toggle_state):
+		toggled.connect(toggle_state)
+	
+	if _switch && is_instance_valid(_switch):
+		_switch.queue_free()
+	_switch = Panel.new()
+	if _knob && is_instance_valid(_knob):
+		_knob.queue_free()
+	_knob = Panel.new()
+	
+	_switch.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_knob.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	
+	add_child(_switch)
+	add_child(_knob)
+	
+	toggle_mode = true
+	_handle_resize()
+	_animate_color(false)
+func _handle_resize() -> void:
+	_switch.position = (size - switch_size) * 0.5
+	_switch.size = switch_size
+	
+	_knob.size = knob_size
+	force_state(button_pressed)
 
-## Instantly changes the switch's state without animation.
-func force_state(knob_state : bool) -> void:
-	_handle_animations(false, knob_state)
-## Changes the switch's state with animation.
-func toggle_state(knob_state : bool) -> void:
-	_handle_animations(true, knob_state)
+func _get_minimum_size() -> Vector2:
+	return (knob_size + (knob_offset.abs() * 0.5)).max(switch_size + Vector2(max(0, knob_overextend) * 2, 0))
+func _validate_property(property: Dictionary) -> void:
+	if property.name == "toggle_mode":
+		property.usage &= ~PROPERTY_USAGE_EDITOR
+
+func _set(property: StringName, value: Variant) -> bool:
+	if property == "disabled":
+		disabled = value
+		_animate_color()
+		return true
+	return false
+#endregion
 
 
-## Gets the current knob color.
-func get_knob_color() -> Color:
-	if disabled:
-		return knob_bg_disabled
-	return knob_bg_focus if button_pressed else knob_bg_normal
-## Gets the current switch base color.
-func get_switch_color() -> Color:
-	if disabled:
-		return switch_bg_disabled
-	return switch_bg_focus if button_pressed else switch_bg_normal
-
-
-
+#region Private Methods
 func _kill_main_animation() -> void:
 	if _main_animate_tween && _main_animate_tween.is_running():
 		_main_animate_tween.kill()
@@ -265,49 +291,27 @@ func _animate_color(animate : bool = false) -> void:
 		)
 	else:
 		_switch.self_modulate = get_switch_color()
+#endregion
 
 
+#region Public Methods
+## Instantly changes the switch's state without animation.
+func force_state(knob_state : bool) -> void:
+	_handle_animations(false, knob_state)
+## Changes the switch's state with animation.
+func toggle_state(knob_state : bool) -> void:
+	_handle_animations(true, knob_state)
 
-func _init() -> void:
-	if !resized.is_connected(_handle_resize):
-		resized.connect(_handle_resize)
-	if !toggled.is_connected(toggle_state):
-		toggled.connect(toggle_state)
-	
-	if _switch && is_instance_valid(_switch):
-		_switch.queue_free()
-	_switch = Panel.new()
-	if _knob && is_instance_valid(_knob):
-		_knob.queue_free()
-	_knob = Panel.new()
-	
-	_switch.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_knob.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	
-	add_child(_switch)
-	add_child(_knob)
-	
-	toggle_mode = true
-	_handle_resize()
-	_animate_color(false)
-func _handle_resize() -> void:
-	_switch.position = (size - switch_size) * 0.5
-	_switch.size = switch_size
-	
-	_knob.size = knob_size
-	force_state(button_pressed)
-
-func _get_minimum_size() -> Vector2:
-	return (knob_size + (knob_offset.abs() * 0.5)).max(switch_size + Vector2(max(0, knob_overextend) * 2, 0))
-func _validate_property(property: Dictionary) -> void:
-	if property.name == "toggle_mode":
-		property.usage &= ~PROPERTY_USAGE_EDITOR
-
-func _set(property: StringName, value: Variant) -> bool:
-	if property == "disabled":
-		disabled = value
-		_animate_color()
-		return true
-	return false
+## Gets the current knob color.
+func get_knob_color() -> Color:
+	if disabled:
+		return knob_bg_disabled
+	return knob_bg_focus if button_pressed else knob_bg_normal
+## Gets the current switch base color.
+func get_switch_color() -> Color:
+	if disabled:
+		return switch_bg_disabled
+	return switch_bg_focus if button_pressed else switch_bg_normal
+#endregion
 
 # Made by Xavier Alvarez. A part of the "FreeControl" Godot addon.

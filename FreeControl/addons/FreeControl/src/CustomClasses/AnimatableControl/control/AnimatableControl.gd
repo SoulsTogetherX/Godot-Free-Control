@@ -3,10 +3,14 @@
 class_name AnimatableControl extends Container
 ## A container to be used for free transformation within a UI.
 
+#region Signals
 ## This signal emits when one of the following properties change: scale, position,
 ## rotation, pivot_offset
 signal transformation_changed
+#endregion
 
+
+#region Enums
 ## The size mode this node's size will be bounded by.
 enum SIZE_MODE {
 	NONE = 0b00, ## This node's size is not bounded
@@ -14,7 +18,10 @@ enum SIZE_MODE {
 	MAX = 0b10,  ## This node's size will be less than or equal to this node's mount size
 	EXACT = 0b11 ## This node's size will be the same as this node's mount size
 }
+#endregion
 
+
+#region External Variables
 ## Controls how this node's size is bounded, according to the node's mount size
 @export var size_mode : SIZE_MODE = SIZE_MODE.EXACT:
 	set(val):
@@ -30,9 +37,16 @@ enum SIZE_MODE {
 		if pivot_ratio != val:
 			pivot_ratio = val
 			pivot_offset = size * val
+#endregion
 
+
+#region Private Variables
 var _mount : AnimatableMount
+#endregion
 
+
+
+#region Virtual Methods
 func _get_configuration_warnings() -> PackedStringArray:
 	if get_parent() is AnimatableMount:
 		return []
@@ -72,8 +86,11 @@ func _on_tree_exit() -> void:
 	if _mount:
 		_mount._on_unmount(self)
 		_mount = null
+#endregion
 
 
+
+#region Private Methods
 func _handle_resize() -> void:
 	_bound_size()
 	_update_pivot()
@@ -135,10 +152,15 @@ func _get_control_children() -> Array[Control]:
 	var ret : Array[Control]
 	ret.assign(get_children().filter(func(child : Node): return child is Control && child.visible))
 	return ret
+#endregion
 
+
+
+#region Public Methods
 ## Gets the mount this node is currently a child to.[br]
 ## If this node is not a child to any [AnimatableMount] nodes, this returns [code]null[/code] instead.
 func get_mount() -> AnimatableMount:
 	return _mount
+#endregion
 
 # Made by Xavier Alvarez. A part of the "FreeControl" Godot addon.

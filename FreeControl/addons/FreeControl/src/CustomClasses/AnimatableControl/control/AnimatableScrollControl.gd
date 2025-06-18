@@ -3,6 +3,7 @@
 class_name AnimatableScrollControl extends AnimatableControl
 ## A container to be used for free transformation, within a UI, depended on a [ScrollContainer]'s scroll progress.
 
+#region External Variables
 ## The [ScrollContainer] this node will consider for operations. Is automatically
 ## set to the closet parent [ScrollContainer] in the tree if [member scroll] is
 ## [code]null[/code] and [Engine] is in editor mode.
@@ -23,10 +24,15 @@ class_name AnimatableScrollControl extends AnimatableControl
 				if is_node_ready():
 					_scrolled_horizontal(val.get_h_scroll_bar().value)
 					_scrolled_vertical(val.get_v_scroll_bar().value)
+#endregion
 
+
+#region Virtual Methods
 func _enter_tree() -> void:
 	if !scroll && Engine.is_editor_hint(): scroll = get_parent_scroll()
+#endregion
 
+#region Custom Virtual Methods
 ## A virtual function that is called when [member scroll] is horizontally scrolled.
 ## [br][br]
 ## Paramter [param scroll] is the current horizontal progress of the scroll.
@@ -35,7 +41,10 @@ func _scrolled_horizontal(scroll_hor : float) -> void: pass
 ## [br][br]
 ## Paramter [param scroll] is the current vertical progress of the scroll.
 func _scrolled_vertical(scroll_ver : float) -> void: pass
+#endregion
 
+
+#region Public Methods
 ## Returns the global difference between this node's [AnimatableMount] and
 ## [member scroll] positions.
 func get_origin_offset() -> Vector2:
@@ -68,5 +77,6 @@ func get_visible_horizontal_percent() -> float:
 func get_visible_vertical_percent() -> float:
 	if !_mount || !scroll: return 0
 	return (min(_mount.global_position.y + _mount.size.y, scroll.global_position.y + scroll.size.y) - max(_mount.global_position.y, scroll.global_position.y)) / _mount.size.y
+#endregion
 
 # Made by Xavier Alvarez. A part of the "FreeControl" Godot addon.

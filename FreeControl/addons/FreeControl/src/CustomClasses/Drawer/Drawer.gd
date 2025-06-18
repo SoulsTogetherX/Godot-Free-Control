@@ -3,32 +3,8 @@
 class_name Drawer extends Container
 ## A [Container] node used for easy UI Drawers.
 
-## A flag enum used to classify which input type is allowed.
-enum ActionMode {
-	ACTION_MODE_BUTTON_NONE = 0, ## Allows no input
-	ACTION_MODE_BUTTON_PRESS = 1, ## Toggles the drawer on tap/click press
-	ACTION_MODE_BUTTON_RELEASE = 2, ## Toggles the drawer on tap/click release
-	ACTION_MODE_BUTTON_DRAG = 4, ## Allows user to drag the drawer
-}
 
-## An enum used to classify where input is accepted.
-enum InputAreaMode {
-	Nowhere = 0, ## No input is alloed anywhere on the screen.
-	Anywhere = 1, ## Input accepted anywere on the screen.
-	WithinBounds = 2, ## Input is accepted only within this node's rect.
-	ExcludeDrawer = 3, ## Input is accepted anywhere except on the drawer's rect.
-	WithinEmptyBounds = 4, ## Input is accepted only within this node's rect, outside of the drawer's rect.
-}
-
-## An enum used to classify when dragging is allowed.
-enum DragMode {
-	NEVER = 0, ## No dragging allowed.
-	ON_OPEN = 1, ## Dragging is allowed to open the drawer.
-	ON_CLOSE = 2, ## Dragging is allowed to close the drawer.
-	ON_OPEN_OR_CLOSE = 0b11 ## Dragging is allowed to open or close the drawer.
-}
-
-
+#region Signals
 ## Emited when drawer is begining an opening/closing animation.
 ## [br][br]
 ## Also see: [member state], [method toggle_drawer].
@@ -53,9 +29,38 @@ signal drag_start
 ## [br][br]
 ## Also see: [member allow_drag].
 signal drag_end
+#endregion
 
 
+#region Enums
+## A flag enum used to classify which input type is allowed.
+enum ActionMode {
+	ACTION_MODE_BUTTON_NONE = 0, ## Allows no input
+	ACTION_MODE_BUTTON_PRESS = 1, ## Toggles the drawer on tap/click press
+	ACTION_MODE_BUTTON_RELEASE = 2, ## Toggles the drawer on tap/click release
+	ACTION_MODE_BUTTON_DRAG = 4, ## Allows user to drag the drawer
+}
 
+## An enum used to classify where input is accepted.
+enum InputAreaMode {
+	Nowhere = 0, ## No input is alloed anywhere on the screen.
+	Anywhere = 1, ## Input accepted anywere on the screen.
+	WithinBounds = 2, ## Input is accepted only within this node's rect.
+	ExcludeDrawer = 3, ## Input is accepted anywhere except on the drawer's rect.
+	WithinEmptyBounds = 4, ## Input is accepted only within this node's rect, outside of the drawer's rect.
+}
+
+## An enum used to classify when dragging is allowed.
+enum DragMode {
+	NEVER = 0, ## No dragging allowed.
+	ON_OPEN = 1, ## Dragging is allowed to open the drawer.
+	ON_CLOSE = 2, ## Dragging is allowed to close the drawer.
+	ON_OPEN_OR_CLOSE = 0b11 ## Dragging is allowed to open or close the drawer.
+}
+#endregion
+
+
+#region External Variables
 @export_storage var _state : bool
 ## The state of the drawer. If [code]true[/code], the drawer is open. Otherwise closed.
 ## [br][br]
@@ -219,9 +224,10 @@ var drag_drawer_translate : Tween.TransitionType
 var drag_drawer_ease : Tween.EaseType
 ## The animation duration used when snapping after a drag.
 var drag_drawer_duration : float = 0.2
+#endregion
 
 
-
+#region Private Variables
 var _min_size : Vector2
 var _angle_vec : Vector2
 
@@ -234,167 +240,10 @@ var _has_dragged : bool
 var _inner_offset : Vector2
 var _outer_offset : Vector2
 var _max_offset : float
+#endregion
 
 
-## Returns if the drawer is currently open.
-func is_open() -> bool:
-	return get_progress_adjusted() > 0.5
-## Returns if the drawer is expected to be open.
-func is_open_expected() -> bool:
-	return _state
-## Returns if the drawer is currently animating.
-func is_animating() -> bool:
-	return _animation_tween && _animation_tween.is_running()
-## Returns the size of the drawer.
-func get_drawer_size() -> Vector2:
-	var ret := Vector2(drawer_width, drawer_height)
-	if !drawer_width_by_pixel:
-		ret.x *= size.x
-	if !drawer_height_by_pixel:
-		ret.y *= size.y
-	return ret.max(_min_size)
-## Returns the offsert the drawer has, compared to this node's local position.
-func get_drawer_offset(with_drag : bool = false) -> Vector2:
-	return _get_drawer_offset(_inner_offset, _outer_offset, with_drag)
-## Returns the rect the drawer has, compared to this node's local position.
-func get_drawer_rect(with_drag : bool = false) -> Rect2:
-	return Rect2(get_drawer_offset(with_drag), get_drawer_size())
-
-## Gets the current progress the drawer is in animations. 
-## Returns the value in pixel distance.
-func get_progress(include_drag : bool = false, with_clamp : bool = true) -> float:
-	var ret : float = _current_progress
-	if include_drag:
-		ret += _drag_value
-	if with_clamp:
-		ret = clampf(ret, -drag_give, _max_offset)
-	return ret
-## Gets the percentage of the drawer's current position between being closed and opened. 
-## [code]0.0[/code] when closed and [code]1.0[/code] when opened.
-func get_progress_adjusted(include_drag : bool = false, with_clamp : bool = true) -> float:
-	if _max_offset == 0.0: return 0.0
-	return get_progress(include_drag, with_clamp) / _max_offset
-
-
-
-func _get_relevant_axis() -> float:
-	var drawer_size := get_drawer_size()
-	var abs_angle_vec = _angle_vec.abs()
-	
-	if abs_angle_vec.y >= abs_angle_vec.x:
-		return (drawer_size.x / abs_angle_vec.y)
-	return (drawer_size.y / abs_angle_vec.x)
-func _get_control_children() -> Array[Control]:
-	var ret : Array[Control]
-	ret.assign(get_children().filter(func(child : Node): return child is Control && child.visible))
-	return ret
-func _calculate_childrend() -> void:
-	_find_offsets()
-	_current_progress = _max_offset * float(_state)
-	_adjust_children()
-func _adjust_children() -> void:
-	var rect := get_drawer_rect(true)
-	for child : Control in _get_control_children():
-		fit_child_in_rect(child, rect)
-
-
-
-func _find_minimum_size() -> Vector2:
-	var min_size : Vector2 = Vector2.ZERO
-	for child : Control in _get_control_children():
-		min_size = min_size.max(child.get_combined_minimum_size())
-	return min_size
-func _find_offsets() -> void:
-	var drawer_size := get_drawer_size()
-	
-	var distances_to_intersection_point := (size / _angle_vec).abs()
-	var inner_distance := minf(distances_to_intersection_point.x, distances_to_intersection_point.y)
-	var inner_point : Vector2 = (inner_distance * _angle_vec + (size - drawer_size)) * 0.5
-	_inner_offset = inner_point.maxf(0).min(size - drawer_size)
-	
-	if drawer_angle_axis_snap:
-		var half_drawer_size := drawer_size * 0.5
-		var inner_point_half := inner_point + half_drawer_size
-		_outer_offset = inner_point
-		
-		if abs(inner_point_half.x - size.x) < 0.01:
-			_outer_offset.x += half_drawer_size.x
-		elif abs(inner_point_half.x) < 0.01:
-			_outer_offset.x -= half_drawer_size.x
-		
-		if abs(inner_point_half.y - size.y) < 0.01:
-			_outer_offset.y += half_drawer_size.y
-		elif abs(inner_point_half.y) < 0.01:
-			_outer_offset.y -= half_drawer_size.y
-	else:
-		var distances_to_outer_center := ((size + drawer_size) / _angle_vec).abs()
-		var outer_distance := minf(distances_to_outer_center.x, distances_to_outer_center.y)
-		_outer_offset = (outer_distance * _angle_vec + (size - drawer_size)) * 0.5
-	
-	_max_offset = (_outer_offset - _inner_offset).length()
-	_inner_offset = (_inner_offset + _angle_vec * open_margin).floor()
-	_outer_offset = (_outer_offset - _angle_vec * close_margin).floor()
-
-
-## Allows opening and closing the drawer.
-## [br][br]
-## Also see: [member state] and [method force_drawer].
-func toggle_drawer(open : bool) -> void:
-	_toggle_drawer(open)
-func _toggle_drawer(open : bool, drag_animate : bool = false) -> void:
-	slide_begin.emit()
-	_animate_to_progress(float(open), drag_animate)
-	_animation_tween.tween_callback(slide_end.emit)
-	
-	if _state != open:
-		state_toggle_begin.emit(open)
-		_animation_tween.tween_callback(state_toggle_end.emit.bind(open))
-		_state = open
-func _animate_to_progress(
-			to_progress : float,
-			drag_animate : bool = false
-		) -> void:
-	_kill_animation()
-	_animation_tween = create_tween()
-	
-	if drag_animate:
-		_animation_tween.set_trans(drag_drawer_translate)
-		_animation_tween.set_ease(drag_drawer_ease)
-		_animation_tween.tween_method(
-			_animation_method,
-			get_progress(true),
-			to_progress * _max_offset,
-			drag_drawer_duration
-		)
-	else:
-		_animation_tween.set_trans(manual_drawer_translate)
-		_animation_tween.set_ease(manual_drawer_ease)
-		_animation_tween.tween_method(
-			_animation_method,
-			get_progress(true),
-			to_progress * _max_offset,
-			manual_drawer_duration
-		)
-func _kill_animation() -> void:
-	if _animation_tween && _animation_tween.is_running():
-		_animation_tween.kill()
-func _animation_method(progress : float) -> void:
-	_current_progress = progress
-	_progress_changed(get_progress_adjusted())
-	_adjust_children()
-
-
-
-## Allows opening and closing the drawer without animation.
-## [br][br]
-## Also see: [member state] and [method toggle_drawer].
-func force_drawer(open : bool) -> void:
-	_kill_animation()
-	_state = open
-	_animation_method(float(open) * _max_offset)
-
-
-
+#region Virtual Methods
 func _init() -> void:
 	_angle_vec = Vector2.RIGHT.rotated(deg_to_rad(drawer_angle))
 	
@@ -708,42 +557,6 @@ func _convert_to_enum(strs : PackedStringArray) -> String:
 	return ", ".join(strs).replace("_", " ").capitalize().replace(", ", ",")
 
 
-
-func _confirm_input_accept(event : InputEvent, drag : bool = false) -> bool:
-	if mouse_filter == MouseFilter.MOUSE_FILTER_IGNORE: return false
-	
-	var boundType : InputAreaMode
-	if _state:
-		boundType = close_bounds
-		if drag && !(allow_drag & DragMode.ON_CLOSE):
-			return false
-	else:
-		boundType = open_bounds
-		if drag && !(allow_drag & DragMode.ON_OPEN):
-			return false
-	
-	match boundType:
-		InputAreaMode.Nowhere:
-			return false
-		InputAreaMode.Anywhere:
-			pass
-		InputAreaMode.WithinBounds:
-			if !get_rect().has_point(event.position):
-				return false
-		InputAreaMode.ExcludeDrawer:
-			if get_drawer_rect().has_point(event.position):
-				if mouse_filter == MouseFilter.MOUSE_FILTER_STOP:
-					get_viewport().set_input_as_handled()
-				return false
-		InputAreaMode.WithinEmptyBounds:
-			if get_rect().intersection(get_drawer_rect()).has_point(event.position):
-				if mouse_filter == MouseFilter.MOUSE_FILTER_STOP:
-					get_viewport().set_input_as_handled()
-				return false
-	
-	if mouse_filter == MouseFilter.MOUSE_FILTER_STOP:
-		get_viewport().set_input_as_handled()
-	return true
 func _gui_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton || event is InputEventScreenTouch:
 		if event.pressed:
@@ -790,19 +603,213 @@ func _gui_input(event: InputEvent) -> void:
 			
 			_progress_changed(get_progress_adjusted(true))
 			if smooth_drag: _adjust_children()
+#endregion
 
 
-
-# Overload Functions
+#region Custom Virtual Methods
 ## Used by [method get_drawer_offset] to calculate the offset of the drawer, given the current progress. 
 ## Overload this method to create custom opening/closing behavior. 
 func _get_drawer_offset(inner_offset : Vector2, outer_offset : Vector2, with_drag : bool = false) -> Vector2:
 	#return (outer_offset - inner_offset) * get_progress_adjusted(with_drag) + inner_offset
 	return inner_offset.lerp(outer_offset, get_progress_adjusted(with_drag))
 
-# Virtual Functions
-
 ## A virtual function that is is called whenever the drawer progress changes.
 func _progress_changed(progress : float) -> void: pass
+#endregion
+
+
+#region Private Methods
+func _get_relevant_axis() -> float:
+	var drawer_size := get_drawer_size()
+	var abs_angle_vec = _angle_vec.abs()
+	
+	if abs_angle_vec.y >= abs_angle_vec.x:
+		return (drawer_size.x / abs_angle_vec.y)
+	return (drawer_size.y / abs_angle_vec.x)
+func _get_control_children() -> Array[Control]:
+	var ret : Array[Control]
+	ret.assign(get_children().filter(func(child : Node): return child is Control && child.visible))
+	return ret
+func _calculate_childrend() -> void:
+	_find_offsets()
+	_current_progress = _max_offset * float(_state)
+	_adjust_children()
+func _adjust_children() -> void:
+	var rect := get_drawer_rect(true)
+	for child : Control in _get_control_children():
+		fit_child_in_rect(child, rect)
+
+func _find_minimum_size() -> Vector2:
+	var min_size : Vector2 = Vector2.ZERO
+	for child : Control in _get_control_children():
+		min_size = min_size.max(child.get_combined_minimum_size())
+	return min_size
+func _find_offsets() -> void:
+	var drawer_size := get_drawer_size()
+	
+	var distances_to_intersection_point := (size / _angle_vec).abs()
+	var inner_distance := minf(distances_to_intersection_point.x, distances_to_intersection_point.y)
+	var inner_point : Vector2 = (inner_distance * _angle_vec + (size - drawer_size)) * 0.5
+	_inner_offset = inner_point.maxf(0).min(size - drawer_size)
+	
+	if drawer_angle_axis_snap:
+		var half_drawer_size := drawer_size * 0.5
+		var inner_point_half := inner_point + half_drawer_size
+		_outer_offset = inner_point
+		
+		if abs(inner_point_half.x - size.x) < 0.01:
+			_outer_offset.x += half_drawer_size.x
+		elif abs(inner_point_half.x) < 0.01:
+			_outer_offset.x -= half_drawer_size.x
+		
+		if abs(inner_point_half.y - size.y) < 0.01:
+			_outer_offset.y += half_drawer_size.y
+		elif abs(inner_point_half.y) < 0.01:
+			_outer_offset.y -= half_drawer_size.y
+	else:
+		var distances_to_outer_center := ((size + drawer_size) / _angle_vec).abs()
+		var outer_distance := minf(distances_to_outer_center.x, distances_to_outer_center.y)
+		_outer_offset = (outer_distance * _angle_vec + (size - drawer_size)) * 0.5
+	
+	_max_offset = (_outer_offset - _inner_offset).length()
+	_inner_offset = (_inner_offset + _angle_vec * open_margin).floor()
+	_outer_offset = (_outer_offset - _angle_vec * close_margin).floor()
+
+
+func _toggle_drawer(open : bool, drag_animate : bool = false) -> void:
+	slide_begin.emit()
+	_animate_to_progress(float(open), drag_animate)
+	_animation_tween.tween_callback(slide_end.emit)
+	
+	if _state != open:
+		state_toggle_begin.emit(open)
+		_animation_tween.tween_callback(state_toggle_end.emit.bind(open))
+		_state = open
+func _animate_to_progress(
+			to_progress : float,
+			drag_animate : bool = false
+		) -> void:
+	_kill_animation()
+	_animation_tween = create_tween()
+	
+	if drag_animate:
+		_animation_tween.set_trans(drag_drawer_translate)
+		_animation_tween.set_ease(drag_drawer_ease)
+		_animation_tween.tween_method(
+			_animation_method,
+			get_progress(true),
+			to_progress * _max_offset,
+			drag_drawer_duration
+		)
+	else:
+		_animation_tween.set_trans(manual_drawer_translate)
+		_animation_tween.set_ease(manual_drawer_ease)
+		_animation_tween.tween_method(
+			_animation_method,
+			get_progress(true),
+			to_progress * _max_offset,
+			manual_drawer_duration
+		)
+func _kill_animation() -> void:
+	if _animation_tween && _animation_tween.is_running():
+		_animation_tween.kill()
+func _animation_method(progress : float) -> void:
+	_current_progress = progress
+	_progress_changed(get_progress_adjusted())
+	_adjust_children()
+
+
+func _confirm_input_accept(event : InputEvent, drag : bool = false) -> bool:
+	if mouse_filter == MouseFilter.MOUSE_FILTER_IGNORE: return false
+	
+	var boundType : InputAreaMode
+	if _state:
+		boundType = close_bounds
+		if drag && !(allow_drag & DragMode.ON_CLOSE):
+			return false
+	else:
+		boundType = open_bounds
+		if drag && !(allow_drag & DragMode.ON_OPEN):
+			return false
+	
+	match boundType:
+		InputAreaMode.Nowhere:
+			return false
+		InputAreaMode.Anywhere:
+			pass
+		InputAreaMode.WithinBounds:
+			if !get_rect().has_point(event.position):
+				return false
+		InputAreaMode.ExcludeDrawer:
+			if get_drawer_rect().has_point(event.position):
+				if mouse_filter == MouseFilter.MOUSE_FILTER_STOP:
+					get_viewport().set_input_as_handled()
+				return false
+		InputAreaMode.WithinEmptyBounds:
+			if get_rect().intersection(get_drawer_rect()).has_point(event.position):
+				if mouse_filter == MouseFilter.MOUSE_FILTER_STOP:
+					get_viewport().set_input_as_handled()
+				return false
+	
+	if mouse_filter == MouseFilter.MOUSE_FILTER_STOP:
+		get_viewport().set_input_as_handled()
+	return true
+#endregion
+
+
+#region Public Methods
+## Returns if the drawer is currently open.
+func is_open() -> bool:
+	return get_progress_adjusted() > 0.5
+## Returns if the drawer is expected to be open.
+func is_open_expected() -> bool:
+	return _state
+## Returns if the drawer is currently animating.
+func is_animating() -> bool:
+	return _animation_tween && _animation_tween.is_running()
+## Returns the size of the drawer.
+func get_drawer_size() -> Vector2:
+	var ret := Vector2(drawer_width, drawer_height)
+	if !drawer_width_by_pixel:
+		ret.x *= size.x
+	if !drawer_height_by_pixel:
+		ret.y *= size.y
+	return ret.max(_min_size)
+## Returns the offsert the drawer has, compared to this node's local position.
+func get_drawer_offset(with_drag : bool = false) -> Vector2:
+	return _get_drawer_offset(_inner_offset, _outer_offset, with_drag)
+## Returns the rect the drawer has, compared to this node's local position.
+func get_drawer_rect(with_drag : bool = false) -> Rect2:
+	return Rect2(get_drawer_offset(with_drag), get_drawer_size())
+
+## Gets the current progress the drawer is in animations. 
+## Returns the value in pixel distance.
+func get_progress(include_drag : bool = false, with_clamp : bool = true) -> float:
+	var ret : float = _current_progress
+	if include_drag:
+		ret += _drag_value
+	if with_clamp:
+		ret = clampf(ret, -drag_give, _max_offset)
+	return ret
+## Gets the percentage of the drawer's current position between being closed and opened. 
+## [code]0.0[/code] when closed and [code]1.0[/code] when opened.
+func get_progress_adjusted(include_drag : bool = false, with_clamp : bool = true) -> float:
+	if _max_offset == 0.0: return 0.0
+	return get_progress(include_drag, with_clamp) / _max_offset
+
+
+## Allows opening and closing the drawer.
+## [br][br]
+## Also see: [member state] and [method force_drawer].
+func toggle_drawer(open : bool) -> void:
+	_toggle_drawer(open)
+## Allows opening and closing the drawer without animation.
+## [br][br]
+## Also see: [member state] and [method toggle_drawer].
+func force_drawer(open : bool) -> void:
+	_kill_animation()
+	_state = open
+	_animation_method(float(open) * _max_offset)
+#endregion
 
 # Made by Xavier Alvarez. A part of the "FreeControl" Godot addon.

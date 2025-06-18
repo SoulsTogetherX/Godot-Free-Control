@@ -1,0 +1,1 @@
+class_name AutoSizeLabel extends Label

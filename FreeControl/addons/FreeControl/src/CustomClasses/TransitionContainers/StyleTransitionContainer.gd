@@ -1,9 +1,10 @@
+# Made by Xavier Alvarez. A part of the "FreeControl" Godot addon.
 @tool
 class_name StyleTransitionContainer extends Container
 ## A [Container] node that add a [StyleTransitionPanel] node as the background.
 
 
-
+#region External Variables
 @export_group("Appearence Override")
 ## The stylebox used by [StyleTransitionPanel].
 @export var background : StyleBox:
@@ -71,11 +72,52 @@ class_name StyleTransitionContainer extends Container
 			can_cancle = val
 		elif can_cancle != val:
 			can_cancle = val
+#endregion
 
 
+
+#region Private Variables
 var _panel : StyleTransitionPanel
+#endregion
 
 
+#region Virtual Methods
+func _init() -> void:
+	_panel = StyleTransitionPanel.new()
+	_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_panel.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	add_child(_panel)
+	
+	if !sort_children.is_connected(_handle_children):
+		sort_children.connect(_handle_children)
+func _ready() -> void:
+	if background:
+		_panel.add_theme_stylebox_override("panel", background)
+		return
+	background = _panel.get_theme_stylebox("panel")
+
+func _get_minimum_size() -> Vector2:
+	var min_size : Vector2
+	for child : Node in get_children():
+		if child is Control:
+			min_size = min_size.max(child.get_combined_minimum_size())
+	return min_size
+
+func _property_can_revert(property: StringName) -> bool:
+	if property == "colors":
+		return colors.size() == 2 && colors[0] == Color.WEB_GRAY && colors[1] == Color.DIM_GRAY
+	return false
+#endregion
+
+
+#region Private Methods
+func _handle_children() -> void:
+	for child in get_children():
+		fit_child_in_rect(child, Rect2(Vector2.ZERO, size))
+#endregion
+
+
+#region Public Methods
 ## Sets the current color index.
 ## [br][br]
 ## Also see: [member focused_color].
@@ -93,34 +135,6 @@ func force_color(color: int) -> void:
 func get_current_color() -> Color:
 	if !_panel: return Color.BLACK
 	return _panel.get_current_color()
+#endregion
 
-
-
-func _init() -> void:
-	_panel = StyleTransitionPanel.new()
-	_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_panel.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	add_child(_panel)
-	
-	if !sort_children.is_connected(_handle_children):
-		sort_children.connect(_handle_children)
-func _ready() -> void:
-	if background:
-		_panel.add_theme_stylebox_override("panel", background)
-		return
-	background = _panel.get_theme_stylebox("panel")
-
-func _handle_children() -> void:
-	for child in get_children():
-		fit_child_in_rect(child, Rect2(Vector2.ZERO, size))
-func _get_minimum_size() -> Vector2:
-	var min_size : Vector2
-	for child : Node in get_children():
-		if child is Control:
-			min_size = min_size.max(child.get_combined_minimum_size())
-	return min_size
-
-func _property_can_revert(property: StringName) -> bool:
-	if property == "colors":
-		return colors.size() == 2 && colors[0] == Color.WEB_GRAY && colors[1] == Color.DIM_GRAY
-	return false
+# Made by Xavier Alvarez. A part of the "FreeControl" Godot addon.
