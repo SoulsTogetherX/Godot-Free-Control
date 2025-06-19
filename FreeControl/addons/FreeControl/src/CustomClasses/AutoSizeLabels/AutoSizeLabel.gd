@@ -68,12 +68,16 @@ var _paragraph := TextParagraph.new()
 #region Virtual Methods
 func _init() -> void:
 	clip_text = true
+	autowrap_mode = TextServer.AUTOWRAP_ARBITRARY
 	_state = LABEL_STATE.NONE
 	
 	if !resized.is_connected(update_font_size):
 		resized.connect(update_font_size)
 	if !theme_changed.is_connected(_on_theme_update):
 		theme_changed.connect(_on_theme_update)
+func _validate_property(property: Dictionary) -> void:
+	if property.name in ["clip_text", "autowrap_mode", "text_overrun_behavior", "ellipsis_char"]:
+		property.usage &= ~PROPERTY_USAGE_EDITOR
 func _set(property: StringName, value: Variant) -> bool:
 	match property:
 		"text":
