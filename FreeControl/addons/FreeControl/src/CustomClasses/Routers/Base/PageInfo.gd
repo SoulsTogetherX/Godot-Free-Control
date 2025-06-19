@@ -3,7 +3,6 @@
 class_name PageInfo extends Resource
 ## A [Resource] for keeping stack of [Page] information for a Router, such as [RouterStack].
 
-
 #region Private Variables
 var _page : Control
 var _auto_clean : bool

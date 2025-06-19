@@ -3,7 +3,6 @@
 class_name PaddingContainer extends Container
 ## A [Container] that provides percentage and numerical padding to it's children.
 
-
 #region External Variables
 ## If [code]true[/code], this [Container]'s minimum size will update according to it's
 ## children and numerical pixel padding.

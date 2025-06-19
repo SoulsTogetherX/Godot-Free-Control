@@ -3,7 +3,6 @@
 class_name RouterStack extends PanelContainer
 ## Handles a [Control] stack, between [Page] nodes, using [SwapContainer].
 
-
 #region Signals
 ## Emits when the current [Page] requests an event.
 signal event_action(event : String, args : Variant)

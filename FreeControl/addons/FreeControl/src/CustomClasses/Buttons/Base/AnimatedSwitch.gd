@@ -3,7 +3,6 @@
 class_name AnimatedSwitch extends BaseButton
 ## Animated verison of a switch button.
 
-
 #region External Variables
 @export_group("Redirect")
 ## If [code]true[/code], the switch will be displayed vertical.

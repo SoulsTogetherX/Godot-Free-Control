@@ -3,7 +3,6 @@
 class_name ModulateTransitionContainer extends Container
 ## A [Control] node with changable that allows easy [member CanvasItem.modulate] animation between colors.
 
-
 #region External Variables
 @export_group("Alpha Override")
 ## The colors to animate between.
@@ -42,7 +41,6 @@ var _focused_color : int = 0
 ## will be queued to be reflected after any currently running animation.
 @export var can_cancle : bool = true
 #endregion
-
 
 
 #region Private Variables

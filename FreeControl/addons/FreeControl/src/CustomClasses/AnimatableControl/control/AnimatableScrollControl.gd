@@ -32,6 +32,7 @@ func _enter_tree() -> void:
 	if !scroll && Engine.is_editor_hint(): scroll = get_parent_scroll()
 #endregion
 
+
 #region Custom Virtual Methods
 ## A virtual function that is called when [member scroll] is horizontally scrolled.
 ## [br][br]

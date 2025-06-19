@@ -47,7 +47,7 @@ const INTERSECT_HIGHLIGHT_COLOR := Color(Color.RED, 0.8)
 #endregion
 
 
-#region External Methods
+#region External Variables
 @export_group("Mode")
 ## Sets the mode of threshold type checking.
 @export var check_mode: CHECK_MODE = CHECK_MODE.NONE:
@@ -102,7 +102,6 @@ var _last_threshold_horizontal : float
 var _last_threshold_vertical : float
 var _last_visible : bool
 #endregion
-
 
 
 #region Virtual Methods

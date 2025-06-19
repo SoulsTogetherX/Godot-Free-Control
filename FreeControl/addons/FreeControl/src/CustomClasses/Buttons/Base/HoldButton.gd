@@ -3,7 +3,6 @@
 class_name HoldButton extends Control
 ## A [Control] node used for hold buttons.
 
-
 #region Signals
 ## Emits the state of the button as it is pressed.
 ## [br][br]

@@ -3,7 +3,6 @@
 class_name MaxSizeContainer extends Container
 ## A container that limits it's size to a maximum value.
 
-
 #region External Variables
 var _max_size := -Vector2.ONE
 ## The maximum size this container can possess.

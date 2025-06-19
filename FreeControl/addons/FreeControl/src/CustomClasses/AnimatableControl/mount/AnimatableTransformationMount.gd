@@ -3,7 +3,6 @@
 class_name AnimatableTransformationMount extends AnimatableMount
 ## An [AnimatableMount] that adjusts for it's children 2D transformations: Rotation, Position, and Scale.
 
-
 #region External Variables
 ## If [code]true[/code] this node will adjust it's size to fit its children's scales.
 @export var adjust_scale : bool:

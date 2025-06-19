@@ -4,7 +4,6 @@ class_name StyleTransitionButton extends StyleTransitionContainer
 ## A button that inherts from [StyleTransitionContainer] and uses [HoldButton] as
 ## input.
 
-
 #region Signals
 ## Emits the state of the button as it is released.
 signal release_state(toggle : bool)

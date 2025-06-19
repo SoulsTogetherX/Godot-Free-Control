@@ -46,6 +46,15 @@ func _enter_tree() -> void:
 		load(CUSTOM_CLASS_FOLDER + "AnimatableControl/mount/AnimatableTransformationMount.gd"), 
 		load(ICON_FOLDER + "AnimatableTransformationMount.svg")
 	)
+
+	# AutoSizeLabels
+		# AutoSizeLabel
+	add_custom_type(
+		"AutoSizeLabel",
+		"Label",
+		load(CUSTOM_CLASS_FOLDER + "AutoSizeLabels/AutoSizeLabel.gd"), 
+		load(ICON_FOLDER + "AutoSizeLabel.svg")
+	)
 	
 	# Buttons
 		# Base
@@ -210,6 +219,9 @@ func _exit_tree() -> void:
 		# Mount
 	remove_custom_type("AnimatableMount")
 	remove_custom_type("AnimatableTransformationMount")
+
+	# AutoSizeLabel
+	remove_custom_type("AutoSizeLabel")
 	
 	# Buttons
 		# Base

@@ -3,7 +3,6 @@
 class_name Drawer extends Container
 ## A [Container] node used for easy UI Drawers.
 
-
 #region Signals
 ## Emited when drawer is begining an opening/closing animation.
 ## [br][br]

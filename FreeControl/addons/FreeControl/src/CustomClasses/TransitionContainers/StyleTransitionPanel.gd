@@ -3,7 +3,6 @@
 class_name StyleTransitionPanel extends Panel
 ## A [Panel] node with changable that allows easy [member CanvasItem.self_modulate] animation between colors.
 
-
 #region External Variables
 @export_group("Colors Override")
 ## The colors to animate between.

@@ -3,7 +3,6 @@
 class_name SwapContainer extends Container
 ## A [Container] node that provides transitions between different [Control] nodes.
 
-
 #region Signals
 ## Emits at the start of a transition.
 signal start_animation

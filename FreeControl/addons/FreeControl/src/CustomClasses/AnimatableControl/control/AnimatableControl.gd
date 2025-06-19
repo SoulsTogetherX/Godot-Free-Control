@@ -45,7 +45,6 @@ var _mount : AnimatableMount
 #endregion
 
 
-
 #region Virtual Methods
 func _get_configuration_warnings() -> PackedStringArray:
 	if get_parent() is AnimatableMount:
@@ -87,7 +86,6 @@ func _on_tree_exit() -> void:
 		_mount._on_unmount(self)
 		_mount = null
 #endregion
-
 
 
 #region Private Methods
@@ -153,7 +151,6 @@ func _get_control_children() -> Array[Control]:
 	ret.assign(get_children().filter(func(child : Node): return child is Control && child.visible))
 	return ret
 #endregion
-
 
 
 #region Public Methods

@@ -4,7 +4,6 @@ class_name DistanceCheck extends MotionCheck
 ## A [Control] node used to check if a mouse or touch moved a distance away from where
 ## the user originally pressed.
 
-
 #region Enums
 ## How this node will determine the distance between the starting and current location
 ## of mouse and touch movement.

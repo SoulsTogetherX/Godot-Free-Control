@@ -5,7 +5,6 @@ class_name ProportionalContainer extends Container
 ## [br][br]
 ## [b]WARNING[b]: Is this can cause crashes if misused. Try to use [PaddingContainer] instead, unless required.
 
-
 #region Enums
 ## The method this node will change in proportion of its [member ancher] size.
 enum PROPORTION_MODE {

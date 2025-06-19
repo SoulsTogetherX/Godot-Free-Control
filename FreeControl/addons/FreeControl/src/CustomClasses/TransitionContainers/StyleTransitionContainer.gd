@@ -3,7 +3,6 @@
 class_name StyleTransitionContainer extends Container
 ## A [Container] node that add a [StyleTransitionPanel] node as the background.
 
-
 #region External Variables
 @export_group("Appearence Override")
 ## The stylebox used by [StyleTransitionPanel].
@@ -73,7 +72,6 @@ class_name StyleTransitionContainer extends Container
 		elif can_cancle != val:
 			can_cancle = val
 #endregion
-
 
 
 #region Private Variables

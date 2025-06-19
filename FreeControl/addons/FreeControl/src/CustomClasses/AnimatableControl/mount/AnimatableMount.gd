@@ -3,7 +3,6 @@
 class_name AnimatableMount extends Control
 ## Used as a mount for size consistency between children [AnimatableControl] nodes.
 
-
 #region Signals
 ## Emits before children are sorted
 signal pre_sort_children

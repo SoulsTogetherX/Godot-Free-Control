@@ -3,7 +3,6 @@
 class_name Page extends Container
 ## A standardized [Container] node for Routers to use, such as [RouterStack].
 
-
 #region Signals
 ## Emits when an event is requested to the attached Router parent.
 ## [br][br]

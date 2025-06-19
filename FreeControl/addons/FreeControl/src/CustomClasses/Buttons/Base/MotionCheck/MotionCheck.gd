@@ -3,7 +3,6 @@
 class_name MotionCheck extends Control
 ## Checks for motion of the mouse or touch input after a press.
 
-
 #region Signals
 ## Emited when check has started (mouse or touch is pressed).
 signal start_check
@@ -72,8 +71,6 @@ func _property_get_revert(property: StringName) -> Variant:
 	if property == "mouse_filter":
 		return MOUSE_FILTER_PASS
 	return null
-#endregion
-
 
 func _gui_input(event: InputEvent) -> void:
 	if disabled: return

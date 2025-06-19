@@ -4,7 +4,6 @@ class_name MaxRatioContainer extends MaxSizeContainer
 ## A container that limits an axis of it's size, to a maximum value, relative
 ## to the value of it's other axis.
 
-
 #region Enums
 ## The behavior this node will exhibit based on an axis.
 enum MAX_RATIO_MODE {

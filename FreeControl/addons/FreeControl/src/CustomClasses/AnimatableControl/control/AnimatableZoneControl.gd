@@ -4,7 +4,6 @@ class_name AnimatableZoneControl extends AnimatableScrollControl
 ## A container to be used for free transformation, within a UI, depended on a
 ## [ScrollContainer]'s scroll progress.
 
-
 #region Signals
 ## Emitted when this node's [AnimatableMount]'s entered the zone area.
 signal entered_zone

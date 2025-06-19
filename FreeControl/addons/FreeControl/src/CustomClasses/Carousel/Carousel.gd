@@ -3,7 +3,6 @@
 class_name Carousel extends Container
 ## A container for Carousel Display of [Control] nodes.
 
-
 #region Signals
 ## This signal is emited when a snap reaches it's destination.
 signal snap_end
