@@ -126,7 +126,7 @@ func _check_greater_than_ideal() -> bool:
 func _get_max_allow(fontFile : FontFile) -> int:
 	var ret_size := _current_font_size
 	
-	while _check_smaller_than_ideal() || ret_size > MAX_FONT_SIZE:
+	while _check_smaller_than_ideal() || ret_size >= MAX_FONT_SIZE:
 		ret_size <<= 1
 		
 		_paragraph.clear()
