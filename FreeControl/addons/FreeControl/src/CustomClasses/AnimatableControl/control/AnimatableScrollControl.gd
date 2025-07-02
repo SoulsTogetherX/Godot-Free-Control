@@ -46,11 +46,19 @@ func _scrolled_vertical(scroll_ver : float) -> void: pass
 
 
 #region Public Methods
+## Returns the [AnimatableMount] node this [AnimatableControl] is a child of. Returns
+## [code]null[/code] if this node is not a child of any mount. 
+func get_mount() -> AnimatableMount:
+	return get_parent_control() as AnimatableMount
+
 ## Returns the global difference between this node's [AnimatableMount] and
 ## [member scroll] positions.
 func get_origin_offset() -> Vector2:
-	if !_mount || !scroll: return Vector2.ZERO
-	return _mount.global_position - scroll.global_position 
+	var mount := get_mount()
+	if !scroll || !mount:
+		return Vector2.ZERO
+	
+	return mount.global_position - scroll.global_position 
 ## Returns the horizontal and vertical progress of [member scroll].
 func get_scroll_offset() -> Vector2:
 	if !scroll: return Vector2.ZERO
@@ -66,18 +74,27 @@ func get_parent_scroll() -> ScrollContainer:
 ## Returns a percentage of how visible this node's [AnimatableMount] is, within
 ## the rect of [member scroll].
 func is_visible_percent() -> float:
-	if !_mount || !scroll: return 0
-	return (_mount.get_global_rect().intersection(scroll.get_global_rect()).get_area()) / (_mount.size.x * _mount.size.y)
+	var mount := get_mount()
+	if !scroll || !mount:
+		return 0
+	
+	return (mount.get_global_rect().intersection(scroll.get_global_rect()).get_area()) / (mount.size.x * mount.size.y)
 ## Returns a percentage of how visible this node's [AnimatableMount] is, within the
 ## horizontal bounds of [member scroll].
 func get_visible_horizontal_percent() -> float:
-	if !_mount || !scroll: return 0
-	return (min(_mount.global_position.x + _mount.size.x, scroll.global_position.x + scroll.size.x) - max(_mount.global_position.x, scroll.global_position.x)) / _mount.size.x
+	var mount := get_mount()
+	if !scroll || !mount:
+		return 0
+	
+	return (min(mount.global_position.x + mount.size.x, scroll.global_position.x + scroll.size.x) - max(mount.global_position.x, scroll.global_position.x)) / mount.size.x
 ## Returns a percentage of how visible this node's [AnimatableMount] is, within the
 ## vertical bounds of [member scroll].
 func get_visible_vertical_percent() -> float:
-	if !_mount || !scroll: return 0
-	return (min(_mount.global_position.y + _mount.size.y, scroll.global_position.y + scroll.size.y) - max(_mount.global_position.y, scroll.global_position.y)) / _mount.size.y
+	var mount := get_mount()
+	if !scroll || !mount:
+		return 0
+	
+	return (min(mount.global_position.y + mount.size.y, scroll.global_position.y + scroll.size.y) - max(mount.global_position.y, scroll.global_position.y)) / mount.size.y
 #endregion
 
 # Made by Xavier Alvarez. A part of the "FreeControl" Godot addon.

@@ -246,8 +246,6 @@ var _max_offset : float
 func _init() -> void:
 	_angle_vec = Vector2.RIGHT.rotated(deg_to_rad(drawer_angle))
 	
-	if !resized.is_connected(_calculate_childrend):
-		resized.connect(_calculate_childrend)
 	if !sort_children.is_connected(_calculate_childrend):
 		sort_children.connect(_calculate_childrend)
 func _get_minimum_size() -> Vector2:

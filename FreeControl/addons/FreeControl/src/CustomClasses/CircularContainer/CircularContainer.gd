@@ -123,12 +123,8 @@ var angles : PackedFloat32Array:
 
 #region Virtual Methods
 func _init() -> void:
-	if !sort_children.is_connected(_fix_childrend):
-		sort_children.connect(_fix_childrend)
-	if !child_order_changed.is_connected(_childrend_changed):
-		child_order_changed.connect(_childrend_changed)
-func _ready() -> void:
-	_fix_childrend()
+	if !sort_children.is_connected(_childrend_changed):
+		sort_children.connect(_childrend_changed)
 
 func _get_property_list() -> Array[Dictionary]:
 	var properties : Array[Dictionary]
@@ -233,9 +229,11 @@ func _fix_childrend() -> void:
 	
 	for index : int in range(0, children.size()):
 		var child : Control = children[index]
-		if child: _fix_child(child, index)
+		if child:
+			_fix_child(child, index)
 func _fix_child(child : Control, index : int) -> void:
-	if _container_angles.is_empty(): return
+	if _container_angles.is_empty():
+		return
 	child.reset_size()
 	
 	# Calculates child position
@@ -260,7 +258,8 @@ func _fix_child(child : Control, index : int) -> void:
 
 
 func _calculate_angles() -> void:
-	if manual: return
+	if manual:
+		return
 	
 	var count := _get_control_children().size()
 	_container_angles.resize(count)
@@ -270,7 +269,8 @@ func _calculate_angles() -> void:
 	
 	var step : float
 	if equal_distant:
-		if count != 0: step = deg_to_rad((angle_end - angle_start) / (count - 1))
+		if count != 0:
+			step = deg_to_rad((angle_end - angle_start) / count)
 	else:
 		step = deg_to_rad(angle_step)
 	

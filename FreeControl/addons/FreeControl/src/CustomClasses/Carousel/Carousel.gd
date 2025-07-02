@@ -217,15 +217,18 @@ func _init() -> void:
 	
 	if !sort_children.is_connected(_sort_children):
 		sort_children.connect(_sort_children)
-	if !tree_exiting.is_connected(_end_drag_slowdown):
-		tree_exiting.connect(_end_drag_slowdown)
-	if !mouse_exited.is_connected(_mouse_check):
-		mouse_exited.connect(_mouse_check)
 func _ready() -> void:
 	_settup_children()
 	if _item_count > 0:
 		starting_index = posmod(starting_index, _item_count)
 		go_to_index(-starting_index, false)
+
+func _notification(what : int) -> void:
+	match what:
+		NOTIFICATION_EXIT_TREE:
+			_end_drag_slowdown()
+		NOTIFICATION_MOUSE_EXIT:
+			_mouse_check()
 
 func _validate_property(property: Dictionary) -> void:
 	if property.name == "enforce_border":

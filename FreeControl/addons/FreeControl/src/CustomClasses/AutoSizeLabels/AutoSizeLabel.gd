@@ -55,6 +55,13 @@ const MIN_FONt_SIZE := 1
 			
 			if is_node_ready():
 				update_font_size()
+@export var stop_resizing : bool:
+	set(val):
+		if stop_resizing != val:
+			stop_resizing = val
+			
+			if !val:
+				update_font_size()
 #endregion
 
 
@@ -70,14 +77,11 @@ func _init() -> void:
 	clip_text = true
 	autowrap_mode = TextServer.AUTOWRAP_ARBITRARY
 	_state = LABEL_STATE.NONE
-	
-	if !resized.is_connected(update_font_size):
-		resized.connect(update_font_size)
-	if !theme_changed.is_connected(_on_theme_update):
-		theme_changed.connect(_on_theme_update)
+
 func _validate_property(property: Dictionary) -> void:
 	if property.name in ["clip_text", "autowrap_mode", "text_overrun_behavior", "ellipsis_char"]:
 		property.usage &= ~PROPERTY_USAGE_EDITOR
+
 func _set(property: StringName, value: Variant) -> bool:
 	match property:
 		"text":
@@ -97,6 +101,13 @@ func _set(property: StringName, value: Variant) -> bool:
 			update_font_size()
 			return true
 	return false
+
+func _notification(what : int) -> void:
+	match what:
+		NOTIFICATION_RESIZED:
+			update_font_size()
+		NOTIFICATION_THEME_CHANGED:
+			_on_theme_update()
 #endregion
 
 
@@ -145,7 +156,7 @@ func _on_theme_update() -> void:
 	call_deferred("_update_font_size")
 func _update_font_size() -> void:
 	_state = LABEL_STATE.NONE
-	if text.is_empty():
+	if text.is_empty() || stop_resizing:
 		return
 	
 	var fontFile : FontFile
@@ -164,7 +175,6 @@ func _update_font_size() -> void:
 	_paragraph.add_string(
 		text, fontFile, _current_font_size
 	)
-	
 	
 	if _check_smaller_than_ideal():
 		var max_allow  := max_size if max_size >= 0 else _get_max_allow(fontFile)

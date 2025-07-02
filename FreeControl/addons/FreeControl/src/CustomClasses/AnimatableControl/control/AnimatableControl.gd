@@ -7,6 +7,8 @@ class_name AnimatableControl extends Container
 ## This signal emits when one of the following properties change: scale, position,
 ## rotation, pivot_offset
 signal transformation_changed
+## This signal emits when [member size_mode] is changed.
+signal size_mode_changed
 #endregion
 
 
@@ -27,29 +29,48 @@ enum SIZE_MODE {
 	set(val):
 		if size_mode != val:
 			size_mode = val
-			if _mount:
-				_mount.update_minimum_size()
-			_bound_size()
+			size_mode_changed.emit()
+			
 			notify_property_list_changed()
+## If [code]false[/code], then [member Control.pivot_offset] will not be changed according to
+## [member pivot_ratio].
+@export var auto_ratio : bool = true:
+	set(val):
+		if auto_ratio != val:
+			auto_ratio = val
+			if val:
+				pivot_ratio = (pivot_offset / size).max(Vector2.ZERO)
 ## Auto sets the pivot to be at some position percentage of the size.
+## [br][br]
+## Also see [member auto_ratio].
 @export var pivot_ratio : Vector2:
 	set(val):
 		if pivot_ratio != val:
 			pivot_ratio = val
-			pivot_offset = size * val
-#endregion
-
-
-#region Private Variables
-var _mount : AnimatableMount
+			if auto_ratio:
+				pivot_offset = size * val
 #endregion
 
 
 #region Virtual Methods
-func _get_configuration_warnings() -> PackedStringArray:
-	if get_parent() is AnimatableMount:
-		return []
-	return ["This node only serves to be animatable within a UI. Please only attach as a child to a 'AnimatableMount' node."]
+func _init() -> void:
+	set_notify_local_transform(true)
+	
+	if !sort_children.is_connected(_sort_children):
+		sort_children.connect(_sort_children)
+	if !item_rect_changed.is_connected(transformation_changed.emit):
+		item_rect_changed.connect(transformation_changed.emit)
+
+func _get_minimum_size() -> Vector2:
+	if clip_children:
+		return Vector2.ZERO
+	
+	var min_size := Vector2.ZERO
+	for child : Node in get_children():
+		if child is Control:
+			min_size = min_size.max(child.get_combined_minimum_size())
+	return min_size
+
 func _validate_property(property: Dictionary) -> void:
 	if property.name in ["layout_mode", "anchors_preset"]:
 		property.usage |= PROPERTY_USAGE_READ_ONLY
@@ -57,47 +78,27 @@ func _validate_property(property: Dictionary) -> void:
 		if size_mode == SIZE_MODE.EXACT:
 			property.usage |= PROPERTY_USAGE_READ_ONLY
 func _set(property: StringName, value: Variant) -> bool:
-	if property in ["scale", "position", "rotation"]:
-		transformation_changed.emit()
-		_bound_size()
-	elif property == "pivot_offset":
-		if is_node_ready() && size > Vector2.ZERO && pivot_offset != value:
-			pivot_ratio = pivot_offset / size
-			transformation_changed.emit()
+	if property == "pivot_offset" && auto_ratio && value != pivot_offset:
+		pivot_ratio = (value / size).max(Vector2.ZERO)
 	return false
 
-func _init() -> void:
-	if !resized.is_connected(_handle_resize):
-		resized.connect(_handle_resize)
-	if !sort_children.is_connected(_sort_children):
-		sort_children.connect(_sort_children)
-	if !tree_exited.is_connected(_on_tree_exit):
-		tree_exited.connect(_on_tree_exit)
-	if !tree_entered.is_connected(_on_tree_enter):
-		tree_entered.connect(_on_tree_enter)
-	if !item_rect_changed.is_connected(transformation_changed.emit):
-		item_rect_changed.connect(transformation_changed.emit)
-func _on_tree_enter() -> void:
-	_mount = (get_parent() as AnimatableMount)
-	if _mount:
-		_mount._on_mount(self)
-func _on_tree_exit() -> void:
-	if _mount:
-		_mount._on_unmount(self)
-		_mount = null
+func _get_configuration_warnings() -> PackedStringArray:
+	if get_parent() is AnimatableMount:
+		return []
+	return ["This node only serves to be animatable within a UI. Please only attach as a child to a 'AnimatableMount' node."]
+
+func _notification(what: int) -> void:
+	match what:
+		NOTIFICATION_LOCAL_TRANSFORM_CHANGED:
+			transformation_changed.emit()
 #endregion
 
 
 #region Private Methods
-func _handle_resize() -> void:
-	_bound_size()
-	_update_pivot()
-func _update_pivot() -> void:
-	set_pivot_offset(pivot_ratio * size)
-	transformation_changed.emit()
 func _sort_children() -> void:
-	for child : Control in _get_control_children():
-		_resize_child(child)
+	for child : Node in get_children():
+		if child is Control:
+			_resize_child(child)
 func _resize_child(child : Control) -> void:
 	var child_size := child.get_combined_minimum_size()
 	var set_pos : Vector2
@@ -124,40 +125,6 @@ func _resize_child(child : Control) -> void:
 			set_pos.y = size.y - child_size.y
 	
 	fit_child_in_rect(child, Rect2(set_pos, child_size))
-func _get_minimum_size() -> Vector2:
-	if clip_children: return Vector2.ZERO
-	
-	var min_size := Vector2.ZERO
-	for child : Control in _get_control_children():
-		min_size = min_size.max(child.get_combined_minimum_size())
-	return min_size
-
-func _bound_size() -> void:
-	if !_mount: return
-	
-	var new_size : Vector2 = size
-	if size_mode == SIZE_MODE.MAX:
-		new_size = _mount.get_relative_size(self).min(size)
-	elif size_mode == SIZE_MODE.MIN:
-		new_size = _mount.get_relative_size(self).max(size)
-	elif size_mode == SIZE_MODE.EXACT:
-		new_size = _mount.get_relative_size(self)
-	
-	if new_size != size:
-		size = new_size
-
-func _get_control_children() -> Array[Control]:
-	var ret : Array[Control]
-	ret.assign(get_children().filter(func(child : Node): return child is Control && child.visible))
-	return ret
-#endregion
-
-
-#region Public Methods
-## Gets the mount this node is currently a child to.[br]
-## If this node is not a child to any [AnimatableMount] nodes, this returns [code]null[/code] instead.
-func get_mount() -> AnimatableMount:
-	return _mount
 #endregion
 
 # Made by Xavier Alvarez. A part of the "FreeControl" Godot addon.

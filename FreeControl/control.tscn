@@ -1,0 +1,44 @@
+[gd_scene load_steps=3 format=3 uid="uid://dm3esnaeor76n"]
+
+[ext_resource type="Script" path="res://addons/FreeControl/src/CustomClasses/AnimatableControl/control/AnimatableControl.gd" id="2_dc7bs"]
+[ext_resource type="Script" path="res://addons/FreeControl/src/CustomClasses/AnimatableControl/mount/AnimatableTransformationMount.gd" id="3_3uk7g"]
+
+[node name="Control" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="AnimatableTransformationMount" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("3_3uk7g")
+transformation = 7
+
+[node name="ColorRect" type="ColorRect" parent="AnimatableTransformationMount"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+color = Color(0, 0, 0, 1)
+
+[node name="AnimatableControl" type="Container" parent="AnimatableTransformationMount"]
+layout_mode = 1
+offset_right = 1000.0
+offset_bottom = 800.0
+script = ExtResource("2_dc7bs")
+
+[node name="ColorRect" type="ColorRect" parent="AnimatableTransformationMount/AnimatableControl"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3

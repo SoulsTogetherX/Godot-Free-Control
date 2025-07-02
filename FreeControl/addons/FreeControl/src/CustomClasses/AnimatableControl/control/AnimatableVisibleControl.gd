@@ -182,39 +182,45 @@ func _property_get_revert(property: StringName) -> Variant:
 	return null
 
 func _get_threshold_size() -> Array[Vector2]:
-	if !_mount:
+	var mount := get_mount()
+	if !mount:
 		return [Vector2.ZERO, Vector2.ZERO]
 		
 	var ratio_thr : Vector2
 	var full_thr : Vector2
 	
-	if is_zero_approx(_mount.size.x):
+	if is_zero_approx(mount.size.x):
 		ratio_thr.x = 1
-		full_thr.x = _mount.size.x
+		full_thr.x = mount.size.x
 	elif threshold_pixel & THRESHOLD_EDITOR_DIMS.Horizontal:
-		var hor := clamp(threshold_horizontal, 0, _mount.size.x)
-		ratio_thr.x = hor / _mount.size.x
+		var hor := clamp(threshold_horizontal, 0, mount.size.x)
+		ratio_thr.x = hor / mount.size.x
 		full_thr.x = hor
 	else:
 		var hor := clamp(threshold_horizontal, 0, 1)
 		ratio_thr.x = hor
-		full_thr.x = hor * _mount.size.x
+		full_thr.x = hor * mount.size.x
 	
-	if is_zero_approx(_mount.size.y):
+	if is_zero_approx(mount.size.y):
 		ratio_thr.y = 1
-		full_thr.y = _mount.size.y
+		full_thr.y = mount.size.y
 	elif threshold_pixel & THRESHOLD_EDITOR_DIMS.Vertical:
-		var vec := clamp(threshold_vertical, 0, _mount.size.y)
-		ratio_thr.y = vec / _mount.size.y
+		var vec := clamp(threshold_vertical, 0, mount.size.y)
+		ratio_thr.y = vec / mount.size.y
 		full_thr.y = vec
 	else:
 		var vec := clamp(threshold_vertical, 0, 1)
 		ratio_thr.y = vec
-		full_thr.y = vec * _mount.size.y
+		full_thr.y = vec * mount.size.y
 	
 	return [ratio_thr, full_thr]
 func _draw() -> void:
-	if !_mount || !Engine.is_editor_hint() || hide_indicator: return
+	if !Engine.is_editor_hint() || hide_indicator:
+		return
+	
+	var mount := get_mount()
+	if !mount:
+		return
 	
 	var threshold_adjust := _get_threshold_size()
 	

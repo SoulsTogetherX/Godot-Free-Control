@@ -147,11 +147,16 @@ var _last_overlapped : int = 2
 
 #region Virtual Methods
 func _draw() -> void:
-	if !_mount || !Engine.is_editor_hint() || hide_indicator || !scroll || check_mode == CHECK_MODE.NONE: return
+	if !Engine.is_editor_hint() || hide_indicator || !scroll || check_mode == CHECK_MODE.NONE:
+		return
+	
+	var mount := get_mount()
+	if !mount:
+		return
 	
 	var draw_rect := get_zone_rect()
 	var scroll_transform := scroll.get_global_transform()
-	var transform := _mount.get_global_transform()
+	var transform := mount.get_global_transform()
 	
 	draw_set_transform(scroll_transform.get_origin() - transform.get_origin(),
 	scroll_transform.get_rotation() - transform.get_rotation(),
@@ -164,8 +169,10 @@ func _get_property_list() -> Array[Dictionary]:
 	var either : int = horizontal & vertical
 	
 	var options : String
-	if !horizontal: options = "Horizontal:1,"
-	if !vertical: options += "Vertical:2"
+	if !horizontal:
+		options = "Horizontal:1,"
+	if !vertical:
+		options += "Vertical:2"
 	
 	ret.append({
 		"name": "Zone Point",
@@ -356,7 +363,8 @@ func is_overlaped_with_activate_zone() -> bool:
 ## Also see [method get_zone_global_rect], [member zone_horizontal],
 ## [member zone_vertical], [member zone_range_horizontal], [member zone_range_vertical].
 func get_zone_rect() -> Rect2:
-	if check_mode == CHECK_MODE.NONE || !scroll: return Rect2()
+	if check_mode == CHECK_MODE.NONE || !scroll:
+		return Rect2()
 	
 	var ret : Rect2 = scroll.get_rect()
 	var zone_pos := _get_zone_pos()
@@ -386,7 +394,8 @@ func get_zone_rect() -> Rect2:
 ## Also see [method get_zone_rect], [member zone_horizontal], [member zone_vertical],
 ## [member zone_range_horizontal], [member zone_range_vertical].
 func get_zone_global_rect() -> Rect2:
-	if !scroll: return Rect2()
+	if !scroll:
+		return Rect2()
 	
 	var zone_rect := get_zone_rect()
 	zone_rect.position += scroll.global_position
@@ -395,20 +404,26 @@ func get_zone_global_rect() -> Rect2:
 ## [br][br]
 ## Also see [method get_zone_rect], [method get_zone_global_rect].
 func in_zone_percent() -> float:
-	if !_mount: return 0
-	return (_mount.get_global_rect().intersection(get_zone_global_rect()).get_area()) / (_mount.size.x * _mount.size.y)
+	var mount := get_mount()
+	if !mount:
+		return 0
+	
+	return (mount.get_global_rect().intersection(get_zone_global_rect()).get_area()) / (mount.size.x * mount.size.y)
 ## The local scroll within the zone zone. Returns [code]0[/code] if this node's
 ## mount is not inside the zone area.
 ## [br][br]
 ## Also see [method get_zone_rect], [method get_zone_global_rect].
 func zone_local_scroll() -> Vector2:
-	if !_mount: return Vector2.ZERO
+	var mount := get_mount()
+	if !mount:
+		return Vector2.ZERO
 	
 	var zone := get_zone_global_rect()
-	var mount := _mount.get_global_rect()
+	var mount_zone := mount.get_global_rect()
 	
-	if zone.size + mount.size == Vector2.ZERO: return Vector2.ZERO
-	return Vector2.ONE + ((zone.position - _mount.global_position - mount.size) / (zone.size + mount.size)).clampf(-1, 0)
+	if zone.size + mount_zone.size == Vector2.ZERO:
+		return Vector2.ZERO
+	return Vector2.ONE + ((zone.position - mount.global_position - mount_zone.size) / (zone.size + mount_zone.size)).clampf(-1, 0)
 #endregion
 
 # Made by Xavier Alvarez. A part of the "FreeControl" Godot addon.
