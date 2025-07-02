@@ -70,11 +70,11 @@ func _adjust_children_positions(
 	
 	# Rotates pivot, if needed
 	if transformation & TRANSFORMATION_MODE.ROTATION:
-		var rotated_pivot := child.pivot_offset.rotated(child.rotation)
+		var piv := child.pivot_offset
 		if transformation & TRANSFORMATION_MODE.SCALE:
-			rotated_pivot *= child.scale.x
+			piv *= child.scale
 		
-		piv_offset = child.pivot_offset - rotated_pivot
+		piv_offset = child.pivot_offset - piv.rotated(child.rotation)
 		
 	
 	# If adjusts the pivot by scale, if needed
