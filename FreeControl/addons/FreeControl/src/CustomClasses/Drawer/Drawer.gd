@@ -81,7 +81,7 @@ var drawer_angle : float = 0.0:
 			_angle_vec = Vector2.RIGHT.rotated(deg_to_rad(drawer_angle))
 			
 			_kill_animation()
-			_calculate_childrend()
+			_sort_children()
 ## If [code]true[/code], the drawer will be snapped to move as strictly cardinally as possible.
 ## [br][br]
 ## Also see: [member drawer_angle].
@@ -91,7 +91,7 @@ var drawer_angle_axis_snap : bool:
 			drawer_angle_axis_snap = val
 			
 			_kill_animation()
-			_calculate_childrend()
+			_sort_children()
 
 #@export_group("Drawer Span")
 ## If [code]false[/code], [member drawer_width] is equal to a ratio of this node's [Control.size]'s x component.
@@ -116,7 +116,7 @@ var drawer_width : float = 1:
 	set(val):
 		if val != drawer_width:
 			drawer_width = val
-			_calculate_childrend()
+			_sort_children()
 ## If [code]false[/code], [member drawer_height] is equal to a ratio of this node's [Control.size]'s y component.
 ## [br]. Else, [member drawer_height] is directly editable.
 var drawer_height_by_pixel : bool:
@@ -139,7 +139,7 @@ var drawer_height : float = 1:
 	set(val):
 		if val != drawer_height:
 			drawer_height = val
-			_calculate_childrend()
+			_sort_children()
 
 #@export_group("Input Options")
 ## A flag enum used to classify which input type is allowed.
@@ -155,13 +155,13 @@ var open_margin : int = 0:
 	set(val):
 		if val != open_margin:
 			open_margin = val
-			_calculate_childrend()
+			_sort_children()
 ## Extra pixels to where the open drawer lies when closed.
 var close_margin : int = 0:
 	set(val):
 		if val != close_margin:
 			close_margin = val
-			_calculate_childrend()
+			_sort_children()
 
 #@export_subgroup("Drag Options")
 ## Permissions on how the user may drag to open/close the drawer.
@@ -227,7 +227,6 @@ var drag_drawer_duration : float = 0.2
 
 
 #region Private Variables
-var _min_size : Vector2
 var _angle_vec : Vector2
 
 var _animation_tween : Tween
@@ -242,15 +241,19 @@ var _max_offset : float
 #endregion
 
 
-#region Virtual Methods
+#region Private Virtual Methods
 func _init() -> void:
 	_angle_vec = Vector2.RIGHT.rotated(deg_to_rad(drawer_angle))
-	
-	if !sort_children.is_connected(_calculate_childrend):
-		sort_children.connect(_calculate_childrend)
+
 func _get_minimum_size() -> Vector2:
-	_min_size = _find_minimum_size()
-	return _min_size
+	if clip_contents:
+		return Vector2.ZERO
+	
+	var min_size : Vector2 = Vector2.ZERO
+	for child : Control in _get_control_children():
+		min_size = min_size.max(child.get_combined_minimum_size())
+	return min_size
+
 func _get_property_list() -> Array[Dictionary]:
 	var ret : Array[Dictionary]
 	
@@ -544,15 +547,11 @@ func _property_get_revert(property: StringName) -> Variant:
 		"manual_drawer_ease", "drag_drawer_ease":
 			return Tween.EaseType.EASE_IN
 	return null
-func _get_enum_string(className : StringName, enumName : StringName) -> String:
-	var ret : String
-	for constant_name in ClassDB.class_get_enum_constants(className, enumName):
-		var constant_value: int = ClassDB.class_get_integer_constant(className, constant_name)
-		ret += "%s:%d, " % [constant_name, constant_value]
-	return ret.left(-2).replace("_", " ").capitalize().replace(", ", ",")
-func _convert_to_enum(strs : PackedStringArray) -> String:
-	return ", ".join(strs).replace("_", " ").capitalize().replace(", ", ",")
 
+func _notification(what : int) -> void:
+	match what:
+		NOTIFICATION_SORT_CHILDREN:
+			_sort_children()
 
 func _gui_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton || event is InputEventScreenTouch:
@@ -627,7 +626,7 @@ func _get_control_children() -> Array[Control]:
 	var ret : Array[Control]
 	ret.assign(get_children().filter(func(child : Node): return child is Control && child.visible))
 	return ret
-func _calculate_childrend() -> void:
+func _sort_children() -> void:
 	_find_offsets()
 	_current_progress = _max_offset * float(_state)
 	_adjust_children()
@@ -636,11 +635,6 @@ func _adjust_children() -> void:
 	for child : Control in _get_control_children():
 		fit_child_in_rect(child, rect)
 
-func _find_minimum_size() -> Vector2:
-	var min_size : Vector2 = Vector2.ZERO
-	for child : Control in _get_control_children():
-		min_size = min_size.max(child.get_combined_minimum_size())
-	return min_size
 func _find_offsets() -> void:
 	var drawer_size := get_drawer_size()
 	
@@ -751,6 +745,16 @@ func _confirm_input_accept(event : InputEvent, drag : bool = false) -> bool:
 	if mouse_filter == MouseFilter.MOUSE_FILTER_STOP:
 		get_viewport().set_input_as_handled()
 	return true
+
+
+func _get_enum_string(className : StringName, enumName : StringName) -> String:
+	var ret : String
+	for constant_name in ClassDB.class_get_enum_constants(className, enumName):
+		var constant_value: int = ClassDB.class_get_integer_constant(className, constant_name)
+		ret += "%s:%d, " % [constant_name, constant_value]
+	return ret.left(-2).replace("_", " ").capitalize().replace(", ", ",")
+func _convert_to_enum(strs : PackedStringArray) -> String:
+	return ", ".join(strs).replace("_", " ").capitalize().replace(", ", ",")
 #endregion
 
 
@@ -771,7 +775,7 @@ func get_drawer_size() -> Vector2:
 		ret.x *= size.x
 	if !drawer_height_by_pixel:
 		ret.y *= size.y
-	return ret.max(_min_size)
+	return ret.max(get_combined_minimum_size())
 ## Returns the offsert the drawer has, compared to this node's local position.
 func get_drawer_offset(with_drag : bool = false) -> Vector2:
 	return _get_drawer_offset(_inner_offset, _outer_offset, with_drag)

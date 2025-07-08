@@ -27,7 +27,7 @@ class_name AnimatableScrollControl extends AnimatableControl
 #endregion
 
 
-#region Virtual Methods
+#region Private Virtual Methods
 func _enter_tree() -> void:
 	if !scroll && Engine.is_editor_hint(): scroll = get_parent_scroll()
 #endregion
@@ -46,11 +46,6 @@ func _scrolled_vertical(scroll_ver : float) -> void: pass
 
 
 #region Public Methods
-## Returns the [AnimatableMount] node this [AnimatableControl] is a child of. Returns
-## [code]null[/code] if this node is not a child of any mount. 
-func get_mount() -> AnimatableMount:
-	return get_parent_control() as AnimatableMount
-
 ## Returns the global difference between this node's [AnimatableMount] and
 ## [member scroll] positions.
 func get_origin_offset() -> Vector2:

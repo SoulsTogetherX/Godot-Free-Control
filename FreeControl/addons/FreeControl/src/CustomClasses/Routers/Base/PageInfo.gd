@@ -29,7 +29,7 @@ static func create(
 #endregion
 
 
-#region Virtual Methods
+#region Private Virtual Methods
 func _notification(what):
 	if (
 		what == NOTIFICATION_PREDELETE &&

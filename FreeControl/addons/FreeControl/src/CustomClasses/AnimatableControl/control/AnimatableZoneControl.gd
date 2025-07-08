@@ -145,23 +145,7 @@ var _last_overlapped : int = 2
 #endregion
 
 
-#region Virtual Methods
-func _draw() -> void:
-	if !Engine.is_editor_hint() || hide_indicator || !scroll || check_mode == CHECK_MODE.NONE:
-		return
-	
-	var mount := get_mount()
-	if !mount:
-		return
-	
-	var draw_rect := get_zone_rect()
-	var scroll_transform := scroll.get_global_transform()
-	var transform := mount.get_global_transform()
-	
-	draw_set_transform(scroll_transform.get_origin() - transform.get_origin(),
-	scroll_transform.get_rotation() - transform.get_rotation(),
-	scroll_transform.get_scale() / transform.get_scale())
-	draw_rect(draw_rect, HIGHLIGHT_COLOR)
+#region Private Virtual Methods
 func _get_property_list() -> Array[Dictionary]:
 	var ret : Array[Dictionary] = []
 	var horizontal : int = 0 if check_mode & CHECK_MODE.HORIZONTAL else PROPERTY_USAGE_READ_ONLY
@@ -274,6 +258,23 @@ func _property_get_revert(property: StringName) -> Variant:
 	elif property == "hide_indicator":
 		return true
 	return null
+
+func _draw() -> void:
+	if !Engine.is_editor_hint() || hide_indicator || !scroll || check_mode == CHECK_MODE.NONE:
+		return
+	
+	var mount := get_mount()
+	if !mount:
+		return
+	
+	var draw_rect := get_zone_rect()
+	var scroll_transform := scroll.get_global_transform()
+	var transform := mount.get_global_transform()
+	
+	draw_set_transform(scroll_transform.get_origin() - transform.get_origin(),
+	scroll_transform.get_rotation() - transform.get_rotation(),
+	scroll_transform.get_scale() / transform.get_scale())
+	draw_rect(draw_rect, HIGHLIGHT_COLOR)
 #endregion
 
 

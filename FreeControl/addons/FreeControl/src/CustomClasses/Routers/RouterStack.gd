@@ -106,7 +106,7 @@ var _stack : SwapContainer
 #endregion
 
 
-#region Virtual Methods
+#region Private Virtual Methods
 func _init() -> void:
 	if _stack && is_instance_valid(_stack):
 		_stack.queue_free()

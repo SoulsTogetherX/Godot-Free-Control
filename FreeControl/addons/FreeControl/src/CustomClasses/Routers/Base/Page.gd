@@ -25,13 +25,15 @@ signal exiting
 #endregion
 
 
-#region Virtual Methods
+#region Private Virtual Methods
 func _enter_tree() -> void:
 	if !Engine.is_editor_hint():
 		clip_contents = true
-func _init() -> void:
-	if !sort_children.is_connected(_sort_children):
-		sort_children.connect(_sort_children)
+
+func _notification(what : int) -> void:
+	match what:
+		NOTIFICATION_SORT_CHILDREN:
+			_sort_children()
 
 func _get_allowed_size_flags_horizontal() -> PackedInt32Array:
 	return [SIZE_FILL, SIZE_SHRINK_BEGIN, SIZE_SHRINK_CENTER, SIZE_SHRINK_END]

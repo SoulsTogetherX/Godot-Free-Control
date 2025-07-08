@@ -32,10 +32,10 @@ enum MAX_RATIO_MODE {
 #endregion
 
 
-#region Virtual Methods
-func _validate_property(property: Dictionary) -> void:
-	if property.name == "max_size":
-		property.usage |= PROPERTY_USAGE_READ_ONLY
+#region Private Virtual Methods
+func _init() -> void:
+	clip_contents = false
+
 func _get_minimum_size() -> Vector2:
 	var parent := get_parent_area_size()
 	var min_size := super()
@@ -51,6 +51,10 @@ func _get_minimum_size() -> Vector2:
 	
 	min_size = min_size.max(current_size)
 	return min_size
+
+func _validate_property(property: Dictionary) -> void:
+	if property.name in ["max_size", "clip_contents"]:
+		property.usage |= PROPERTY_USAGE_READ_ONLY
 #endregion
 
 

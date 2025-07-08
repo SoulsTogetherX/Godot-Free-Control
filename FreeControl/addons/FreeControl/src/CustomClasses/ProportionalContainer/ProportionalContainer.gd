@@ -62,18 +62,21 @@ var _ignore_resize : bool
 #endregion
 
 
-#region Virtual Methods
+#region Private Virtual Methods
 func _init() -> void:
 	layout_mode = 0
-	if !sort_children.is_connected(_sort_children):
-		sort_children.connect(_sort_children)
+	clip_contents = false
 func _ready() -> void:
 	_sort_children()
+
+func _get_minimum_size() -> Vector2:
+	return _min_size
 
 func _validate_property(property: Dictionary) -> void:
 	if property.name in [
 		"layout_mode",
 		"size",
+		"clip_contents"
 	]:
 		property.usage |= PROPERTY_USAGE_READ_ONLY
 	elif property.name == "horizontal_ratio":
@@ -82,8 +85,11 @@ func _validate_property(property: Dictionary) -> void:
 	elif property.name == "vertical_ratio":
 		if !(mode & PROPORTION_MODE.HEIGHT_PROPORTION):
 			property.usage |= PROPERTY_USAGE_READ_ONLY
-func _get_minimum_size() -> Vector2:
-	return _min_size
+
+func _notification(what : int) -> void:
+	match what:
+		NOTIFICATION_SORT_CHILDREN:
+			_sort_children()
 
 func _get_allowed_size_flags_horizontal() -> PackedInt32Array:
 	return [SIZE_FILL, SIZE_SHRINK_BEGIN, SIZE_SHRINK_CENTER, SIZE_SHRINK_END]

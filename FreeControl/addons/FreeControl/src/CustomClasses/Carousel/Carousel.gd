@@ -211,24 +211,14 @@ var _mouse_checking : bool
 #endregion
 
 
-#region Virtual Methods
+#region Private Virtual Methods
 func _init() -> void:
 	_angle_vec = Vector2.RIGHT.rotated(deg_to_rad(carousel_angle))
-	
-	if !sort_children.is_connected(_sort_children):
-		sort_children.connect(_sort_children)
 func _ready() -> void:
 	_settup_children()
 	if _item_count > 0:
 		starting_index = posmod(starting_index, _item_count)
 		go_to_index(-starting_index, false)
-
-func _notification(what : int) -> void:
-	match what:
-		NOTIFICATION_EXIT_TREE:
-			_end_drag_slowdown()
-		NOTIFICATION_MOUSE_EXIT:
-			_mouse_check()
 
 func _validate_property(property: Dictionary) -> void:
 	if property.name == "enforce_border":
@@ -249,7 +239,15 @@ func _validate_property(property: Dictionary) -> void:
 	elif property.name in ["drag_outside"]:
 		if !can_drag:
 			property.usage |= PROPERTY_USAGE_READ_ONLY
-	
+
+func _notification(what : int) -> void:
+	match what:
+		NOTIFICATION_EXIT_TREE:
+			_end_drag_slowdown()
+		NOTIFICATION_MOUSE_EXIT:
+			_mouse_check()
+		NOTIFICATION_SORT_CHILDREN:
+			_sort_children()
 
 func _gui_input(event: InputEvent) -> void:
 	var has_point := get_viewport_rect().has_point(event.position)
@@ -272,23 +270,6 @@ func _gui_input(event: InputEvent) -> void:
 		_handle_drag_angle(event.relative)
 	elif (event is InputEventScreenTouch || event is InputEventMouseButton):
 		if !event.pressed: _on_drag_release()
-func _on_drag_release() -> void:
-	_mouse_checking = false
-	_is_dragging = false
-	drag_end.emit()
-	
-	if snap_behavior != SNAP_BEHAVIOR.PAGING:
-		_scroll_value = _get_adjusted_scroll()
-		_drag_scroll_value = 0
-		if snap_behavior == SNAP_BEHAVIOR.NONE:
-			if !hard_stop: _start_drag_slowdown()
-		elif snap_behavior == SNAP_BEHAVIOR.SNAP:
-			if hard_stop: _create_animation(get_carousel_index(), ANIMATION_TYPE.SNAP)
-			else: _start_drag_slowdown()
-func _mouse_check() -> void:
-	if _mouse_checking:
-		_on_drag_release()
-
 
 func _get_allowed_size_flags_horizontal() -> PackedInt32Array:
 	return [SIZE_FILL, SIZE_SHRINK_BEGIN, SIZE_SHRINK_CENTER, SIZE_SHRINK_END]
@@ -543,6 +524,24 @@ func _handle_drag_slowdown() -> void:
 	_drag_velocity *= slowdown_drag
 	_scroll_value += _drag_velocity
 	_adjust_children()
+
+
+func _on_drag_release() -> void:
+	_mouse_checking = false
+	_is_dragging = false
+	drag_end.emit()
+	
+	if snap_behavior != SNAP_BEHAVIOR.PAGING:
+		_scroll_value = _get_adjusted_scroll()
+		_drag_scroll_value = 0
+		if snap_behavior == SNAP_BEHAVIOR.NONE:
+			if !hard_stop: _start_drag_slowdown()
+		elif snap_behavior == SNAP_BEHAVIOR.SNAP:
+			if hard_stop: _create_animation(get_carousel_index(), ANIMATION_TYPE.SNAP)
+			else: _start_drag_slowdown()
+func _mouse_check() -> void:
+	if _mouse_checking:
+		_on_drag_release()
  #endregion
 
 

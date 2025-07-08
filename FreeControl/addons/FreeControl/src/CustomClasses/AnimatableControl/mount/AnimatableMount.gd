@@ -16,6 +16,14 @@ const SIZE_MODE = AnimatableControl.SIZE_MODE
 #endregion
 
 
+#region Constants
+## Notification just before children are going to be sorted, in case there's something to process beforehand.
+const NOTIFICATION_PRE_SORT_CHILDREN := 50
+## Notification for when sorting the children, it must be obeyed immediately.
+const NOTIFICATION_SORT_CHILDREN := 51
+#endregion
+
+
 #region Private Variables
 var _queued_sort : bool
 #endregion
@@ -24,9 +32,11 @@ var _queued_sort : bool
 #region Private Virtual Methods
 func _ready() -> void:
 	_add_all_children()
+
 func _get_minimum_size() -> Vector2:
-	if clip_children:
+	if clip_contents:
 		return Vector2.ZERO
+	
 	var _min_size := Vector2.ZERO
 	
 	# Ensures size is the same as the largest size (of both axis) of children
@@ -115,12 +125,14 @@ func _on_transformation_changed() -> void:
 
 #region Private Methods
 func _sort_children() -> void:
+	propagate_notification(NOTIFICATION_PRE_SORT_CHILDREN)
 	pre_sort_children.emit()
 	
 	for child : Node in get_children():
 		if child is AnimatableControl:
 			_sort_child(child)
 	
+	propagate_notification(NOTIFICATION_SORT_CHILDREN)
 	sort_children.emit()
 	_queued_sort = false
 func _sort_child(child : AnimatableControl) -> void:

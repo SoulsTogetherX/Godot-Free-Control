@@ -121,11 +121,7 @@ var angles : PackedFloat32Array:
 #endregion
 
 
-#region Virtual Methods
-func _init() -> void:
-	if !sort_children.is_connected(_childrend_changed):
-		sort_children.connect(_childrend_changed)
-
+#region Private Virtual Methods
 func _get_property_list() -> Array[Dictionary]:
 	var properties : Array[Dictionary]
 	
@@ -209,6 +205,11 @@ func _property_get_revert(property: StringName) -> Variant:
 	
 	return null
 
+func _notification(what : int) -> void:
+	match what:
+		NOTIFICATION_SORT_CHILDREN:
+			_sort_children()
+
 func _get_allowed_size_flags_horizontal() -> PackedInt32Array:
 	return []
 func _get_allowed_size_flags_vertical() -> PackedInt32Array:
@@ -217,7 +218,7 @@ func _get_allowed_size_flags_vertical() -> PackedInt32Array:
 
 
 #region Private Methods
-func _childrend_changed() -> void:
+func _sort_children() -> void:
 	_calculate_angles()
 	_fix_childrend()
 func _get_control_children() -> Array[Control]:

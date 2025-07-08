@@ -57,12 +57,9 @@ var _holding : bool = false
 #endregion
 
 
-#region Virtual Methods
+#region Private Virtual Methods
 func _init() -> void:
 	mouse_filter = MOUSE_FILTER_PASS
-	
-	if !tree_exiting.is_connected(force_release):
-		tree_exiting.connect(force_release)
 func _property_can_revert(property: StringName) -> bool:
 	if property == "mouse_filter":
 		return mouse_filter == MOUSE_FILTER_PASS
@@ -122,7 +119,13 @@ func _gui_input(event: InputEvent) -> void:
 					_invaild_end()
 					return
 		
-			if mouse_filter == MOUSE_FILTER_STOP: accept_event()
+			if mouse_filter == MOUSE_FILTER_STOP:
+				accept_event()
+
+func _notification(what: int) -> void:
+	match what:
+		NOTIFICATION_EXIT_TREE:
+			force_release()
 #endregion
 
 

@@ -82,12 +82,26 @@ var child_offset_bottom : int = 0:
 #endregion
 
 
-#region Virtual Methods
-func _init() -> void:
-	if !sort_children.is_connected(_handel_resize):
-		sort_children.connect(_handel_resize)
+#region Private Virtual Methods
 func _ready() -> void:
-	_handel_resize()
+	_sort_children()
+
+func _get_minimum_size() -> Vector2:
+	if !minimum_size || clip_contents:
+		return Vector2.ZERO
+	
+	var min : Vector2
+	for child : Node in get_children():
+		if child is Control:
+			min = min.max(child.get_combined_minimum_size())
+	
+	min += Vector2(
+		child_offset_left + child_offset_right,
+		child_offset_top + child_offset_bottom
+	)
+	
+	return min
+
 func _get_property_list() -> Array[Dictionary]:
 	var properties : Array[Dictionary] = []
 	
@@ -201,25 +215,15 @@ func _property_get_revert(property: StringName) -> Variant:
 		return 0
 	return null
 
-func _get_minimum_size() -> Vector2:
-	if !minimum_size: return Vector2.ZERO
-	
-	var min : Vector2
-	for child : Node in get_children():
-		if child is Control:
-			min = min.max(child.get_combined_minimum_size())
-	
-	min += Vector2(
-		child_offset_left + child_offset_right,
-		child_offset_top + child_offset_bottom
-	)
-	
-	return min
+func _notification(what : int) -> void:
+	match what:
+		NOTIFICATION_SORT_CHILDREN:
+			_sort_children()
 #endregion
 
 
 #region Private Methods
-func _handel_resize() -> void:
+func _sort_children() -> void:
 	for child in get_children():
 		if child is Control:
 			child.set_anchor_and_offset(

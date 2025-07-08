@@ -1,0 +1,15 @@
+[gd_scene load_steps=2 format=3 uid="uid://dahx8w3h0lwt8"]
+
+[ext_resource type="Script" path="res://addons/FreeControl/src/CustomClasses/Routers/Base/Page.gd" id="1_4pkci"]
+
+[node name="Page5" type="Container"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_4pkci")
+
+[node name="ColorRect" type="ColorRect" parent="."]
+layout_mode = 2
+color = Color(1, 0.545098, 0, 1)

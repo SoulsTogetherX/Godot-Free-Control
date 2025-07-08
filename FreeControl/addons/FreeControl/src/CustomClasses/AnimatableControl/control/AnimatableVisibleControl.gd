@@ -104,11 +104,7 @@ var _last_visible : bool
 #endregion
 
 
-#region Virtual Methods
-func _init() -> void:
-	if !item_rect_changed.is_connected(queue_redraw):
-		item_rect_changed.connect(queue_redraw)
-
+#region Private Virtual Methods
 func _get_property_list() -> Array[Dictionary]:
 	var ret : Array[Dictionary] = []
 	var horizontal : int = 0 if check_mode & CHECK_MODE.HORIZONTAL else PROPERTY_USAGE_READ_ONLY
@@ -214,6 +210,7 @@ func _get_threshold_size() -> Array[Vector2]:
 		full_thr.y = vec * mount.size.y
 	
 	return [ratio_thr, full_thr]
+
 func _draw() -> void:
 	if !Engine.is_editor_hint() || hide_indicator:
 		return
@@ -310,26 +307,12 @@ func _draw() -> void:
 						INTERSECT_HIGHLIGHT_COLOR,
 						5
 					)
-func _draw_highlight(
-		left : float,
-		top : float,
-		right : float,
-		bottom : float,
-		draw_middle : bool
-	) -> void:
-	# Middle
-	if draw_middle:
-		draw_rect(Rect2(Vector2(left, top), Vector2(right - left, bottom - top)), HIGHLIGHT_COLOR)
-		return
-	# Outer
-		# Left
-	draw_rect(Rect2(Vector2(0, 0), Vector2(left, size.y)), ANTI_HIGHLIGHT_COLOR)
-		# Right
-	draw_rect(Rect2(Vector2(right, 0), Vector2(size.x - right, size.y)), ANTI_HIGHLIGHT_COLOR)
-		# Top
-	draw_rect(Rect2(Vector2(left, 0), Vector2(right - left, top)), ANTI_HIGHLIGHT_COLOR)
-		# Bottom
-	draw_rect(Rect2(Vector2(left, bottom), Vector2(right - left, size.y - bottom)), ANTI_HIGHLIGHT_COLOR)
+
+func _notification(what: int) -> void:
+	match what:
+		NOTIFICATION_LOCAL_TRANSFORM_CHANGED:
+			queue_redraw()
+	super(what)
 #endregion
 
 
@@ -417,11 +400,36 @@ func _while_threshold(intersect : float) -> void: pass
 #endregion
 
 
-#region Public Methods
+#region Private Methods
 ## Returns the rect [threshold_horizontal] and [threshold_vertical] create.
 func get_threshold_rect(consider_mode : bool = false) -> Rect2:
 	var threshold_adjust := _get_threshold_size()
 	return Rect2(threshold_adjust[1], size - threshold_adjust[1])
+#endregion
+
+
+#region Public Methods
+## Returns the rect [threshold_horizontal] and [threshold_vertical] create.
+func _draw_highlight(
+		left : float,
+		top : float,
+		right : float,
+		bottom : float,
+		draw_middle : bool
+	) -> void:
+	# Middle
+	if draw_middle:
+		draw_rect(Rect2(Vector2(left, top), Vector2(right - left, bottom - top)), HIGHLIGHT_COLOR)
+		return
+	# Outer
+		# Left
+	draw_rect(Rect2(Vector2(0, 0), Vector2(left, size.y)), ANTI_HIGHLIGHT_COLOR)
+		# Right
+	draw_rect(Rect2(Vector2(right, 0), Vector2(size.x - right, size.y)), ANTI_HIGHLIGHT_COLOR)
+		# Top
+	draw_rect(Rect2(Vector2(left, 0), Vector2(right - left, top)), ANTI_HIGHLIGHT_COLOR)
+		# Bottom
+	draw_rect(Rect2(Vector2(left, bottom), Vector2(right - left, size.y - bottom)), ANTI_HIGHLIGHT_COLOR)
 #endregion
 
 # Made by Xavier Alvarez. A part of the "FreeControl" Godot addon.

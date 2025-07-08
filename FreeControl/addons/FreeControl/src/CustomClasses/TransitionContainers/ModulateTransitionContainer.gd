@@ -49,13 +49,13 @@ var _current_focused_color : int
 #endregion
 
 
-#region Virtual Methods
+#region Private Virtual Methods
 func _init() -> void:
 	_current_focused_color = _focused_color
-	
-	if !sort_children.is_connected(_handle_children):
-		sort_children.connect(_handle_children)
 func _get_minimum_size() -> Vector2:
+	if clip_contents:
+		return Vector2.ZERO
+	
 	var min_size : Vector2
 	for child : Node in get_children():
 		if child is Control:
@@ -66,6 +66,11 @@ func _property_can_revert(property: StringName) -> bool:
 	if property == "colors":
 		return colors.size() == 2 && colors[0] == Color.WHITE && colors[1] == Color(1.0, 1.0, 1.0, 0.5)
 	return false
+
+func _notification(what : int) -> void:
+	match what:
+		NOTIFICATION_SORT_CHILDREN:
+			_sort_children()
 #endregion
 
 
@@ -88,7 +93,7 @@ func _on_set_color():
 	)
 	_color_tween.finished.connect(_on_set_color, CONNECT_ONE_SHOT)
 
-func _handle_children() -> void:
+func _sort_children() -> void:
 	for child in get_children():
 		fit_child_in_rect(child, Rect2(Vector2.ZERO, size))
 #endregion

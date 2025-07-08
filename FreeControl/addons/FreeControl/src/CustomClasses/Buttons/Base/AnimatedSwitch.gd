@@ -167,10 +167,8 @@ var _switch_color_animate_tween : Tween
 #endregion
 
 
-#region Virtual Methods
+#region Private Virtual Methods
 func _init() -> void:
-	if !resized.is_connected(_handle_resize):
-		resized.connect(_handle_resize)
 	if !toggled.is_connected(toggle_state):
 		toggled.connect(toggle_state)
 	
@@ -190,14 +188,11 @@ func _init() -> void:
 	toggle_mode = true
 	_handle_resize()
 	_animate_color(false)
-func _handle_resize() -> void:
-	_switch.position = (size - switch_size) * 0.5
-	_switch.size = switch_size
-	
-	_knob.size = knob_size
-	force_state(button_pressed)
 
 func _get_minimum_size() -> Vector2:
+	if clip_contents:
+		return Vector2.ZERO
+	
 	return (knob_size + (knob_offset.abs() * 0.5)).max(switch_size + Vector2(max(0, knob_overextend) * 2, 0))
 func _validate_property(property: Dictionary) -> void:
 	if property.name == "toggle_mode":
@@ -209,10 +204,23 @@ func _set(property: StringName, value: Variant) -> bool:
 		_animate_color()
 		return true
 	return false
+
+func _notification(what: int) -> void:
+	match what:
+		NOTIFICATION_RESIZED:
+			_handle_resize()
 #endregion
 
 
 #region Private Methods
+func _handle_resize() -> void:
+	_switch.position = (size - switch_size) * 0.5
+	_switch.size = switch_size
+	
+	_knob.size = knob_size
+	force_state(button_pressed)
+
+
 func _kill_main_animation() -> void:
 	if _main_animate_tween && _main_animate_tween.is_running():
 		_main_animate_tween.kill()

@@ -79,15 +79,12 @@ var _panel : StyleTransitionPanel
 #endregion
 
 
-#region Virtual Methods
+#region Private Virtual Methods
 func _init() -> void:
 	_panel = StyleTransitionPanel.new()
 	_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_panel.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	add_child(_panel)
-	
-	if !sort_children.is_connected(_handle_children):
-		sort_children.connect(_handle_children)
 func _ready() -> void:
 	if background:
 		_panel.add_theme_stylebox_override("panel", background)
@@ -95,6 +92,9 @@ func _ready() -> void:
 	background = _panel.get_theme_stylebox("panel")
 
 func _get_minimum_size() -> Vector2:
+	if clip_contents:
+		return Vector2.ZERO
+	
 	var min_size : Vector2
 	for child : Node in get_children():
 		if child is Control:
@@ -105,11 +105,16 @@ func _property_can_revert(property: StringName) -> bool:
 	if property == "colors":
 		return colors.size() == 2 && colors[0] == Color.WEB_GRAY && colors[1] == Color.DIM_GRAY
 	return false
+
+func _notification(what : int) -> void:
+	match what:
+		NOTIFICATION_SORT_CHILDREN:
+			_sort_children()
 #endregion
 
 
 #region Private Methods
-func _handle_children() -> void:
+func _sort_children() -> void:
 	for child in get_children():
 		fit_child_in_rect(child, Rect2(Vector2.ZERO, size))
 #endregion

@@ -72,7 +72,7 @@ var _paragraph := TextParagraph.new()
 #endregion
 
 
-#region Virtual Methods
+#region Private Virtual Methods
 func _init() -> void:
 	clip_text = true
 	autowrap_mode = TextServer.AUTOWRAP_ARBITRARY

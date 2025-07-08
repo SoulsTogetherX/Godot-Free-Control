@@ -95,7 +95,7 @@ var _distance_check : DistanceCheck
 #endregion
 
 
-#region Virtual Methods
+#region Private Virtual Methods
 func _init() -> void:
 	if _distance_check && is_instance_valid(_distance_check):
 		_distance_check.queue_free()

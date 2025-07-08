@@ -52,17 +52,12 @@ enum SIZE_MODE {
 #endregion
 
 
-#region Virtual Methods
+#region Private Virtual Methods
 func _init() -> void:
 	set_notify_local_transform(true)
-	
-	if !sort_children.is_connected(_sort_children):
-		sort_children.connect(_sort_children)
-	if !item_rect_changed.is_connected(transformation_changed.emit):
-		item_rect_changed.connect(transformation_changed.emit)
 
 func _get_minimum_size() -> Vector2:
-	if clip_children:
+	if clip_contents:
 		return Vector2.ZERO
 	
 	var min_size := Vector2.ZERO
@@ -72,6 +67,9 @@ func _get_minimum_size() -> Vector2:
 	return min_size
 
 func _validate_property(property: Dictionary) -> void:
+	if !get_mount():
+		return
+	
 	if property.name in ["layout_mode", "anchors_preset"]:
 		property.usage |= PROPERTY_USAGE_READ_ONLY
 	elif property.name == "size":
@@ -91,6 +89,8 @@ func _notification(what: int) -> void:
 	match what:
 		NOTIFICATION_LOCAL_TRANSFORM_CHANGED:
 			transformation_changed.emit()
+		NOTIFICATION_SORT_CHILDREN:
+			_sort_children()
 #endregion
 
 
@@ -125,6 +125,14 @@ func _resize_child(child : Control) -> void:
 			set_pos.y = size.y - child_size.y
 	
 	fit_child_in_rect(child, Rect2(set_pos, child_size))
+#endregion
+
+
+#region Public Methods
+## Returns the [AnimatableMount] node this [AnimatableControl] is a child of. Returns
+## [code]null[/code] if this node is not a child of any mount. 
+func get_mount() -> AnimatableMount:
+	return get_parent_control() as AnimatableMount
 #endregion
 
 # Made by Xavier Alvarez. A part of the "FreeControl" Godot addon.

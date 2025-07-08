@@ -16,19 +16,25 @@ var _max_size := -Vector2.ONE
 #endregion
 
 
-#region Virtual Methods
-func _init() -> void:
-	if !sort_children.is_connected(_handle_sort):
-		sort_children.connect(_handle_sort, CONNECT_DEFERRED)
-func _set(property: StringName, value: Variant) -> bool:
-	if property == "size":
-		return true
-	return false
+#region Private Virtual Methods
 func _get_minimum_size() -> Vector2:
+	if clip_contents:
+		return Vector2.ZERO
+	
 	var min_size : Vector2 = Vector2.ZERO
 	for child : Control in _get_control_children():
 		min_size = min_size.max(child.get_combined_minimum_size())
 	return min_size
+
+func _set(property: StringName, value: Variant) -> bool:
+	if property == "size":
+		return true
+	return false
+
+func _notification(what : int) -> void:
+	match what:
+		NOTIFICATION_SORT_CHILDREN:
+			call_deferred("_sort_children")
 #endregion
 
 
@@ -38,7 +44,7 @@ func _get_control_children() -> Array[Control]:
 	ret.assign(get_children().filter(func(child : Node): return child is Control && child.visible))
 	return ret
 
-func _handle_sort() -> void:
+func _sort_children() -> void:
 	update_minimum_size()
 	_update_children()
 

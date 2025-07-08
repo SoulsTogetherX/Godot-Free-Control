@@ -72,7 +72,7 @@ var _button : HoldButton
 #endregion
 
 
-#region Virtual Methods
+#region Private Virtual Methods
 func _init() -> void:
 	super()
 	
