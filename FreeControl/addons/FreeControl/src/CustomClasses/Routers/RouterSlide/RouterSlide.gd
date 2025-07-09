@@ -106,6 +106,15 @@ enum PAGE_HIDE_MODE {
 			tab_height = val
 			
 			_position_components()
+## The local z_index the tabs bar will have, from this node.
+## Value can only be positive.
+@export_range(0, 4096) var tab_z_index : int:
+	set(val):
+		tab_z_index = clampi(tab_z_index, 0, 4096)
+		if tab_z_index != val:
+			tab_z_index = val
+			
+			_tab_background.z_index = tab_z_index
 
 
 @export_group("Tab Layout")
@@ -131,15 +140,6 @@ enum PAGE_HIDE_MODE {
 			tab_args = val
 			
 			_tab_container.set_args(tab_args)
-## The local z_index the tabs bar will have, from this node.
-## Value can only be positive.
-@export_range(0, 4096) var tab_z_index : int:
-	set(val):
-		tab_z_index = clampi(tab_z_index, 0, 4096)
-		if tab_z_index != val:
-			tab_z_index = val
-			
-			_tab_background.z_index = tab_z_index
 
 @export_subgroup("Tab Shadow")
 ## The height of the shadow emits from the tabs.
