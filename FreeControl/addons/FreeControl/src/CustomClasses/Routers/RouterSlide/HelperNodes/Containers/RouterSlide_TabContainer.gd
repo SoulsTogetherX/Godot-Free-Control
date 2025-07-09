@@ -10,7 +10,7 @@ signal tab_pressed(idx : int)
 
 
 #region Private Variables
-var _index : int
+var _index : int = -1
 var _tabs : Array[BaseRouterTab]
 #endregion
 

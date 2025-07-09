@@ -4,9 +4,17 @@ class_name RouterTabInfo extends Resource
 ## A [Resource] used to hold data for a tab. Ued by [RouterSlide].
 
 #region External Variables
+## A signal that is emited if the page changes.
+## [br][br]
+## Also see [member page].
+signal page_changed
+## A signal that is emited if the disabled status changes.
+## [br][br]
+## Also see [member disabled].
+signal disabled_changed
 ## A signal that is emited if the arguments change.
 ## [br][br]
-## Also see [method args].
+## Also see [member args].
 signal arguments_changed
 #endregion
 
@@ -21,10 +29,12 @@ signal arguments_changed
 					page = val
 					
 					changed.emit()
+					page_changed.emit()
 					return
 				push_warning("Cannot use scenes, with root that does inhertant from 'Page', as a page for 'RouterSlide'.")
 			page = null
 			changed.emit()
+			page_changed.emit()
 ## If [code]true[/code], this tab will be usable to be selected by user input.
 @export var disabled : bool:
 	set(val):
@@ -38,6 +48,7 @@ signal arguments_changed
 		if args != val:
 			args = val
 			
+			changed.emit()
 			arguments_changed.emit()
 #endregion
 
@@ -49,7 +60,14 @@ static func scene_is_page(scene : PackedScene) -> bool:
 	if !scene:
 		return false
 	
-	var state := scene.get_state()
+	var state : SceneState
+	while true:
+		state = scene.get_state()
+		if state.get_node_type(0).is_empty():
+			scene = scene._bundled.get("variants")[0]
+			continue
+		break
+	
 	var root_script_raw: Variant = state.get_node_property_value(
 		0, state.get_node_property_count(0) - 1
 	)

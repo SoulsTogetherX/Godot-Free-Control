@@ -6,6 +6,11 @@ extends Container
 #region Signal
 ## Emits when the current [Page] requests an event.
 signal event_action(event : String, args : Variant)
+
+## Emits at the start of a transition.
+signal start_transition
+## Emits at the end of a transition.
+signal end_transition
 #endregion
 
 
@@ -52,6 +57,7 @@ var _index : int = -1
 
 var _pages : Array[Page]
 var _pages_info : Array[RouterTabInfo]
+var _pages_lambdas : Array[Callable]
 
 var _shift_node : Container
 var _animation_tween : Tween
@@ -64,6 +70,24 @@ var _ignore_queue : int = 0
 func _init() -> void:
 	_shift_node = Container.new()
 	add_child(_shift_node)
+
+func _set_page_info(new_info : Array[RouterTabInfo]) -> void:
+	_pages_lambdas.resize(new_info.size())
+	for idx : int in new_info.size():
+		var info := new_info[idx]
+		var lambda := _pages_lambdas[idx]
+		
+		if lambda && info.page_changed.is_connected(lambda):
+			info.page_changed.disconnect(lambda)
+	
+	_pages_lambdas.resize(_pages_info.size())
+	for idx : int in _pages_info.size():
+		var info := _pages_info[idx]
+		var lambda : Callable = _refresh_page.bind(idx)
+		
+		_pages_lambdas[idx] = lambda
+		info.page_changed.connect(lambda)
+	_pages_info = new_info
 
 func _notification(what: int) -> void:
 	match what:
@@ -253,11 +277,25 @@ func _remove_page_multiple(st : int, ed : int, ignore_current : bool = false) ->
 
 
 #region Load/Unload Private Methods
+func _refresh_page(idx : int) -> void:
+	if idx in get_visible_pages():
+		_unload_page(idx)
+		_load_page(idx)
+		
+		if _index != idx:
+			return
+		
+		var page : Page = _pages[idx]
+		if page:
+			page.entering.emit()
+			page.entering.emit()
+
 func _load_page(idx : int) -> void:
 	if !is_index_vaild(idx) || _pages[idx] != null || !_pages_info[idx].page:
 		return
 	
 	var page : Page = _pages_info[idx].page.instantiate()
+	
 	_pages[idx] = page
 	_shift_node.add_child(page)
 	
@@ -297,7 +335,8 @@ func _unload_page_multiple(old_idx : int, st : int, ed : int, ignore_current : b
 ## Initializes the page with the given array of [RouterTabInfo]s, and
 ## starting at the given [param start_idx].
 func inital_pages(pages_info : Array[RouterTabInfo], start_idx : int) -> void:
-	_pages_info = pages_info
+	_set_page_info(pages_info)
+	
 	start_idx = clampi(start_idx, 0, _pages_info.size())
 	_index = -1
 	
@@ -317,6 +356,8 @@ func goto_index(idx : int, animate : bool) -> void:
 	idx = clampi(idx, 0, _pages_info.size())
 	if _index == idx:
 		return
+	
+	start_transition.emit()
 	
 	if _animation_tween && _animation_tween.is_running():
 		_ignore_queue += 1
@@ -353,18 +394,28 @@ func goto_index(idx : int, animate : bool) -> void:
 	_unload_page_multiple(idx, min, max, _ignore_queue == 0)
 	_remove_page_multiple(min, max, _ignore_queue == 0)
 	_ignore_queue = max(0, _ignore_queue - 1)
+	
+	end_transition.emit()
 
 
 ## Gets the current page node.
 ## [br][br]
 ## [b]Warning[/b]: This is a required internal node, removing and freeing it
 ## may cause a crash.
-func get_page_node(idx : int) -> Page:
+func get_page_node() -> Page:
+	if !is_index_vaild(_index):
+		return null
+	return _pages[_index]
+## Gets the page node at the corresponding index.
+## [br][br]
+## [b]Warning[/b]: This is a required internal node, removing and freeing it
+## may cause a crash.
+func get_page_node_by_index(idx : int) -> Page:
 	if !is_index_vaild(idx):
 		return null
 	return _pages[idx]
 ## Gets the index of the current page node.
-func get_current_page() -> int:
+func get_page_index() -> int:
 	return _index
 ## Returns the indexes of all currently visible pages.
 ## [br][br]

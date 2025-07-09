@@ -11,7 +11,7 @@ class_name ModulateTransitionContainer extends Container
 		if colors != val:
 			colors = val
 			focused_color = focused_color
-			force_color(_focused_color)
+		force_color(_focused_color)
 var _focused_color : int = 0
 ## The index of currently used color from [member colors].
 ## This member is [code]-1[/code] if [member colors] is empty.
@@ -113,6 +113,7 @@ func force_color(color: int) -> void:
 		if !can_cancle: return
 		_color_tween.kill()
 	_current_focused_color = color
+	_focused_color = color
 	modulate = colors[color]
 
 ## Gets the current color attributed to the current color index.

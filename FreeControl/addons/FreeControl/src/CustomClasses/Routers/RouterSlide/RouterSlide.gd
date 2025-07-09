@@ -6,6 +6,16 @@ class_name RouterSlide extends Container
 #region Signals
 ## Emits when the current [Page] requests an event.
 signal event_action(event : String, args : Variant)
+
+## Emits at the start of a page transition.
+signal start_transition_page
+## Emits at the end of a page transition.
+signal end_transition_page
+
+## Emits at the start of a highlight transition.
+signal start_transition_highlight
+## Emits at the end of a highlight transition.
+signal end_transition_highlight
 #endregion
 
 
@@ -30,6 +40,9 @@ enum PAGE_HIDE_MODE {
 
 
 #region External Variables
+## Allows animations to play while in the Editor
+@export var animate_in_engine : bool = false
+
 @export_group("Page Info")
 ## The info related to the pages allowing selection.
 @export var pages : Array[RouterTabInfo] = []:
@@ -82,6 +95,7 @@ enum PAGE_HIDE_MODE {
 		if tabs_top != val:
 			tabs_top = val
 			
+			_init_shadow_style()
 			_position_components()
 ## The height of the tabs in pixels.
 @export var tab_height : float = 70:
@@ -298,7 +312,7 @@ var _tab_background : Panel
 var _background : Panel
 var _shadow : Panel
 
-var _selected_index : int
+var _selected_index : int = -1
 
 var _tab_margins_update_queued : bool
 #endregion
@@ -316,15 +330,20 @@ func _init() -> void:
 	
 	add_child(_background)
 	add_child(_page_container)
-	add_child(_tab_background)
+	add_child(_shadow)
 	
+	add_child(_tab_background)
 	_tab_background.add_child(_tab_container)
 	_tab_background.add_child(_highlight_container)
 	
-	add_child(_shadow)
-	
 	_tab_container.tab_pressed.connect(goto_page.bind(true))
 	_page_container.event_action.connect(event_action.emit)
+	
+	_page_container.start_transition.connect(start_transition_page.emit)
+	_page_container.end_transition.connect(end_transition_page.emit)
+	
+	_highlight_container.start_transition.connect(start_transition_highlight.emit)
+	_highlight_container.end_transition.connect(end_transition_highlight.emit)
 	
 	_init_components()
 
@@ -344,7 +363,14 @@ static func scene_is_tab(scene : PackedScene) -> bool:
 	if !scene:
 		return false
 	
-	var state := scene.get_state()
+	var state : SceneState
+	while true:
+		state = scene.get_state()
+		if state.get_node_type(0).is_empty():
+			scene = scene._bundled.get("variants")[0]
+			continue
+		break
+	
 	var root_script_raw: Variant = state.get_node_property_value(
 		0, state.get_node_property_count(0) - 1
 	)
@@ -362,6 +388,7 @@ func _position_components() -> void:
 	_highlight_container.size = Vector2(size.x, highlight_height if include_highlight else 0)
 	_tab_background.size = Vector2(size.x, _tab_container.size.y + (_highlight_container.size.y if inset_highlight else 0))
 	_page_container.size = Vector2(size.x, size.y - _tab_background.size.y)
+	
 	_background.size = Vector2(size.x, size.y - (0 if bg_include_tabs else _tab_container.size.y))
 	_shadow.size = Vector2(size.x, shadow_height)
 	
@@ -382,7 +409,7 @@ func _position_components() -> void:
 		_tab_background.position = Vector2.ZERO
 		
 		_page_container.position = Vector2(0, _tab_background.size.y)
-		_background.position = _page_container.position
+		_background.position = Vector2.ZERO if bg_include_tabs else _page_container.position
 		_shadow.position = _page_container.position
 	else:
 		_tab_background.position = Vector2(0, _page_container.size.y)
@@ -410,6 +437,7 @@ func _update_tab_margins() -> void:
 
 
 func _init_components() -> void:
+	_init_shadow_style()
 	_page_container.inital_pages(pages, start_page)
 	_refresh_tabs()
 	
@@ -453,6 +481,8 @@ func _ready_background() -> void:
 	_tab_background.visible = is_tab_background_visible()
 	if _tab_background.visible:
 		_tab_background.add_theme_stylebox_override("panel", tab_bg_style)
+	
+	_init_shadow_style()
 
 func _refresh_tabs() -> void:
 	if !is_node_ready():
@@ -468,6 +498,18 @@ func _refresh_tabs() -> void:
 		margin_tab_bottom
 	)
 	goto_page(start_page, false)
+
+
+func _init_shadow_style() -> void:
+	var shadow_style : StyleBoxTexture = (_shadow.get_theme_stylebox("panel") as StyleBoxTexture)
+	if !shadow_style:
+		shadow_style = StyleBoxTexture.new()
+		shadow_style.texture = GradientTexture2D.new()
+		_shadow.add_theme_stylebox_override("panel", shadow_style)
+	
+	shadow_style.texture.gradient = shadow_gradient
+	shadow_style.texture.fill_to = Vector2(0, int(tabs_top))
+	shadow_style.texture.fill_from = Vector2(0, 1 - int(tabs_top))
 #endregion
 
 
@@ -477,7 +519,7 @@ func _refresh_tabs() -> void:
 ## The [param idx] is clamped to a vaild index. If [code]animate[/code] is true
 ## the node will animated the transition between pages. 
 func goto_page(idx : int, animate : bool) -> void:
-	animate = animate && !Engine.is_editor_hint()
+	animate = animate && (!Engine.is_editor_hint() || animate_in_engine)
 	_selected_index = idx
 	
 	_highlight_container.goto_index(idx, animate)

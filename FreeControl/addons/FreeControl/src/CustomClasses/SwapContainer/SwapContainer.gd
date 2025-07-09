@@ -5,9 +5,9 @@ class_name SwapContainer extends Container
 
 #region Signals
 ## Emits at the start of a transition.
-signal start_animation
+signal start_transition
 ## Emits at the end of a transition.
-signal end_animation
+signal end_transition
 #endregion
 
 
@@ -250,7 +250,7 @@ func swap_control(
 	var _old_node := _current_node
 	_parent_control(node, front)
 	
-	start_animation.emit()
+	start_transition.emit()
 	_current_node = node
 	await _perform_animations(
 		node,
@@ -259,8 +259,9 @@ func swap_control(
 		exit_animation
 	)
 	
-	if _old_node: _unparent_control(_old_node)
-	end_animation.emit()
+	if _old_node:
+		_unparent_control(_old_node)
+	end_transition.emit()
 	
 	return _old_node
 ## Sets all export members with a simple  [Dictionary].

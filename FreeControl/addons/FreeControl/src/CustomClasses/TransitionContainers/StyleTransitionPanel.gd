@@ -14,7 +14,7 @@ class_name StyleTransitionPanel extends Panel
 		if colors != val:
 			colors = val
 			focused_color = focused_color
-			force_color(_focused_color)
+		force_color(_focused_color)
 var _focused_color : int = 0
 ## The index of currently used color from [member colors].
 ## This member is [code]-1[/code] if [member colors] is empty.
@@ -102,6 +102,7 @@ func force_color(color: int) -> void:
 	if _color_tween && _color_tween.is_running():
 		if !can_cancle: return
 		_color_tween.kill()
+	_current_focused_color = color
 	_focused_color = color
 	_safe_base_set_background()
 	self_modulate = get_current_color()

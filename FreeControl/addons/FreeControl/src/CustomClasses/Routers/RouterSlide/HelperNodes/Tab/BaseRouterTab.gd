@@ -30,7 +30,7 @@ func _init() -> void:
 	add_child(_hold_button)
 	_hold_button.move_to_front()
 
-func _info_updated() -> void:
+func _disabled_updated() -> void:
 	if _info.disabled != is_disabled():
 		toggle_disable(_info.disabled, true)
 #endregion
@@ -60,8 +60,8 @@ func _on_disable_updated(disabled : bool, animate : bool) -> void:
 #region Public Methods
 ## Updates the [RouterTabInfo] assocated with this tab.
 func update_info(info : RouterTabInfo) -> void:
-	if _info && _info.changed.is_connected(_info_updated):
-		_info.changed.disconnect(_info_updated)
+	if _info && _info.disabled_changed.is_connected(_disabled_updated):
+		_info.disabled_changed.disconnect(_disabled_updated)
 	if _info && _info.arguments_changed.is_connected(_args_updated):
 		_info.arguments_changed.disconnect(_args_updated)
 	
@@ -69,9 +69,11 @@ func update_info(info : RouterTabInfo) -> void:
 	
 	toggle_disable(_info.disabled, false)
 	
-	_info.changed.connect(_info_updated)
+	_info.disabled_changed.connect(_disabled_updated)
 	_info.arguments_changed.connect(_args_updated)
-	_info_updated()
+	
+	_disabled_updated()
+	_args_updated()
 ## Sets the parent arguments of this tab.
 ## [br][br]
 ## Also see [method get_args]. 

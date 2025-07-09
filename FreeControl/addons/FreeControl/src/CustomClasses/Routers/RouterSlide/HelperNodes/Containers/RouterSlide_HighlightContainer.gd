@@ -3,6 +3,14 @@
 extends Container
 ## The [Container] that holds and maintains the highlight for [RouterSlide].
 
+#region Signals
+## Emits at the start of a transition.
+signal start_transition
+## Emits at the end of a transition.
+signal end_transition
+#endregion
+
+
 #region External Methods
 ## The number of tabs the highlight should shrink to accommodate.
 @export var tab_number : int:
@@ -30,7 +38,7 @@ extends Container
 
 
 #region Private Methods
-var _index : int
+var _index : int = -1
 var _highlight : ColorRect
 var _highlight_tween : Tween
 #endregion
@@ -88,10 +96,14 @@ func goto_index(idx : int, animate : bool) -> void:
 		return
 	
 	_index = idx
+	start_transition.emit()
+	
 	if animate:
 		_animate_highlight(idx)
-		return
-	_position_highlight()	
+	else:
+		_position_highlight()	
+	
+	end_transition.emit()
 
 # Gets the [Rect2] of the highlight.
 func get_highlight_rect(idx : int) -> Rect2:

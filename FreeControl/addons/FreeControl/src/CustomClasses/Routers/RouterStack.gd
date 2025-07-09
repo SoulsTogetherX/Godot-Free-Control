@@ -8,9 +8,9 @@ class_name RouterStack extends PanelContainer
 signal event_action(event : String, args : Variant)
 
 ## Emits at the start of a transition.
-signal start_animation
+signal start_transition
 ## Emits at the end of a transition.
-signal end_animation
+signal end_transition
 #endregion
 
 
@@ -114,8 +114,8 @@ func _init() -> void:
 	add_child(_stack)
 	_stack.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	
-	_stack.start_animation.connect(start_animation.emit)
-	_stack.end_animation.connect(end_animation.emit)
+	_stack.start_transition.connect(start_transition.emit)
+	_stack.end_transition.connect(end_transition.emit)
 	
 	_stack.from_outside_screen = from_outside_screen
 	_stack.offset = offset
