@@ -1,6 +1,6 @@
 # Made by Xavier Alvarez. A part of the "FreeControl" Godot addon.
 @tool
-class_name BaseRouterTab extends MarginContainer
+class_name BaseRouterTab extends Container
 ## The base class for all tabs used by [RouterSlide].
 
 
@@ -9,6 +9,34 @@ class_name BaseRouterTab extends MarginContainer
 ## [br][br]
 ## Also see [method toggle_disable]. 
 signal tab_selected
+#endregion
+
+
+#region External Variables
+@export var margin_left : int:
+	set(val):
+		if margin_left != val:
+			margin_left = val
+			
+			queue_sort()
+@export var margin_top : int:
+	set(val):
+		if margin_top != val:
+			margin_top = val
+			
+			queue_sort()
+@export var margin_right : int:
+	set(val):
+		if margin_right != val:
+			margin_right = val
+			
+			queue_sort()
+@export var margin_bottom : int:
+	set(val):
+		if margin_bottom != val:
+			margin_bottom = val
+			
+			queue_sort()
 #endregion
 
 
@@ -30,9 +58,21 @@ func _init() -> void:
 	add_child(_hold_button)
 	_hold_button.move_to_front()
 
-func _disabled_updated() -> void:
-	if _info.disabled != is_disabled():
-		toggle_disable(_info.disabled, true)
+func _get_minimum_size() -> Vector2:
+	if clip_contents:
+		return Vector2.ZERO
+	
+	var min_size : Vector2
+	for child : Node in get_children():
+		if child is Control:
+			min_size = min_size.max(child.get_combined_minimum_size())
+	
+	return min_size
+
+func _notification(what: int) -> void:
+	match what:
+		NOTIFICATION_SORT_CHILDREN:
+			_on_sort_children()
 #endregion
 
 
@@ -54,6 +94,24 @@ func _on_focus_updated(focused : bool, animate : bool) -> void:
 ## Also see [method toggle_disable]. 
 func _on_disable_updated(disabled : bool, animate : bool) -> void:
 	pass
+#endregion
+
+
+#region Private Methods
+func _on_sort_children() -> void:
+	var child_rect := Rect2(
+		Vector2(margin_left, margin_top),
+		size - Vector2(margin_right, margin_bottom)
+	)
+	
+	for child : Node in get_children():
+		if child is Control:
+			fit_child_in_rect(child, child_rect)
+	fit_child_in_rect(_hold_button, Rect2(Vector2.ZERO, size))
+
+func _disabled_updated() -> void:
+	if _info.disabled != is_disabled():
+		toggle_disable(_info.disabled, true)
 #endregion
 
 

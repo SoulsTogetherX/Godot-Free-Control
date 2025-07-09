@@ -104,14 +104,10 @@ func set_margins(
 	margin_bottom : int
 ) -> void:
 	for tab : BaseRouterTab in _tabs:
-		tab.begin_bulk_theme_override()
-		
-		tab.add_theme_constant_override("margin_left", margin_left)
-		tab.add_theme_constant_override("margin_top", margin_top)
-		tab.add_theme_constant_override("margin_right", margin_right)
-		tab.add_theme_constant_override("margin_bottom", margin_bottom)
-		
-		tab.end_bulk_theme_override()
+		tab.margin_left = margin_left
+		tab.margin_top = margin_top
+		tab.margin_right = margin_right
+		tab.margin_bottom = margin_bottom
 
 
 ## Disabled or enables a tab.

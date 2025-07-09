@@ -131,6 +131,15 @@ enum PAGE_HIDE_MODE {
 			tab_args = val
 			
 			_tab_container.set_args(tab_args)
+## The local z_index the tabs bar will have, from this node.
+## Value can only be positive.
+@export_range(0, 4096) var tab_z_index : int:
+	set(val):
+		tab_z_index = clampi(tab_z_index, 0, 4096)
+		if tab_z_index != val:
+			tab_z_index = val
+			
+			_tab_background.z_index = tab_z_index
 
 @export_subgroup("Tab Shadow")
 ## The height of the shadow emits from the tabs.
@@ -455,6 +464,7 @@ func _update_pages() -> void:
 func _on_ready() -> void:
 	_ready_highlight_container()
 	_ready_page_container()
+	_ready_tabs_container()
 	_ready_background()
 	_refresh_tabs()
 func _ready_highlight_container() -> void:
@@ -474,6 +484,8 @@ func _ready_page_container() -> void:
 	_page_container.page_speed = page_speed
 	_page_container.page_ease = page_ease
 	_page_container.page_trans = page_trans
+func _ready_tabs_container() -> void:
+	_tab_background.z_index = tab_z_index
 func _ready_background() -> void:
 	_background.visible = is_page_background_visible()
 	if _background.visible:
