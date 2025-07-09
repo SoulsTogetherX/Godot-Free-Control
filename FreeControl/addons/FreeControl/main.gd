@@ -145,24 +145,51 @@ func _enter_tree() -> void:
 	)
 	
 	# Routers
-	add_custom_type(
-		"RouterStack",
-		"PanelContainer",
-		load(CUSTOM_CLASS_FOLDER + "Routers/RouterStack.gd"), 
-		load(ICON_FOLDER + "RouterStack.svg")
-	)
-		# Base
+		# Page
 	add_custom_type(
 		"Page",
 		"Container",
-		load(CUSTOM_CLASS_FOLDER + "Routers/Base/Page.gd"), 
+		load(CUSTOM_CLASS_FOLDER + "Routers/Page/Page.gd"), 
 		load(ICON_FOLDER + "Page.svg")
 	)
+	
+		# RouterSlide
+			# BaseRouterTab
 	add_custom_type(
-		"PageInfo",
+		"BaseRouterTab",
+		"Container",
+		load(CUSTOM_CLASS_FOLDER + "Routers/RouterSlide/HelperNodes/Tab/BaseRouterTab.gd"), 
+		load(ICON_FOLDER + "BaseRouterTab.svg")
+	)
+			# RouterTabInfo
+	add_custom_type(
+		"RouterTabInfo",
 		"Resource",
-		load(CUSTOM_CLASS_FOLDER + "Routers/Base/PageInfo.gd"), 
-		load(ICON_FOLDER + "PageInfo.svg")
+		load(CUSTOM_CLASS_FOLDER + "Routers/RouterSlide/HelperNodes/Tab/RouterTabInfo.gd"), 
+		null
+	)
+			# RouterStack
+	add_custom_type(
+		"RouterSlide",
+		"Container",
+		load(CUSTOM_CLASS_FOLDER + "Routers/RouterSlide/RouterSlide.gd"), 
+		load(ICON_FOLDER + "RouterSlide.svg")
+	)
+	
+		# RouterStack
+			# PageStackInfo
+	add_custom_type(
+		"PageStackInfo",
+		"Resource",
+		load(CUSTOM_CLASS_FOLDER + "Routers/RouterStack/PageStackInfo.gd"),
+		null
+	)
+			# RouterStack
+	add_custom_type(
+		"RouterStack",
+		"PanelContainer",
+		load(CUSTOM_CLASS_FOLDER + "Routers/RouterStack/RouterStack.gd"), 
+		load(ICON_FOLDER + "RouterStack.svg")
 	)
 	
 	# SizeControllers

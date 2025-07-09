@@ -100,7 +100,7 @@ const ANIMATION_TYPE = SwapContainer.ANIMATION_TYPE
 
 
 #region Private Variables
-var _page_stack : Array[PageInfo] = []
+var _page_stack : Array[PageStackInfo] = []
 var _params : Dictionary = {}
 var _stack : SwapContainer
 #endregion
@@ -157,7 +157,7 @@ func _handle_swap(
 	if exit_page:
 		exit_page.exited.emit()
 
-func _append_to_page_queue(page_node: PageInfo) -> void:
+func _append_to_page_queue(page_node: PageStackInfo) -> void:
 	if !_page_stack.is_empty():
 		_page_stack.back().get_page().event_action.disconnect(event_action.emit)
 	if _page_stack.size() > max_stack:
@@ -277,7 +277,7 @@ func route_node(
 		return null
 	_params = params
 	
-	var enter_page : PageInfo = PageInfo.create(
+	var enter_page := PageStackInfo.create(
 		page,
 		enter_animation,
 		exit_animation,
@@ -348,7 +348,7 @@ func navigate_node(
 		return null
 	_params = params
 	
-	var enter_info : PageInfo = PageInfo.create(
+	var enter_info := PageStackInfo.create(
 		page,
 		enter_animation,
 		exit_animation,
@@ -379,8 +379,8 @@ func back(
 	_params = params
 	_stack.set_modifers(args)
 	
-	var exit_page : PageInfo = _page_stack.pop_back()
-	var enter_page : PageInfo = _page_stack.back()
+	var exit_page : PageStackInfo = _page_stack.pop_back()
+	var enter_page : PageStackInfo = _page_stack.back()
 	
 	enter_page.get_page().event_action.connect(event_action.emit)
 	
@@ -407,7 +407,7 @@ func stack_size() -> int:
 func is_empty() -> bool:
 	return _page_stack.size() <= 1
 ## Returns the current [Page] on display.
-func get_current_page() -> PageInfo:
+func get_current_page() -> PageStackInfo:
 	return null if _page_stack.is_empty() else _page_stack.back()
 #endregion
 

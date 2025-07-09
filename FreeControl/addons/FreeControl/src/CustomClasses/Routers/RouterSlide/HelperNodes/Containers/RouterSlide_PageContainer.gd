@@ -295,6 +295,7 @@ func _load_page(idx : int) -> void:
 		return
 	
 	var page : Page = _pages_info[idx].page.instantiate()
+	page.clip_contents = true
 	
 	_pages[idx] = page
 	_shift_node.add_child(page)

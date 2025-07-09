@@ -1,6 +1,6 @@
 # Made by Xavier Alvarez. A part of the "FreeControl" Godot addon.
 @tool
-class_name PageInfo extends Resource
+class_name PageStackInfo extends Resource
 ## A [Resource] for keeping stack of [Page] information for a Router, such as [RouterStack].
 
 #region Private Variables
@@ -18,8 +18,10 @@ static func create(
 	enter_animate : SwapContainer.ANIMATION_TYPE,
 	exit_animate : SwapContainer.ANIMATION_TYPE,
 	auto_clean : bool
-) -> PageInfo:
-	var info = PageInfo.new()
+) -> PageStackInfo:
+	page.clip_contents = true
+	
+	var info = PageStackInfo.new()
 	info._page = page
 	info._enter_animate = enter_animate
 	info._exit_animate = exit_animate
