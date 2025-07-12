@@ -143,9 +143,6 @@ func _sort_child(child : AnimatableControl) -> void:
 			child.size = get_relative_size(child).max(child.size)
 		SIZE_MODE.EXACT:
 			child.size = get_relative_size(child)
-	
-	if child.auto_ratio:
-		child.pivot_offset = child.size * child.pivot_ratio
 
 
 func _add_all_children() -> void:

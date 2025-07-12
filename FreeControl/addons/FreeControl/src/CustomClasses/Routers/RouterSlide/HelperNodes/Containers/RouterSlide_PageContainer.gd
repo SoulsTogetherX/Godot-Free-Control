@@ -332,6 +332,26 @@ func _unload_page_multiple(old_idx : int, st : int, ed : int, ignore_current : b
 #endregion
 
 
+#region Emit Methods
+func emit_entered() -> void:
+	if !page_is_loaded(_index):
+		return
+	_pages[_index].entered.emit()
+func emit_entering() -> void:
+	if !page_is_loaded(_index):
+		return
+	_pages[_index].entering.emit()
+func emit_exited() -> void:
+	if !page_is_loaded(_index):
+		return
+	_pages[_index].exited.emit()
+func emit_exiting() -> void:
+	if !page_is_loaded(_index):
+		return
+	_pages[_index].exiting.emit()
+#endregion
+
+
 #region Public Methods
 ## Initializes the page with the given array of [RouterTabInfo]s, and
 ## starting at the given [param start_idx].

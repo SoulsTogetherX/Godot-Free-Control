@@ -38,8 +38,7 @@ enum SIZE_MODE {
 	set(val):
 		if auto_ratio != val:
 			auto_ratio = val
-			if val:
-				pivot_ratio = (pivot_offset / size).max(Vector2.ZERO)
+			_update_offsets()
 ## Auto sets the pivot to be at some position percentage of the size.
 ## [br][br]
 ## Also see [member auto_ratio].
@@ -47,8 +46,15 @@ enum SIZE_MODE {
 	set(val):
 		if pivot_ratio != val:
 			pivot_ratio = val
-			if auto_ratio:
-				pivot_offset = size * val
+			_pivot_redirect = val
+#endregion
+
+
+#region Private Variables
+@export_storage var _pivot_redirect : Vector2:
+	set(val):
+		_pivot_redirect = val
+		_update_offsets()
 #endregion
 
 
@@ -76,8 +82,12 @@ func _validate_property(property: Dictionary) -> void:
 		if size_mode == SIZE_MODE.EXACT:
 			property.usage |= PROPERTY_USAGE_READ_ONLY
 func _set(property: StringName, value: Variant) -> bool:
-	if property == "pivot_offset" && auto_ratio && value != pivot_offset:
-		pivot_ratio = (value / size).max(Vector2.ZERO)
+	if property == &"pivot_offset":
+		_pivot_redirect = (value / size).maxf(0)
+		if !auto_ratio:
+			pivot_offset = size * value
+		
+		return true
 	return false
 
 func _get_configuration_warnings() -> PackedStringArray:
@@ -91,10 +101,21 @@ func _notification(what: int) -> void:
 			transformation_changed.emit()
 		NOTIFICATION_SORT_CHILDREN:
 			_sort_children()
+		NOTIFICATION_RESIZED:
+			_update_offsets()
+		NOTIFICATION_READY:
+			_update_offsets()
 #endregion
 
 
 #region Private Methods
+func _update_offsets() -> void:
+	if !auto_ratio:
+		return
+	
+	pivot_ratio  = _pivot_redirect
+	pivot_offset = _pivot_redirect * size
+
 func _sort_children() -> void:
 	for child : Node in get_children():
 		if child is Control:
