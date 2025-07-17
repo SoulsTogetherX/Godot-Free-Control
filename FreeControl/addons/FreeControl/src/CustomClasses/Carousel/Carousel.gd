@@ -40,9 +40,12 @@ enum ANIMATION_TYPE {
 ## The index of the item this carousel will start at.
 @export var starting_index : int = 0:
 	set(val):
+		if !allow_loop:
+			val = clampi(val, 0, _item_count - 1)
+		
 		if starting_index != val:
 			starting_index = val
-			go_to_index(-val, false)
+			go_to_index(val, false)
 ## The size of each item in the carousel.
 @export var item_size : Vector2 = Vector2(200, 200):
 	set(val):
@@ -73,7 +76,19 @@ enum ANIMATION_TYPE {
 
 @export_group("Loop Options")
 ## Allows looping from the last item to the first and vice versa.
-@export var allow_loop : bool = true
+@export var allow_loop : bool = true:
+	set(val):
+		if val != allow_loop:
+			allow_loop = val
+			
+			if !allow_loop:
+				var current_index := get_carousel_index()
+				
+				current_index = clampi(current_index, 0, _item_count - 1)
+				go_to_index(current_index, false)
+				
+				if Engine.is_editor_hint():
+					starting_index = current_index
 ## If [code]true[/code], the carousel will display it's items as if looping. Otherwise, the items will not loop.
 ## [br][br]
 ## also see [member enforce_border] and [member border_limit].
@@ -216,9 +231,6 @@ func _init() -> void:
 	_angle_vec = Vector2.RIGHT.rotated(deg_to_rad(carousel_angle))
 func _ready() -> void:
 	_settup_children()
-	if _item_count > 0:
-		starting_index = posmod(starting_index, _item_count)
-		go_to_index(-starting_index, false)
 
 func _validate_property(property: Dictionary) -> void:
 	if property.name == "enforce_border":
@@ -246,7 +258,7 @@ func _notification(what : int) -> void:
 			_end_drag_slowdown()
 		NOTIFICATION_MOUSE_EXIT:
 			_mouse_check()
-		NOTIFICATION_SORT_CHILDREN:
+		NOTIFICATION_SORT_CHILDREN, NOTIFICATION_CHILD_ORDER_CHANGED:
 			_sort_children()
 
 func _gui_input(event: InputEvent) -> void:
@@ -257,7 +269,8 @@ func _gui_input(event: InputEvent) -> void:
 		(drag_outside || has_point)
 	):
 		if event.pressure == 0:
-			if _is_dragging: _on_drag_release()
+			if _is_dragging:
+				_on_drag_release()
 			return
 		
 		if !_is_dragging && has_point:
@@ -269,7 +282,8 @@ func _gui_input(event: InputEvent) -> void:
 		
 		_handle_drag_angle(event.relative)
 	elif (event is InputEventScreenTouch || event is InputEventMouseButton):
-		if !event.pressed: _on_drag_release()
+		if !event.pressed:
+			_on_drag_release()
 
 func _get_allowed_size_flags_horizontal() -> PackedInt32Array:
 	return [SIZE_FILL, SIZE_SHRINK_BEGIN, SIZE_SHRINK_CENTER, SIZE_SHRINK_END]
@@ -309,7 +323,7 @@ func _get_child_rect(child : Control) -> Rect2:
 	return Rect2(child_pos, child_size)
 func _get_control_children() -> Array[Control]:
 	var ret : Array[Control]
-	ret.assign(get_children().filter(func(child : Node): return child is Control && child.visible))
+	ret.assign(get_children().filter(func(child : Node): return child is Control))
 	return ret
 func _get_relevant_axis() -> int:
 	var abs_angle_vec = _angle_vec.abs()
@@ -354,7 +368,8 @@ func _handle_drag_angle(local_pos : Vector2) -> void:
 
 func _create_animation(idx : int, animation_type : ANIMATION_TYPE) -> void:
 	_kill_animation()
-	if _item_count == 0: return
+	if _item_count == 0:
+		return
 	_scroll_tween = create_tween()
 	
 	var axis := _get_relevant_axis()
@@ -421,7 +436,8 @@ func _settup_children() -> void:
 		item_info.rect = _get_child_rect(children[i])
 		_item_infos[i] = item_info
 func _adjust_children() -> void:
-	if _item_count == 0: return
+	if _item_count == 0:
+		return
 	
 	var range : Array
 	var max_local_offset : int
@@ -487,10 +503,10 @@ func _adjust_children() -> void:
 				info.node.visible = false
 		
 		for item : int in range:
-			var local_index := item - index
+			var local_index := item + index
 			var item_info : ItemInfo = _item_infos[item]
 			
-			local_index += adjustment
+			local_index -= adjustment
 			var rect : Rect2 = item_info.rect
 			
 			rect.position += _angle_vec * (local_index * axis - local_scroll)
@@ -550,10 +566,12 @@ func _mouse_check() -> void:
 ## If [param with_drag] is [code]true[/code] the current drag will also be considered.[br]
 ## If [param with_clamp] is [code]true[/code] the index will be looped if [member allow_loop] is true or clamped to a vaild index within the carousel.
 func get_carousel_index(with_drag : bool = false, with_clamp : bool = true) -> int:
-	if _item_count == 0: return -1
+	if _item_count == 0:
+		return -1
 	
 	var scroll : int = _scroll_value
-	if with_drag: scroll += _drag_scroll_value
+	if with_drag:
+		scroll += _drag_scroll_value
 	
 	var calculated := floori((float(scroll) / float(_get_relevant_axis())) + 0.5)
 	if with_clamp:
@@ -565,12 +583,13 @@ func get_carousel_index(with_drag : bool = false, with_clamp : bool = true) -> i
 	return calculated
 ## Moves to an item of the given index within the carousel. If an invalid index is given, it will be posmod into a vaild index.
 func go_to_index(idx : int, animation : bool = true) -> void:
-	if _item_count == 0: return
+	if _item_count == 0:
+		return
 	
 	if allow_loop:
-		idx = (((idx % _item_count) - _item_count) % _item_count)
+		idx = posmod(idx, _item_count)
 	else:
-		idx = clamp(idx, 0, _item_count - 1)
+		idx = clampi(idx, 0, _item_count - 1)
 	
 	if animation:
 		_create_animation(idx, ANIMATION_TYPE.MANUAL)
