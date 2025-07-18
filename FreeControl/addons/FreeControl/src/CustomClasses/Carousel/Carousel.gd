@@ -309,15 +309,23 @@ func _get_child_rect(child : Control) -> Rect2:
 	
 	child_size = child.get_combined_minimum_size()
 	match child.size_flags_horizontal:
-		SIZE_FILL: child_size.x = item_size.x
-		SIZE_SHRINK_BEGIN: pass
-		SIZE_SHRINK_CENTER: child_pos.x += (item_size.x - child_size.x) * 0.5
-		SIZE_SHRINK_END: child_pos.x += (item_size.x - child_size.x)
+		SIZE_FILL:
+			child_size.x = item_size.x
+		SIZE_SHRINK_BEGIN:
+			pass
+		SIZE_SHRINK_CENTER:
+			child_pos.x += (item_size.x - child_size.x) * 0.5
+		SIZE_SHRINK_END:
+			child_pos.x += (item_size.x - child_size.x)
 	match child.size_flags_vertical:
-		SIZE_FILL: child_size.y = item_size.y
-		SIZE_SHRINK_BEGIN: pass
-		SIZE_SHRINK_CENTER: child_pos.y += (item_size.y - child_size.y) * 0.5
-		SIZE_SHRINK_END: child_pos.y += (item_size.y - child_size.y)
+		SIZE_FILL:
+			child_size.y = item_size.y
+		SIZE_SHRINK_BEGIN:
+			pass
+		SIZE_SHRINK_CENTER:
+			child_pos.y += (item_size.y - child_size.y) * 0.5
+		SIZE_SHRINK_END:
+			child_pos.y += (item_size.y - child_size.y)
 	
 	return Rect2(child_pos, child_size)
 func _get_control_children() -> Array[Control]:
@@ -325,11 +333,13 @@ func _get_control_children() -> Array[Control]:
 	ret.assign(get_children().filter(func(child : Node): return child is Control))
 	return ret
 func _get_relevant_axis() -> int:
-	var abs_angle_vec = _angle_vec.abs()
+	var angle_mod := (PI - absf(2 * fposmod(_angle_vec.angle(), PI) - PI)) * 0.5
+	var d_vec := Vector2(
+		item_size.y / tan(angle_mod),
+		item_size.x * tan(angle_mod)
+	).min(item_size)
 	
-	if abs_angle_vec.y >= abs_angle_vec.x:
-		return (item_size.x / abs_angle_vec.y) + item_seperation
-	return (item_size.y / abs_angle_vec.x) + item_seperation
+	return d_vec.length() + item_seperation
 func _get_adjusted_scroll() -> int:
 	var scroll := _scroll_value
 	if snap_behavior != SNAP_BEHAVIOR.PAGING:
