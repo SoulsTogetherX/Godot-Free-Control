@@ -106,10 +106,6 @@ func _init() -> void:
 	_button.toggle_mode = toggle_mode
 	_button.button_pressed = button_pressed
 	_button.disabled = _disabled
-func _ready() -> void:
-	super()
-	colors = [normal_color, focus_color, disabled_color]
-	force_color(2 if _disabled else (1 if button_pressed else 0))
 
 
 func _validate_property(property: Dictionary) -> void:
@@ -140,6 +136,13 @@ func _get(property: StringName) -> Variant:
 			"mouse_default_cursor_shape":
 				return _button.mouse_default_cursor_shape
 	return null
+
+func _notification(what : int) -> void:
+	super(what)
+	match what:
+		NOTIFICATION_READY:
+			colors = [normal_color, focus_color, disabled_color]
+			force_color(2 if _disabled else (1 if button_pressed else 0))
 #endregion
 
 

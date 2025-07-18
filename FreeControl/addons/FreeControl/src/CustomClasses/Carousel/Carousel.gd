@@ -40,20 +40,21 @@ enum ANIMATION_TYPE {
 ## The index of the item this carousel will start at.
 @export var starting_index : int = 0:
 	set(val):
-		if !allow_loop:
+		if !allow_loop && is_node_ready():
 			val = clampi(val, 0, _item_count - 1)
 		
 		if starting_index != val:
 			starting_index = val
-			go_to_index(val, false)
+			go_to_index(starting_index, false)
 ## The size of each item in the carousel.
 @export var item_size : Vector2 = Vector2(200, 200):
 	set(val):
 		if item_size != val:
-			var current_index := get_carousel_index()
 			item_size = val
-			_settup_children()
-			go_to_index(current_index, false)
+			
+			if is_node_ready():
+				_settup_children()
+				go_to_index(get_carousel_index(), false)
 ## The space between each item in the carousel.
 @export_range(0, 100, 1, "or_less", "or_greater", "suffix:px") var item_seperation : int = 0:
 	set(val):
@@ -81,7 +82,7 @@ enum ANIMATION_TYPE {
 		if val != allow_loop:
 			allow_loop = val
 			
-			if !allow_loop:
+			if !allow_loop && is_node_ready():
 				var current_index := get_carousel_index()
 				
 				current_index = clampi(current_index, 0, _item_count - 1)
@@ -229,8 +230,6 @@ var _mouse_checking : bool
 #region Private Virtual Methods
 func _init() -> void:
 	_angle_vec = Vector2.RIGHT.rotated(deg_to_rad(carousel_angle))
-func _ready() -> void:
-	_settup_children()
 
 func _validate_property(property: Dictionary) -> void:
 	if property.name == "enforce_border":
@@ -254,6 +253,9 @@ func _validate_property(property: Dictionary) -> void:
 
 func _notification(what : int) -> void:
 	match what:
+		NOTIFICATION_READY:
+			_settup_children()
+			go_to_index(starting_index, false)
 		NOTIFICATION_EXIT_TREE:
 			_end_drag_slowdown()
 		NOTIFICATION_MOUSE_EXIT:
@@ -316,9 +318,6 @@ func _get_child_rect(child : Control) -> Rect2:
 		SIZE_SHRINK_BEGIN: pass
 		SIZE_SHRINK_CENTER: child_pos.y += (item_size.y - child_size.y) * 0.5
 		SIZE_SHRINK_END: child_pos.y += (item_size.y - child_size.y)
-	
-	child.size = child_size
-	child.position = child_pos
 	
 	return Rect2(child_pos, child_size)
 func _get_control_children() -> Array[Control]:

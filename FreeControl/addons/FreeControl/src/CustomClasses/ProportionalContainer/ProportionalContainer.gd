@@ -66,8 +66,6 @@ var _ignore_resize : bool
 func _init() -> void:
 	layout_mode = 0
 	clip_contents = false
-func _ready() -> void:
-	_sort_children()
 
 func _get_minimum_size() -> Vector2:
 	return _min_size
@@ -88,7 +86,7 @@ func _validate_property(property: Dictionary) -> void:
 
 func _notification(what : int) -> void:
 	match what:
-		NOTIFICATION_SORT_CHILDREN:
+		NOTIFICATION_READY, NOTIFICATION_SORT_CHILDREN:
 			_sort_children()
 
 func _get_allowed_size_flags_horizontal() -> PackedInt32Array:

@@ -85,11 +85,6 @@ func _init() -> void:
 	_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_panel.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	add_child(_panel)
-func _ready() -> void:
-	if background:
-		_panel.add_theme_stylebox_override("panel", background)
-		return
-	background = _panel.get_theme_stylebox("panel")
 
 func _get_minimum_size() -> Vector2:
 	if clip_contents:
@@ -108,6 +103,11 @@ func _property_can_revert(property: StringName) -> bool:
 
 func _notification(what : int) -> void:
 	match what:
+		NOTIFICATION_READY:
+			if background:
+				_panel.add_theme_stylebox_override("panel", background)
+				return
+			background = _panel.get_theme_stylebox("panel")
 		NOTIFICATION_SORT_CHILDREN:
 			_sort_children()
 #endregion

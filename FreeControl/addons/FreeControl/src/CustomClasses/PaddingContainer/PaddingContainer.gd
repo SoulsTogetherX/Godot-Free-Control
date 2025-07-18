@@ -83,9 +83,6 @@ var child_offset_bottom : int = 0:
 
 
 #region Private Virtual Methods
-func _ready() -> void:
-	_sort_children()
-
 func _get_minimum_size() -> Vector2:
 	if !minimum_size || clip_contents:
 		return Vector2.ZERO
@@ -217,6 +214,8 @@ func _property_get_revert(property: StringName) -> Variant:
 
 func _notification(what : int) -> void:
 	match what:
+		NOTIFICATION_READY:
+			_sort_children()
 		NOTIFICATION_SORT_CHILDREN:
 			_sort_children()
 #endregion

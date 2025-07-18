@@ -30,9 +30,6 @@ var _queued_sort : bool
 
 
 #region Private Virtual Methods
-func _ready() -> void:
-	_add_all_children()
-
 func _get_minimum_size() -> Vector2:
 	if clip_contents:
 		return Vector2.ZERO
@@ -54,6 +51,8 @@ func _get_configuration_warnings() -> PackedStringArray:
 
 func _notification(what : int) -> void:
 	match what:
+		NOTIFICATION_READY:
+			_add_all_children()
 		NOTIFICATION_RESIZED, NOTIFICATION_THEME_CHANGED:
 			queue_sort()
 		NOTIFICATION_VISIBILITY_CHANGED:
