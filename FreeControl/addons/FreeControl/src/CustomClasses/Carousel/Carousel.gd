@@ -40,56 +40,63 @@ enum ANIMATION_TYPE {
 ## The index of the item this carousel will start at.
 @export var starting_index : int = 0:
 	set(val):
-		if !allow_loop && is_node_ready():
-			val = clampi(val, 0, _item_count - 1)
-		
-		if starting_index != val:
+		if !_item_infos.is_empty():
+			val = posmod(val, _item_infos.size())
+		if val != starting_index:
 			starting_index = val
-			go_to_index(starting_index, false)
+			
+			if is_node_ready():
+				go_to_index(starting_index, false)
 ## The size of each item in the carousel.
 @export var item_size : Vector2 = Vector2(200, 200):
 	set(val):
-		if item_size != val:
-			item_size = val
-			
+		if val != item_size:
 			if is_node_ready():
-				_settup_children()
-				go_to_index(get_carousel_index(), false)
+				var old_axis := _get_relevant_axis()
+				item_size = val
+				var new_axis := _get_relevant_axis()
+				
+				_scroll_delta = (_scroll_delta * new_axis) / old_axis
+				_max_scroll = new_axis * _item_infos.size()
+				
+				queue_sort()
+				return
+			
+			item_size = val
 ## The space between each item in the carousel.
 @export_range(0, 100, 1, "or_less", "or_greater", "suffix:px") var item_seperation : int = 0:
 	set(val):
-		if item_seperation != val:
+		if val != item_seperation:
+			if is_node_ready():
+				var old_axis := _get_relevant_axis()
+				var new_axis := old_axis - item_seperation + val
+				item_seperation = val
+				
+				_scroll_delta = (_scroll_delta * new_axis) / old_axis
+				_max_scroll = new_axis * _item_infos.size()
+				_adjust_children()
+				return
+			
 			item_seperation = val
-			_kill_animation()
-			_adjust_children()
 ## The orientation the carousel items will be displayed in.
 @export_range(0, 360, 0.001, "or_less", "or_greater", "suffix:deg") var carousel_angle : float = 0.0:
 	set(val):
-		if carousel_angle != val:
-			var current_index := get_carousel_index()
+		if val != carousel_angle:
+			if is_node_ready():
+				var old_axis := _get_relevant_axis()
+				carousel_angle = val
+				var new_axis := _get_relevant_axis()
+				
+				_scroll_delta = (_scroll_delta * new_axis) / old_axis
+				_max_scroll = new_axis * _item_infos.size()
+				_adjust_children()
+				return
 			
 			carousel_angle = val
-			_angle_vec = Vector2.RIGHT.rotated(deg_to_rad(carousel_angle))
-			
-			_kill_animation()
-			_adjust_children()
-			go_to_index(current_index, false)
 
 @export_group("Loop Options")
 ## Allows looping from the last item to the first and vice versa.
-@export var allow_loop : bool = true:
-	set(val):
-		if val != allow_loop:
-			allow_loop = val
-			
-			if !allow_loop && is_node_ready():
-				var current_index := get_carousel_index()
-				
-				current_index = clampi(current_index, 0, _item_count - 1)
-				go_to_index(current_index, false)
-				
-				if Engine.is_editor_hint():
-					starting_index = current_index
+@export var allow_loop : bool = true
 ## If [code]true[/code], the carousel will display it's items as if looping. Otherwise, the items will not loop.
 ## [br][br]
 ## also see [member enforce_border] and [member border_limit].
@@ -97,33 +104,25 @@ enum ANIMATION_TYPE {
 	set(val):
 		if val != display_loop:
 			display_loop = val
-			_adjust_children()
-			notify_property_list_changed()
+			
+			if is_node_ready():
+				_adjust_children()
 ## The number of items, surrounding the current item of the current index, that will be visible.
 ## If [code]-1[/code], all items will be visible.
-@export var display_range : int = -1:
+@export_range(-1, 10, 1, "or_greater") var display_range : int = -1:
 	set(val):
-		val = max(-1, val)
+		val = maxi(val, -1)
 		if val != display_range:
 			display_range = val
-			_adjust_children()
+			
+			if is_node_ready():
+				_adjust_children()
 
 @export_group("Snap")
 ## Assigns the behavior of how draging scrolls the carousel items. Also see [member snap_carousel_transtion_type], [member snap_carousel_ease_type], and [member paging_requirement].
-@export var snap_behavior : SNAP_BEHAVIOR = SNAP_BEHAVIOR.SNAP:
-	set(val):
-		if val != snap_behavior:
-			snap_behavior = val
-			_end_drag_slowdown()
-			_create_animation(get_carousel_index(), ANIMATION_TYPE.SNAP)
-			notify_property_list_changed()
+@export var snap_behavior : SNAP_BEHAVIOR = SNAP_BEHAVIOR.SNAP
 ## If [member snap_behavior] is [SNAP_BEHAVIOR.PAGING], this is the draging threshold needed to page to the next carousel item.
-@export_range(0, 100, 1, "or_greater", "hide_slider", "suffix:px") var paging_requirement : int = 200:
-	set(val):
-		val = max(1, val)
-		if val != paging_requirement:
-			paging_requirement = val
-			_adjust_children()
+@export_range(0, 100, 1, "or_greater", "hide_slider", "suffix:px") var paging_requirement : int = 200
 
 @export_group("Animation Options")
 @export_subgroup("Manual")
@@ -144,56 +143,28 @@ enum ANIMATION_TYPE {
 
 @export_group("Drag")
 ## If [code]true[/code], the user is allowed to drag via their mouse or touch.
-@export var can_drag : bool = true:
-	set(val):
-		if val != can_drag:
-			can_drag = val
-			notify_property_list_changed()
-			if !val:
-				_drag_scroll_value = 0
-				if _is_dragging:
-					_adjust_children()
+@export var can_drag : bool = true
 ## If [code]true[/code], the user is allowed to drag outisde the drawer's bounding box.
 ## [br][br]
 ## Also see [member can_drag].
-@export var drag_outside : bool = false:
-	set(val):
-		if val != drag_outside:
-			drag_outside = val
+@export var drag_outside : bool = false
 @export_subgroup("Limits")
 ## The max amount a user can drag in either direction. If [code]0[/code], then the user can drag any amount they wish.
-@export_range(0, 100, 1, "or_less", "or_greater", "suffix:px") var drag_limit : int = 0:
-	set(val):
-		val = max(0, val)
-		if val != drag_limit: drag_limit = val
+@export_range(0, 100, 1, "or_less", "or_greater", "suffix:px") var drag_limit : int = 0
 ## When dragging, the user will not be able to move past the last or first item, besides for [member border_limit] number of extra pixels.
 ## [br][br]
 ## This value is assumed [code]false[/code] is [member display_loop] is [code]true[/code].
-@export var enforce_border : bool = false:
-	set(val):
-		if val != enforce_border:
-			enforce_border = val
-			_adjust_children()
-			notify_property_list_changed()
+@export var enforce_border : bool = false
 ## The amount of extra pixels a user can drag past the last and before the first item in the carousel.
 ## [br][br]
 ## This property does nothing if enforce_border is [code]false[/code].
-@export_range(0, 100, 1, "or_less", "or_greater", "suffix:px") var border_limit : int = 0:
-	set(val):
-		if val != border_limit:
-			border_limit = val
-			_adjust_children()
+@export_range(0, 100, 1, "or_less", "or_greater", "suffix:px") var border_limit : int = 0
 
 @export_subgroup("Slowdown")
 ## If [code]true[/code] the carousel will immediately stop when not being dragged. Otherwise, drag speed will be gradually decreased.
 ## [br][br]
 ## This property is assumed [code]true[/code] if [member snap_behavior] is set to [SNAP_BEHAVIOR.PAGING]. Also see [member slowdown_drag], [member slowdown_friction], and [member slowdown_cutoff].
-@export var hard_stop : bool = true:
-	set(val):
-		if val != hard_stop:
-			hard_stop = val
-			_end_drag_slowdown()
-			notify_property_list_changed()
+@export var hard_stop : bool = true
 ## The percentage multiplier the drag velocity will experience each frame.
 ## [br][br]
 ## This property does nothing if [member hard_stop] is [code]true[/code].
@@ -210,27 +181,17 @@ enum ANIMATION_TYPE {
 
 
 #region Private Variables
-var _scroll_value : int
-var _drag_scroll_value : int
-var _drag_velocity : float
-
-var _item_count : int = 0
-var _item_infos : Array
-
+var _max_scroll : int
+var _scroll_delta : int
 var _scroll_tween : Tween
-var _is_dragging : bool = false
 
-var _last_animation : ANIMATION_TYPE = ANIMATION_TYPE.NONE
+var _index : int
 
-var _angle_vec : Vector2
-var _mouse_checking : bool
+var _item_infos : Array[ItemInfo]
 #endregion
 
 
 #region Private Virtual Methods
-func _init() -> void:
-	_angle_vec = Vector2.RIGHT.rotated(deg_to_rad(carousel_angle))
-
 func _validate_property(property: Dictionary) -> void:
 	if property.name == "enforce_border":
 		if display_loop:
@@ -256,36 +217,15 @@ func _notification(what : int) -> void:
 		NOTIFICATION_READY:
 			_settup_children()
 			go_to_index(starting_index, false)
-		NOTIFICATION_EXIT_TREE:
-			_end_drag_slowdown()
-		NOTIFICATION_MOUSE_EXIT:
-			_mouse_check()
-		NOTIFICATION_SORT_CHILDREN, NOTIFICATION_CHILD_ORDER_CHANGED:
+		#NOTIFICATION_EXIT_TREE:
+		#	_end_drag_slowdown()
+		#NOTIFICATION_MOUSE_EXIT:
+		#	_mouse_check()
+		NOTIFICATION_SORT_CHILDREN:
 			_sort_children()
 
 func _gui_input(event: InputEvent) -> void:
-	var has_point := get_viewport_rect().has_point(event.position)
-	
-	if (
-		(event is InputEventScreenDrag || event is InputEventMouseMotion) &&
-		(drag_outside || has_point)
-	):
-		if event.pressure == 0:
-			if _is_dragging:
-				_on_drag_release()
-			return
-		
-		if !_is_dragging && has_point:
-			drag_begin.emit()
-			_mouse_checking = true
-			_end_drag_slowdown()
-			_kill_animation()
-		_is_dragging = true
-		
-		_handle_drag_angle(event.relative)
-	elif (event is InputEventScreenTouch || event is InputEventMouseButton):
-		if !event.pressed:
-			_on_drag_release()
+	pass
 
 func _get_allowed_size_flags_horizontal() -> PackedInt32Array:
 	return [SIZE_FILL, SIZE_SHRINK_BEGIN, SIZE_SHRINK_CENTER, SIZE_SHRINK_END]
@@ -296,348 +236,223 @@ func _get_allowed_size_flags_vertical() -> PackedInt32Array:
 
 #region Custom Virtual Methods
 ## A virtual function that is is called whenever the scroll changes.
-func _on_progress(scroll : int) -> void: pass
-## A virtual function that is is called whenever the scroll changes, for each visible item in the carousel
-func _on_item_progress(item : Control, local_scroll : int, scroll : int, local_index : int, index : int) -> void: pass
+func _on_progress(scroll : int) -> void:
+	pass
+## A virtual function that is is called whenever the scroll changes, for each visible
+## item in the carousel.
+## [br][br]
+## [param item] is the item that is being operated on.[br]
+## [param index] is the index of the item in the scene tree, compared to another
+## [Control] nodes. (see [method get_carousel_index])[br]
+## [param local_index] is the index relative to the currently-viewed index
+## (is the same as [param index] if [member display_loop] is [code]false[/code]).[br]
+## [param scroll] is the current scroll.[br]
+## [param scroll_offset] is the current scroll offset between the current and the next index.
+func _on_item_progress(item : Control, index : int, local_index : int, scroll : int, scroll_offset : int) -> void:
+	pass
 #endregion
 
 
-#region Private Methods
+#region Private Methods (Helper Methods)
 func _get_child_rect(child : Control) -> Rect2:
-	var child_pos : Vector2 = (size - item_size) * 0.5
+	var child_pos : Vector2
 	var child_size : Vector2
+	var min_size := child.get_combined_minimum_size()
 	
-	child_size = child.get_combined_minimum_size()
 	match child.size_flags_horizontal:
 		SIZE_FILL:
+			child_pos.x = (size.x - item_size.x) * 0.5
 			child_size.x = item_size.x
 		SIZE_SHRINK_BEGIN:
-			pass
+			child_pos.x = (size.x - item_size.x) * 0.5
 		SIZE_SHRINK_CENTER:
-			child_pos.x += (item_size.x - child_size.x) * 0.5
+			child_pos.x = (size.x - min_size.x) * 0.5
 		SIZE_SHRINK_END:
-			child_pos.x += (item_size.x - child_size.x)
+			child_pos.x = (size.x + item_size.x) * 0.5 - min_size.x
 	match child.size_flags_vertical:
 		SIZE_FILL:
+			child_pos.y = (size.y - item_size.y) * 0.5
 			child_size.y = item_size.y
 		SIZE_SHRINK_BEGIN:
-			pass
+			child_pos.y = (size.y - item_size.y) * 0.5
 		SIZE_SHRINK_CENTER:
-			child_pos.y += (item_size.y - child_size.y) * 0.5
+			child_pos.y = (size.y - min_size.y) * 0.5
 		SIZE_SHRINK_END:
-			child_pos.y += (item_size.y - child_size.y)
+			child_pos.y = (size.y + item_size.y) * 0.5 - min_size.y
 	
 	return Rect2(child_pos, child_size)
 func _get_control_children() -> Array[Control]:
 	var ret : Array[Control]
 	ret.assign(get_children().filter(func(child : Node): return child is Control))
 	return ret
+
 func _get_relevant_axis() -> int:
-	var angle_mod := (PI - absf(2 * fposmod(_angle_vec.angle(), PI) - PI)) * 0.5
+	var angle_mod := deg_to_rad((180 - absf(2 * fposmod(carousel_angle, 180) - 180)) * 0.5)
 	var d_vec := Vector2(
 		item_size.y / tan(angle_mod),
 		item_size.x * tan(angle_mod)
 	).min(item_size)
 	
 	return d_vec.length() + item_seperation
-func _get_adjusted_scroll() -> int:
-	var scroll := _scroll_value
-	if snap_behavior != SNAP_BEHAVIOR.PAGING:
-		scroll += _drag_scroll_value
-	if enforce_border:
-		scroll = clampi(scroll, -border_limit, _get_relevant_axis() * (_item_count - 1) + border_limit)
-	elif display_loop:
-		scroll = posmod(scroll, _get_relevant_axis() * _item_count)
-	return scroll
+
+func _reconfigure_scroll() -> void:
+	_scroll_delta = get_scroll(true)
+#endregion
 
 
-
-func _handle_drag_angle(local_pos : Vector2) -> void:
-	var projected_scalar : float = -local_pos.dot(_angle_vec) / _angle_vec.length_squared()
-	_drag_velocity = projected_scalar
-	_drag_scroll_value += projected_scalar
-	
-	if drag_limit != 0:
-		_drag_scroll_value = clampi(_drag_scroll_value, -drag_limit, drag_limit)
-	
-	if snap_behavior == SNAP_BEHAVIOR.PAGING:
-		if paging_requirement < _drag_scroll_value:
-			_drag_scroll_value = 0
-			var desired := get_carousel_index() + 1
-			if allow_loop || desired < _item_count:
-				_create_animation(desired, ANIMATION_TYPE.SNAP)
-		elif -paging_requirement > _drag_scroll_value:
-			_drag_scroll_value = 0
-			var desired := get_carousel_index() - 1
-			if allow_loop || desired >= 0:
-				_create_animation(desired, ANIMATION_TYPE.SNAP)
-	else:
-		_adjust_children()
-
-
-func _create_animation(idx : int, animation_type : ANIMATION_TYPE) -> void:
-	_kill_animation()
-	if _item_count == 0:
-		return
-	_scroll_tween = create_tween()
-	
-	var axis := _get_relevant_axis()
-	var max_scroll := axis * _item_count
-	if max_scroll == 0: max_scroll = 1
-	
-	var desired_scroll := posmod(axis * idx, max_scroll)
-	
-	if allow_loop && display_loop:
-		_scroll_value = posmod(_scroll_value, max_scroll)
-		if abs(_scroll_value - desired_scroll) > (max_scroll >> 1):
-			var left_distance := posmod(_scroll_value - desired_scroll, max_scroll)
-			var right_distance := posmod(desired_scroll - _scroll_value, max_scroll)
-		
-			if left_distance < right_distance:
-				desired_scroll -= max_scroll
-			else:
-				desired_scroll += max_scroll
-	
-	_last_animation = animation_type
-	match animation_type:
-		ANIMATION_TYPE.MANUAL:
-			_scroll_tween.set_ease(manual_carousel_ease_type)
-			_scroll_tween.set_trans(manual_carousel_transtion_type)
-			_scroll_tween.tween_method(
-				_animation_method,
-				_scroll_value,
-				desired_scroll,
-				manual_carousel_duration)
-		ANIMATION_TYPE.SNAP:
-			snap_begin.emit()
-			_scroll_tween.set_ease(snap_carousel_ease_type)
-			_scroll_tween.set_trans(snap_carousel_transtion_type)
-			_scroll_tween.tween_method(
-				_animation_method,
-				_scroll_value,
-				desired_scroll,
-				snap_carousel_duration)
-			_scroll_tween.tween_callback(_kill_animation)
-	_scroll_tween.play()
-func _animation_method(scroll : int) -> void:
-	_scroll_value = scroll
-	_adjust_children()
+#region Private Methods (Animation Methods)
 func _kill_animation() -> void:
-	if _last_animation == ANIMATION_TYPE.SNAP:
-		snap_end.emit()
-	_last_animation = ANIMATION_TYPE.NONE
-	
 	if _scroll_tween && _scroll_tween.is_running():
 		_scroll_tween.kill()
+		_on_animation_finished()
+func _on_animation_finished() -> void:
+	_reconfigure_scroll()
+func _create_animation(idx : int, animation_type : ANIMATION_TYPE) -> void:
+	_kill_animation()
+	if _item_infos.is_empty():
+		return
+	
+	# Gathering Variables
+	var axis_distance := _get_relevant_axis()
+	var desired_scroll := axis_distance * idx % _max_scroll
+	
+	# Checks if it needs to loop around, and which way it needs to loop if so.
+	if allow_loop && display_loop:
+		# Loops if distance is shorter when looping
+		if absi(_scroll_delta - desired_scroll) > (_max_scroll >> 1):
+			var left_distance := posmod(_scroll_delta - desired_scroll, _max_scroll)
+			var right_distance := posmod(desired_scroll - _scroll_delta, _max_scroll)
+		
+			if left_distance < right_distance:
+				desired_scroll -= _max_scroll
+			else:
+				desired_scroll += _max_scroll
+	
+	# Starts tween
+	_scroll_tween = create_tween()
+	_scroll_tween.set_ease(manual_carousel_ease_type)
+	_scroll_tween.set_trans(manual_carousel_transtion_type)
+	_scroll_tween.tween_method(
+		_animation_method,
+		_scroll_delta,
+		desired_scroll,
+		manual_carousel_duration
+	)
+	
+	# Calls animation finish method
+	_scroll_tween.tween_callback(_on_animation_finished)
+func _animation_method(scroll : int) -> void:
+	_scroll_delta = scroll
+	_adjust_children()
+#endregion
 
 
+#region Private Methods (Sorter Methods)
 func _sort_children() -> void:
 	_settup_children()
 	_adjust_children()
 func _settup_children() -> void:
 	var children : Array[Control] = _get_control_children()
-	_item_count = children.size()
+	var item_count = children.size()
 	
-	_item_infos.resize(_item_count)
-	for i : int in range(0, _item_count):
+	_item_infos.resize(item_count)
+	_max_scroll = _get_relevant_axis() * item_count
+	
+	# Sets up the rect for each item
+	for i : int in range(0, item_count):
 		var item_info := ItemInfo.new()
+		
 		item_info.node = children[i]
 		item_info.rect = _get_child_rect(children[i])
+		
 		_item_infos[i] = item_info
 func _adjust_children() -> void:
-	if _item_count == 0:
+	if _item_infos.is_empty():
 		return
 	
-	var range : Array
-	var max_local_offset : int
-	var children : Array[Control] = _get_control_children()
-	var axis := _get_relevant_axis()
-	var scroll := _get_adjusted_scroll()
+	# Gathers variables
+	var axis_distance := _get_relevant_axis()
+	var axis_angle := Vector2.RIGHT.rotated(deg_to_rad(carousel_angle))
 	
-	var index : int
-	var local_scroll : int
-	var adjustment : int
+	var item_count := _item_infos.size()
 	
-	if axis == 0:
-		index = 0
-		local_scroll = 0
-		adjustment = 0
-	else:
-		index = int(scroll / axis)
-		local_scroll = fposmod(scroll, axis)
-		adjustment = int(scroll < 0)
+	var scroll := get_scroll(true)
+	var index_offset := int(scroll / axis_distance) % item_count
+	var scroll_offset := scroll % axis_distance
 	
-	index += adjustment & int(local_scroll == 0)
-	
+	# Calls custom virtual method
 	_on_progress(scroll)
 	
 	if display_loop:
-		if display_range == -1:
-			max_local_offset = (_item_count >> 1)
-			range = range(0, _item_count)
-			for i : int in range:
-				_item_infos[i].loaded = false
-		else:
-			max_local_offset = (display_range >> 1) 
-			range = range(0, (display_range << 1) + 1)
-			for i : int in range(0, _item_count):
-				var item_info : ItemInfo = _item_infos[i]
-				item_info.loaded = false
-				item_info.node.visible = false
-		
-		for item : int in range:
-			var local_offset := (item >> 1) * (((item & 1) << 1) - 1) + (item & 1)
-			var local_index := posmod(index + local_offset, _item_count)
-			var item_info : ItemInfo = _item_infos[local_index]
-			if item_info.loaded: break
+		var mid_index : int = floori(item_count * 0.5)
+		for idx : int in item_count:
+			var info := _item_infos[idx]
+			var offset_rect := info.rect
 			
-			local_offset += adjustment
-			var rect : Rect2 = item_info.rect
+			# Gets the local index of the item according to the loop
+			var local_index := posmod(idx - index_offset - mid_index, item_count) - mid_index
+			# Changes item visibility if outside range
+			info.node.visible = display_range == -1 || (absi(local_index) <= display_range)
 			
-			rect.position += _angle_vec * (local_offset * axis - local_scroll)
-			
-			fit_child_in_rect(item_info.node, rect)
-			item_info.loaded = true
-			item_info.node.visible = true
-			item_info.node.z_index = max_local_offset - abs(local_offset)
-			_on_item_progress(item_info.node, local_scroll, scroll, item, local_index)
+			offset_rect.position += axis_angle * (axis_distance * local_index - scroll_offset)
+			fit_child_in_rect(info.node, offset_rect)
+			_on_item_progress(info.node, idx, local_index, scroll, scroll_offset)
 	else:
-		if display_range == -1:
-			max_local_offset = (_item_count >> 1) + (_item_count & 1) + 1
-			range = range(0, _item_count)
-		else:
-			max_local_offset = display_range
-			range = range(max(0, index - display_range), min(_item_count, index + display_range + 1))
-			for info : ItemInfo in _item_infos:
-				info.node.visible = false
-		
-		for item : int in range:
-			var local_index := item + index
-			var item_info : ItemInfo = _item_infos[item]
+		for idx : int in item_count:
+			var info := _item_infos[idx]
+			var offset_rect := info.rect
 			
-			local_index -= adjustment
-			var rect : Rect2 = item_info.rect
+			# Changes item visibility if outside range
+			info.node.visible = display_range == -1 || (absi(idx - _index) <= display_range)
 			
-			rect.position += _angle_vec * (local_index * axis - local_scroll)
-			
-			fit_child_in_rect(item_info.node, rect)
-			item_info.node.visible = true
-			item_info.node.z_index = max_local_offset - abs(local_index)
-			_on_item_progress(item_info.node, local_scroll, scroll, item, local_index)
-
-func _start_drag_slowdown() -> void:
-	if is_inside_tree() && !get_tree().process_frame.is_connected(_handle_drag_slowdown):
-		get_tree().process_frame.connect(_handle_drag_slowdown)
-func _end_drag_slowdown() -> void:
-	if abs(_drag_velocity) < slowdown_cutoff:
-		slowdown_interupted.emit()
-		_drag_velocity = 0
-		if snap_behavior == SNAP_BEHAVIOR.SNAP:
-			_create_animation(get_carousel_index(), ANIMATION_TYPE.SNAP)
-	if is_inside_tree() && get_tree().process_frame.is_connected(_handle_drag_slowdown):
-		get_tree().process_frame.disconnect(_handle_drag_slowdown)
-func _handle_drag_slowdown() -> void:
-	if abs(_drag_velocity) < slowdown_cutoff:
-		slowdown_end.emit()
-		_end_drag_slowdown()
-		return
-	
-	if _drag_velocity > 0:
-		_drag_velocity = max(0, _drag_velocity - slowdown_friction)
-	else:
-		_drag_velocity = min(0, _drag_velocity + slowdown_friction)
-	_drag_velocity *= slowdown_drag
-	_scroll_value += _drag_velocity
-	_adjust_children()
-
-
-func _on_drag_release() -> void:
-	_mouse_checking = false
-	_is_dragging = false
-	drag_end.emit()
-	
-	if snap_behavior != SNAP_BEHAVIOR.PAGING:
-		_scroll_value = _get_adjusted_scroll()
-		_drag_scroll_value = 0
-		if snap_behavior == SNAP_BEHAVIOR.NONE:
-			if !hard_stop: _start_drag_slowdown()
-		elif snap_behavior == SNAP_BEHAVIOR.SNAP:
-			if hard_stop: _create_animation(get_carousel_index(), ANIMATION_TYPE.SNAP)
-			else: _start_drag_slowdown()
-func _mouse_check() -> void:
-	if _mouse_checking:
-		_on_drag_release()
+			offset_rect.position += axis_angle * (axis_distance * (idx - index_offset) - scroll_offset)
+			fit_child_in_rect(info.node, offset_rect)
+			_on_item_progress(info.node, idx, idx, scroll, scroll_offset)
  #endregion
 
 
 #region Public Methods
-## Gets the index of the current carousel item.[br]
-## If [param with_drag] is [code]true[/code] the current drag will also be considered.[br]
-## If [param with_clamp] is [code]true[/code] the index will be looped if [member allow_loop] is true or clamped to a vaild index within the carousel.
-func get_carousel_index(with_drag : bool = false, with_clamp : bool = true) -> int:
-	if _item_count == 0:
-		return -1
-	
-	var scroll : int = _scroll_value
-	if with_drag:
-		scroll += _drag_scroll_value
-	
-	var calculated := floori((float(scroll) / float(_get_relevant_axis())) + 0.5)
-	if with_clamp:
-		if allow_loop:
-			calculated = posmod(calculated, _item_count)
-		else:
-			calculated = clampi(calculated, 0, _item_count - 1)
-	
-	return calculated
+func get_carousel_index() -> int:
+	return _index
+func get_current_carousel_index(with_drag : bool = false, with_clamp : bool = true) -> int:
+	return -1
+
 ## Moves to an item of the given index within the carousel. If an invalid index is given, it will be posmod into a vaild index.
 func go_to_index(idx : int, animation : bool = true) -> void:
-	if _item_count == 0:
+	if _item_infos.is_empty():
 		return
 	
-	if allow_loop:
-		idx = posmod(idx, _item_count)
-	else:
-		idx = clampi(idx, 0, _item_count - 1)
+	var item_count := _item_infos.size()
+	_index = posmod(idx, item_count) if allow_loop else clampi(idx, 0, item_count - 1)
 	
 	if animation:
-		_create_animation(idx, ANIMATION_TYPE.MANUAL)
-	else:
-		_kill_animation()
-		_scroll_value = -_get_relevant_axis() * idx
-		_adjust_children()
+		_create_animation(_index, ANIMATION_TYPE.MANUAL)
+		return
+	_scroll_delta = _get_relevant_axis() * _index
+	_adjust_children()
 ## Moves to the previous item in the carousel, if there is one.
 func prev(animation : bool = true) -> void:
-	go_to_index(get_carousel_index() - 1, animation)
+	go_to_index(_index - 1, animation)
 ## Moves to the next item in the carousel, if there is one.
 func next(animation : bool = true) -> void:
-	go_to_index(get_carousel_index() + 1, animation)
+	go_to_index(_index + 1, animation)
+
 ## Enacts a manual drag on the carousel. This can be used even if [member can_drag] is [code]false[/code].
 ## Note that [param from] and [param dir] are considered in local coordinates.
 ## [br][br]
 ## Is not affected by [member hard_stop], [member drag_outside], and [member drag_limit].
 func flick(from : Vector2, dir : Vector2) -> void:
-	drag_begin.emit()
-	_kill_animation()
-	_end_drag_slowdown()
-	
-	_handle_drag_angle(dir - from)
-	
-	_on_drag_release()
+	pass
 ## Returns if the carousel is currening scrolling via na animation
 func is_animating() -> bool:
-	return _scroll_tween.is_running()
+	return false
 ## Returns if the carousel is currening being dragged by player input.
 func being_dragged() -> bool:
-	return _is_dragging
-## Returns the current scroll value.
+	return false
+
+## Returns the current scroll delta.
 func get_scroll(with_drag : bool = false) -> int:
-	if with_drag:
-		return _scroll_value + _drag_scroll_value
-	return _scroll_value
-## Returns the current number of items in the carousel
-func get_item_count() -> int:
-	return _item_count
+	return posmod(_scroll_delta, _max_scroll)
 #endregion
 
 
@@ -646,7 +461,6 @@ func get_item_count() -> int:
 class ItemInfo:
 	var node : Control
 	var rect : Rect2
-	var loaded : bool
 #endregion
 
 # Made by Xavier Alvarez. A part of the "FreeControl" Godot addon.

@@ -214,37 +214,65 @@ func _property_get_revert(property: StringName) -> Variant:
 
 func _notification(what : int) -> void:
 	match what:
-		NOTIFICATION_READY:
+		NOTIFICATION_READY, NOTIFICATION_SORT_CHILDREN:
 			_sort_children()
-		NOTIFICATION_SORT_CHILDREN:
-			_sort_children()
+
+func _get_allowed_size_flags_horizontal() -> PackedInt32Array:
+	return [SIZE_SHRINK_BEGIN, SIZE_FILL, SIZE_SHRINK_CENTER, SIZE_SHRINK_END]
+func _get_allowed_size_flags_vertical() -> PackedInt32Array:
+	return [SIZE_SHRINK_BEGIN, SIZE_FILL, SIZE_SHRINK_CENTER, SIZE_SHRINK_END]
 #endregion
 
 
 #region Private Methods
 func _sort_children() -> void:
+	var rect := get_padding_rect()
+	
 	for child in get_children():
 		if child is Control:
-			child.set_anchor_and_offset(
-				SIDE_LEFT,
-				child_anchor_left,
-				child_offset_left
-			)
-			child.set_anchor_and_offset(
-				SIDE_TOP,
-				child_anchor_top,
-				child_offset_top
-			)
-			child.set_anchor_and_offset(
-				SIDE_RIGHT,
-				child_anchor_right,
-				-child_offset_right
-			)
-			child.set_anchor_and_offset(
-				SIDE_BOTTOM,
-				child_anchor_bottom,
-				-child_offset_bottom
-			)
+			_sort_child(child, rect)
+func _sort_child(child : Control, rect : Rect2) -> void:
+	var min_size := child.get_combined_minimum_size()
+	
+	match child.size_flags_horizontal:
+		SIZE_SHRINK_BEGIN:
+			rect.size.x = min_size.x
+		SIZE_SHRINK_CENTER:
+			rect.position.x += (rect.size.x - min_size.x) * 0.5
+			rect.size.x = min_size.x
+		SIZE_SHRINK_END:
+			rect.position.x += (rect.size.x - min_size.x)
+			rect.size.x = min_size.x
+	
+	match child.size_flags_vertical:
+		SIZE_SHRINK_BEGIN:
+			rect.size.y = min_size.y
+		SIZE_SHRINK_CENTER:
+			rect.position.y += (rect.size.y - min_size.y) * 0.5
+			rect.size.y = min_size.y
+		SIZE_SHRINK_END:
+			rect.position.y += (rect.size.y - min_size.y)
+			rect.size.y = min_size.y
+	
+	fit_child_in_rect(child, rect)
+#endregion
+
+
+#region Private Methods
+func get_padding_rect() -> Rect2:
+	var ret_pos : Vector2
+	var ret_size : Vector2
+	
+	ret_pos = Vector2(
+		(size.x * child_anchor_left) + child_offset_left,
+		(size.y * child_anchor_top) + child_offset_top
+	)
+	ret_size = Vector2(
+		size.x * (child_anchor_right - child_anchor_left) - (child_offset_right + child_offset_left),
+		size.y * (child_anchor_bottom - child_anchor_top) - (child_offset_bottom + child_offset_top)
+	)
+	
+	return Rect2(ret_pos, ret_size)
 #endregion
 
 # Made by Xavier Alvarez. A part of the "FreeControl" Godot addon.
