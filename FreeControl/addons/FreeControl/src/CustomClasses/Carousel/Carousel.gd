@@ -4,18 +4,32 @@ class_name Carousel extends Container
 ## A container for Carousel Display of [Control] nodes.
 
 #region Signals
-## This signal is emited when a snap reaches it's destination.
-signal snap_end
+## 
+signal animation_begin
+## 
+signal animation_end
+
+## 
+signal manual_begin
+## 
+signal manual_end
+
 ## This signal is emited when a snap begins.
 signal snap_begin
-## This signal is emited when a drag finishes. This does not include the slowdown caused when [member hard_stop] is [code]false[/code].
-signal drag_end
+## This signal is emited when a snap reaches it's destination.
+signal snap_end
+
 ## This signal is emited when a drag begins.
 signal drag_begin
-## This signal is emited when the slowdown, caused when [member hard_stop] is [code]false[/code], finished naturally.
-signal slowdown_end
+## This signal is emited when a drag finishes. This does not include the slowdown caused when [member hard_stop] is [code]false[/code].
+signal drag_end
+
+##
+signal slowdown_start
 ## This signal is emited when the slowdown, caused when [member hard_stop] is [code]false[/code], is interrupted by another drag or other feature. 
 signal slowdown_interupted
+## This signal is emited when the slowdown, caused when [member hard_stop] is [code]false[/code], finished naturally.
+signal slowdown_end
 #endregion
 
 
@@ -52,9 +66,9 @@ enum ANIMATION_TYPE {
 	set(val):
 		if val != item_size:
 			if is_node_ready():
-				var old_axis := _get_relevant_axis()
+				var old_axis := get_item_distance()
 				item_size = val
-				var new_axis := _get_relevant_axis()
+				var new_axis := get_item_distance()
 				
 				_scroll_delta = (_scroll_delta * new_axis) / old_axis
 				_max_scroll = new_axis * _item_infos.size()
@@ -68,7 +82,7 @@ enum ANIMATION_TYPE {
 	set(val):
 		if val != item_seperation:
 			if is_node_ready():
-				var old_axis := _get_relevant_axis()
+				var old_axis := get_item_distance()
 				var new_axis := old_axis - item_seperation + val
 				item_seperation = val
 				
@@ -83,9 +97,9 @@ enum ANIMATION_TYPE {
 	set(val):
 		if val != carousel_angle:
 			if is_node_ready():
-				var old_axis := _get_relevant_axis()
+				var old_axis := get_item_distance()
 				carousel_angle = val
-				var new_axis := _get_relevant_axis()
+				var new_axis := get_item_distance()
 				
 				_scroll_delta = (_scroll_delta * new_axis) / old_axis
 				_max_scroll = new_axis * _item_infos.size()
@@ -145,6 +159,7 @@ enum ANIMATION_TYPE {
 ## If [code]true[/code], the user is allowed to drag via their mouse or touch.
 @export var can_drag : bool = true
 ## If [code]true[/code], the user is allowed to drag outisde the drawer's bounding box.
+## Otherwise, drag is auto cancled.
 ## [br][br]
 ## Also see [member can_drag].
 @export var drag_outside : bool = false
@@ -185,6 +200,11 @@ var _max_scroll : int
 var _scroll_delta : int
 var _scroll_tween : Tween
 
+var _drag_scroll_delta : int
+var _is_dragging : bool
+
+var _drag_velocity : float
+
 var _index : int
 
 var _item_infos : Array[ItemInfo]
@@ -212,6 +232,7 @@ func _validate_property(property: Dictionary) -> void:
 		if !can_drag:
 			property.usage |= PROPERTY_USAGE_READ_ONLY
 
+
 func _notification(what : int) -> void:
 	match what:
 		NOTIFICATION_READY:
@@ -219,13 +240,29 @@ func _notification(what : int) -> void:
 			go_to_index(starting_index, false)
 		#NOTIFICATION_EXIT_TREE:
 		#	_end_drag_slowdown()
-		#NOTIFICATION_MOUSE_EXIT:
-		#	_mouse_check()
+		NOTIFICATION_MOUSE_EXIT:
+			_outside_drag_check()
 		NOTIFICATION_SORT_CHILDREN:
 			_sort_children()
 
+
 func _gui_input(event: InputEvent) -> void:
-	pass
+	if (event is InputEventScreenDrag || event is InputEventMouseMotion):
+		if _is_dragging:
+			if event.pressure == 0:
+				_end_drag()
+				return
+			
+			_handle_drag_angle(event.relative)
+	elif (event is InputEventScreenTouch || event is InputEventMouseButton):
+		if event.pressed:
+			if !drag_outside && !get_viewport_rect().has_point(event.position):
+				return
+			
+			_start_drag()
+			return
+		_end_drag()
+
 
 func _get_allowed_size_flags_horizontal() -> PackedInt32Array:
 	return [SIZE_FILL, SIZE_SHRINK_BEGIN, SIZE_SHRINK_CENTER, SIZE_SHRINK_END]
@@ -286,14 +323,6 @@ func _get_control_children() -> Array[Control]:
 	ret.assign(get_children().filter(func(child : Node): return child is Control))
 	return ret
 
-func _get_relevant_axis() -> int:
-	var angle_mod := deg_to_rad((180 - absf(2 * fposmod(carousel_angle, 180) - 180)) * 0.5)
-	var d_vec := Vector2(
-		item_size.y / tan(angle_mod),
-		item_size.x * tan(angle_mod)
-	).min(item_size)
-	
-	return d_vec.length() + item_seperation
 
 func _reconfigure_scroll() -> void:
 	_scroll_delta = get_scroll(true)
@@ -313,7 +342,7 @@ func _create_animation(idx : int, animation_type : ANIMATION_TYPE) -> void:
 		return
 	
 	# Gathering Variables
-	var axis_distance := _get_relevant_axis()
+	var axis_distance := get_item_distance()
 	var desired_scroll := axis_distance * idx % _max_scroll
 	
 	# Checks if it needs to loop around, and which way it needs to loop if so.
@@ -347,6 +376,51 @@ func _animation_method(scroll : int) -> void:
 #endregion
 
 
+#region Private Methods (Drag Methods)
+func _handle_drag_angle(local_pos : Vector2) -> void:
+	var angle_vec := Vector2.RIGHT.rotated(deg_to_rad(carousel_angle))
+	var projected_scalar := -local_pos.dot(angle_vec) / angle_vec.length_squared()
+	
+	_drag_velocity = projected_scalar
+	
+	if drag_limit == 0:
+		_drag_scroll_delta += projected_scalar
+	else:
+		_drag_scroll_delta = clampi(_drag_scroll_delta + projected_scalar, -drag_limit, drag_limit)
+	
+	_adjust_children()
+
+
+func _start_drag() -> void:
+	if _is_dragging:
+		return
+	
+	_end_drag_slowdown()
+	_kill_animation()
+	_is_dragging = true
+func _end_drag() -> void:
+	if !_is_dragging:
+		return
+	
+	_is_dragging = false
+
+
+func _outside_drag_check() -> void:
+	if !drag_outside && _is_dragging:
+		_end_drag()
+#endregion
+
+
+#region Private Methods (Slowdown Methods)
+func _start_drag_slowdown() -> void:
+	pass
+func _end_drag_slowdown() -> void:
+	pass
+func _handle_drag_slowdown() -> void:
+	pass
+#endregion
+
+
 #region Private Methods (Sorter Methods)
 func _sort_children() -> void:
 	_settup_children()
@@ -356,7 +430,7 @@ func _settup_children() -> void:
 	var item_count = children.size()
 	
 	_item_infos.resize(item_count)
-	_max_scroll = _get_relevant_axis() * item_count
+	_max_scroll = get_item_distance() * item_count
 	
 	# Sets up the rect for each item
 	for i : int in range(0, item_count):
@@ -371,7 +445,7 @@ func _adjust_children() -> void:
 		return
 	
 	# Gathers variables
-	var axis_distance := _get_relevant_axis()
+	var axis_distance := get_item_distance()
 	var axis_angle := Vector2.RIGHT.rotated(deg_to_rad(carousel_angle))
 	
 	var item_count := _item_infos.size()
@@ -411,12 +485,7 @@ func _adjust_children() -> void:
  #endregion
 
 
-#region Public Methods
-func get_carousel_index() -> int:
-	return _index
-func get_current_carousel_index(with_drag : bool = false, with_clamp : bool = true) -> int:
-	return -1
-
+#region Public Methods (Movement Methods)
 ## Moves to an item of the given index within the carousel. If an invalid index is given, it will be posmod into a vaild index.
 func go_to_index(idx : int, animation : bool = true) -> void:
 	if _item_infos.is_empty():
@@ -428,7 +497,7 @@ func go_to_index(idx : int, animation : bool = true) -> void:
 	if animation:
 		_create_animation(_index, ANIMATION_TYPE.MANUAL)
 		return
-	_scroll_delta = _get_relevant_axis() * _index
+	_scroll_delta = get_item_distance() * _index
 	_adjust_children()
 ## Moves to the previous item in the carousel, if there is one.
 func prev(animation : bool = true) -> void:
@@ -437,21 +506,48 @@ func prev(animation : bool = true) -> void:
 func next(animation : bool = true) -> void:
 	go_to_index(_index + 1, animation)
 
+
 ## Enacts a manual drag on the carousel. This can be used even if [member can_drag] is [code]false[/code].
 ## Note that [param from] and [param dir] are considered in local coordinates.
 ## [br][br]
 ## Is not affected by [member hard_stop], [member drag_outside], and [member drag_limit].
 func flick(from : Vector2, dir : Vector2) -> void:
 	pass
+#endregion
+
+
+#region Public Methods (Value Access Methods)
 ## Returns if the carousel is currening scrolling via na animation
 func is_animating() -> bool:
 	return false
 ## Returns if the carousel is currening being dragged by player input.
-func being_dragged() -> bool:
-	return false
+func is_dragged() -> bool:
+	return _is_dragging
 
+
+func get_carousel_index() -> int:
+	return _index
+func get_current_carousel_index(with_drag : bool = false, with_clamp : bool = true) -> int:
+	return -1
+
+
+## Returns the [Vector2] offset each item is placed at from each other.
+## [br][br]
+## [b]NOTE[/b]: This does not include [member item_seperation].
+func get_item_offset() -> Vector2:
+	var angle_mod := deg_to_rad((180 - absf(2 * fposmod(carousel_angle, 180) - 180)) * 0.5)
+	return Vector2(
+		item_size.y / tan(angle_mod),
+		item_size.x * tan(angle_mod)
+	).min(item_size)
+## Returns the pixel distance each item is placed at from each other (including item_seperation).
+func get_item_distance() -> int:
+	return get_item_offset().length() + item_seperation
 ## Returns the current scroll delta.
 func get_scroll(with_drag : bool = false) -> int:
+	if with_drag:
+		return posmod(_scroll_delta + _drag_scroll_delta, _max_scroll)
+	
 	return posmod(_scroll_delta, _max_scroll)
 #endregion
 
