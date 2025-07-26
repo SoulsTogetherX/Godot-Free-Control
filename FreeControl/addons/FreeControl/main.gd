@@ -136,14 +136,6 @@ func _enter_tree() -> void:
 		load(ICON_FOLDER + "PaddingContainer.svg")
 	)
 	
-	# ProportionalContainer
-	add_custom_type(
-		"ProportionalContainer",
-		"Container",
-		load(CUSTOM_CLASS_FOLDER + "ProportionalContainer/ProportionalContainer.gd"), 
-		load(ICON_FOLDER + "ProportionalContainer.svg")
-	)
-	
 	# Routers
 		# Page
 	add_custom_type(
@@ -274,9 +266,6 @@ func _exit_tree() -> void:
 	
 	# PaddingContainer
 	remove_custom_type("PaddingContainer")
-	
-	# ProportionalContainer
-	remove_custom_type("ProportionalContainer")
 	
 	# Routers
 	remove_custom_type("RouterStack")

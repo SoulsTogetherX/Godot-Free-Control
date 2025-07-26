@@ -14,7 +14,7 @@ signal end_transition
 #region Enums
 ## The Animation type to transition with.
 enum ANIMATION_TYPE {
-	DEFAULT, ## The same as [constant LEFT].
+	DEFAULT, ## The same as [constant LEFT], but can be used by other scripts for secondary functionality.
 	NONE, ## No Transition
 	LEFT, ## Either moves towards or away the left
 	RIGHT, ## Either moves towards or away the right

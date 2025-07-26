@@ -161,28 +161,28 @@ enum PAGE_HIDE_MODE {
 			_shadow.visible = is_shadow_visible()
 
 @export_subgroup("Tab Margins")
-## The left margin of all tabs.
+## Offsets towards the inside direct children of every tab by this amount of pixels from the left.
 @export var margin_tab_left : int = 0:
 	set(val):
 		if margin_tab_left != val:
 			margin_tab_left = val
 			
 			_queue_update_tab_margins()
-## The top margin of all tabs.
+## Offsets towards the inside direct children of every tab by this amount of pixels from the top.
 @export var margin_tab_top : int = 0:
 	set(val):
 		if margin_tab_top != val:
 			margin_tab_top = val
 			
 			_queue_update_tab_margins()
-## The right margin of all tabs.
+## Offsets towards the inside direct children of every tab by this amount of pixels from the right.
 @export var margin_tab_right : int = 0:
 	set(val):
 		if margin_tab_right != val:
 			margin_tab_right = val
 			
 			_queue_update_tab_margins()
-## The bottom margin of all tabs.
+## Offsets towards the inside direct children of every tab by this amount of pixels from the bottom.
 @export var margin_tab_bottom : int = 0:
 	set(val):
 		if margin_tab_bottom != val:
@@ -572,16 +572,16 @@ func get_visible_pages() -> Array[int]:
 func get_page_node(idx : int) -> Page:
 	return _page_container.get_page_node(idx)
 
-## Emits the [Signal Page.entered] signal in the current [Page].
+## Emits the [signal Page.entered] signal in the current [Page].
 func emit_entered() -> void:
 	_page_container.emit_entered()
-## Emits the [Signal Page.entering] signal in the current [Page].
+## Emits the [signal Page.entering] signal in the current [Page].
 func emit_entering() -> void:
 	_page_container.emit_entering()
-## Emits the [Signal Page.exited] signal in the current [Page].
+## Emits the [signal Page.exited] signal in the current [Page].
 func emit_exited() -> void:
 	_page_container.emit_exited()
-## Emits the [Signal Page.exiting] signal in the current [Page].
+## Emits the [signal Page.exiting] signal in the current [Page].
 func emit_exiting() -> void:
 	_page_container.emit_exiting()
 

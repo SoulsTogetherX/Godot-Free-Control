@@ -13,24 +13,28 @@ signal tab_selected
 
 
 #region External Variables
+## Offsets towards the inside direct children of the container by this amount of pixels from the left.
 @export var margin_left : int:
 	set(val):
 		if margin_left != val:
 			margin_left = val
 			
 			queue_sort()
+## Offsets towards the inside direct children of the container by this amount of pixels from the top.
 @export var margin_top : int:
 	set(val):
 		if margin_top != val:
 			margin_top = val
 			
 			queue_sort()
+## Offsets towards the inside direct children of the container by this amount of pixels from the right.
 @export var margin_right : int:
 	set(val):
 		if margin_right != val:
 			margin_right = val
 			
 			queue_sort()
+## Offsets towards the inside direct children of the container by this amount of pixels from the bottom.
 @export var margin_bottom : int:
 	set(val):
 		if margin_bottom != val:

@@ -15,7 +15,7 @@ signal end_transition
 
 
 #region Enums
-## The Animation type to transition with.
+## See [enum SwapContainer.ANIMATION_TYPE].
 const ANIMATION_TYPE = SwapContainer.ANIMATION_TYPE
 #endregion
 
@@ -193,34 +193,34 @@ func _clear_all_pages() -> void:
 
 
 #region Public Methods
-## Emits the [Signal Page.entered] signal on the current [Page] displayed.
+## Emits the [signal Page.entered] signal on the current [Page] displayed.
 ## [br][br]
 ## If this Router is a decedent of another [Page], connect that [Page]'s
-## [Signal Page.entered] with this method.
+## [signal Page.entered] with this method.
 func emit_entered() -> void:
 	var curr_page : Page = null if _page_stack.is_empty() else _page_stack[0].get_page()
 	if curr_page:
 		curr_page.entered.emit()
-## Emits the [Signal Page.entering] signal on the current [Page] displayed.
+## Emits the [signal Page.entering] signal on the current [Page] displayed.
 ## [br][br]
 ## If this Router is a decedent of another [Page], connect that [Page]'s
-## [Signal Page.entering] with this method.
+## [signal Page.entering] with this method.
 func emit_entering() -> void:
 	var curr_page : Page = null if _page_stack.is_empty() else _page_stack[0].get_page()
 	if curr_page:
 		curr_page.entering.emit()
-## Emits the [Signal Page.exited] signal on the current [Page] displayed.
+## Emits the [signal Page.exited] signal on the current [Page] displayed.
 ## [br][br]
 ## If this Router is a decedent of another [Page], connect that [Page]'s
-## [Signal Page.exited] with this method.
+## [signal Page.exited] with this method.
 func emit_exited() -> void:
 	var curr_page : Page = null if _page_stack.is_empty() else _page_stack[0].get_page()
 	if curr_page:
 		curr_page.exited.emit()
-## Emits the [Signal Page.exiting] signal on the current [Page] displayed.
+## Emits the [signal Page.exiting] signal on the current [Page] displayed.
 ## [br][br]
 ## If this Router is a decedent of another [Page], connect that [Page]'s
-## [Signal Page.exiting] with this method.
+## [signal Page.exiting] with this method.
 func emit_exiting() -> void:
 	var curr_page : Page = null if _page_stack.is_empty() else _page_stack[0].get_page()
 	if curr_page:

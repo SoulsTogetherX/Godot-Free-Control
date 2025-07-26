@@ -6,8 +6,8 @@ class_name MaxSizeContainer extends Container
 #region External Variables
 var _max_size := -Vector2.ONE
 ## The maximum size this container can possess.
-## [br][br]
-## If one of the axis is [code]-1[/code], then it is boundless.
+## [br]
+## If either of the axes is [code]-1[/code], then it is boundless.
 @export var max_size : Vector2 = -Vector2.ONE:
 	get:
 		return _max_size

@@ -11,11 +11,6 @@ signal sort_children
 #endregion
 
 
-#region Enums
-const SIZE_MODE = AnimatableControl.SIZE_MODE
-#endregion
-
-
 #region Constants
 ## Notification just before children are going to be sorted, in case there's something to process beforehand.
 const NOTIFICATION_PRE_SORT_CHILDREN := 50
@@ -62,6 +57,7 @@ func _notification(what : int) -> void:
 
 
 #region Public Virtual Methods
+## See [Node.add_child].
 func add_child(child : Node, force_readable_name: bool = false, internal: InternalMode = 0) -> void:
 	super(child, force_readable_name, internal)
 	
@@ -80,6 +76,7 @@ func add_child(child : Node, force_readable_name: bool = false, internal: Intern
 
 	update_minimum_size()
 	queue_sort()
+## See [Node.remove_child].
 func remove_child(child : Node) -> void:
 	super(child)
 	
@@ -98,6 +95,7 @@ func remove_child(child : Node) -> void:
 
 	update_minimum_size()
 	queue_sort()
+## See [Node.move_child].
 func move_child(child : Node, to_index: int) -> void:
 	super(child, to_index)
 	if !(child is AnimatableControl):
@@ -136,11 +134,11 @@ func _sort_children() -> void:
 	_queued_sort = false
 func _sort_child(child : AnimatableControl) -> void:
 	match child.size_mode:
-		SIZE_MODE.MAX:
+		AnimatableControl.SIZE_MODE.MAX:
 			child.size = get_relative_size(child).min(child.size)
-		SIZE_MODE.MIN:
+		AnimatableControl.SIZE_MODE.MIN:
 			child.size = get_relative_size(child).max(child.size)
-		SIZE_MODE.EXACT:
+		AnimatableControl.SIZE_MODE.EXACT:
 			child.size = get_relative_size(child)
 
 
@@ -172,6 +170,8 @@ func _child_minsize_changed() -> void:
 
 
 #region Public Methods
+## Queue resort of the contained children. This is called automatically anyway,
+## but can be called upon request.
 func queue_sort() -> void:
 	if !is_node_ready() || !is_inside_tree() || _queued_sort:
 		return

@@ -1,7 +1,7 @@
 # Made by Xavier Alvarez. A part of the "FreeControl" Godot addon.
 @tool
 class_name Page extends Container
-## A standardized [Container] node for Routers to use, such as [RouterStack].
+## A standardized [Container] node for Routers to use, such as [RouterStack] and [RouterSlide].
 
 #region Signals
 ## Emits when an event is requested to the attached Router parent.
@@ -10,17 +10,17 @@ class_name Page extends Container
 ## [method emit_event] with this [Signal].
 signal event_action(event_name : String, args : Variant)
 
-@warning_ignore("unused_signal")
 ## Emits when this page is added as a child and finished animation by a Router.
+@warning_ignore("unused_signal")
 signal entered
-@warning_ignore("unused_signal")
 ## Emits when this page is added as a child.
+@warning_ignore("unused_signal")
 signal entering
-@warning_ignore("unused_signal")
 ## Emits when this page is about to be removed as a child and finished animation by a Router.
-signal exited
 @warning_ignore("unused_signal")
+signal exited
 ## Emits when this page is marked to be removed as a child.
+@warning_ignore("unused_signal")
 signal exiting
 #endregion
 

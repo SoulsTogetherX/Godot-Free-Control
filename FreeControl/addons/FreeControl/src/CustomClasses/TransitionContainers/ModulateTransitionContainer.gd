@@ -37,9 +37,9 @@ var _focused_color : int = 0
 		val = maxf(0.001, val)
 		if val != duration:
 			duration = val
-## The [Tween.EaseType] of color animations.
+## The [enum Tween.EaseType] of color animations.
 @export var ease_type : Tween.EaseType = Tween.EaseType.EASE_OUT_IN
-## The [Tween.TransitionType] of color animations.
+## The [enum Tween.TransitionType] of color animations.
 @export var transition_type : Tween.TransitionType = Tween.TransitionType.TRANS_CIRC
 ## If [code]true[/code] animations can be interupted midway. Otherwise, any change in the [param focused_color]
 ## will be queued to be reflected after any currently running animation.

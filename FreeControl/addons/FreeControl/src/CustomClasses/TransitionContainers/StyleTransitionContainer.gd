@@ -47,7 +47,7 @@ class_name StyleTransitionContainer extends Container
 			duration = val
 		elif duration != val:
 			duration = val
-## The [Tween.EaseType] of color animations.
+## The [enum Tween.EaseType] of color animations.
 @export var ease_type : Tween.EaseType = Tween.EaseType.EASE_OUT_IN:
 	set(val):
 		if _panel:
@@ -55,7 +55,7 @@ class_name StyleTransitionContainer extends Container
 			ease_type = val
 		elif ease_type != val:
 			ease_type = val
-## The [Tween.TransitionType] of color animations.
+## The [enum Tween.TransitionType] of color animations.
 @export var transition_type : Tween.TransitionType = Tween.TransitionType.TRANS_CIRC:
 	set(val):
 		if _panel:

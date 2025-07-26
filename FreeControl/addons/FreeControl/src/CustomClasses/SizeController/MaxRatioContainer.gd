@@ -60,7 +60,7 @@ func _validate_property(property: Dictionary) -> void:
 
 
 #region Custom Methods Overwriting
-## Updates the _max_size according to the ratio mode and current dimentions
+## Updates the [member MaxSizeContainer.max_size] according to the ratio mode and current dimentions
 func _update_children() -> void:
 	var parent := get_parent_area_size()
 	var min_size := get_combined_minimum_size()

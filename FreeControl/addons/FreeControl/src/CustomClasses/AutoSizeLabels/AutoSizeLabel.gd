@@ -18,7 +18,7 @@ enum LABEL_STATE {
 ## The largest possible size for a font
 const MAX_FONT_SIZE := 4096
 ## The smallest possible size for a font
-const MIN_FONt_SIZE := 1
+const MIN_FONT_SIZE := 1
 #endregion
 
 
@@ -29,12 +29,9 @@ const MIN_FONt_SIZE := 1
 ## Cannot be less than [member min_size]. If set to [code]-1[/code], the upper bound will be removed.
 @export var max_size : int = 100:
 	set(val):
+		val = -1 if val <= -1 else clampi(val, min_size, MAX_FONT_SIZE)
+		
 		if max_size != val:
-			if val <= -1:
-				val = -1
-			else:
-				val = maxi(val, min_size)
-			
 			max_size = val
 			
 			if is_node_ready():
@@ -43,13 +40,16 @@ const MIN_FONt_SIZE := 1
 ## may cause lag.
 ## [br]
 ## Cannot exceed [member max_size] or be less than [code]1[/code].
-@export var min_size : int = 1:
+@export var min_size : int = MIN_FONT_SIZE:
 	set(val):
+		val = clampi(val, MIN_FONT_SIZE, max_size)
 		if min_size != val:
-			min_size = clampi(val, 0, max_size)
+			min_size = max_size
 			
 			if is_node_ready():
 				update_font_size()
+## If [code]true[/code], this label will stop automatically resizing the text font
+## to it's size.
 @export var stop_resizing : bool:
 	set(val):
 		if stop_resizing != val:

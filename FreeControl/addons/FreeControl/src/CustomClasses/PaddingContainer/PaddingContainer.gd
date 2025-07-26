@@ -263,6 +263,7 @@ func _sort_child(child : Control, rect : Rect2) -> void:
 
 
 #region Private Methods
+## Returns the rect of the total area the children will fill after padding calculations.
 func get_padding_rect() -> Rect2:
 	var ret_pos : Vector2
 	var ret_size : Vector2

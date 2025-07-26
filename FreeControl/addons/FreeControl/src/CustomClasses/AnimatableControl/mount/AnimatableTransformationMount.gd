@@ -13,10 +13,13 @@ enum TRANSFORMATION_MODE {
 
 
 #region External Variables
-@export_flags("Scale:1", "Rotate:2", "Position:4") var transformation : int:
+## A flag mask of the transformations this mount will account for.
+## [br][br]
+## Also see [enum TRANSFORMATION_MODE].
+@export_flags("Scale:1", "Rotate:2", "Position:4") var transformation_mask : int:
 	set(val):
-		if val != transformation:
-			transformation = val
+		if val != transformation_mask:
+			transformation_mask = val
 			update_minimum_size()
 #endregion
 
@@ -47,7 +50,7 @@ func _get_minimum_size() -> Vector2:
 			_min_size = _min_size.max(child_bb.size)
 	
 	# Leaves position adjusts after so size, after calculating min-size of children, can be used 
-	if transformation & TRANSFORMATION_MODE.POSITION:
+	if transformation_mask & TRANSFORMATION_MODE.POSITION:
 		for info : Array in children_info:
 			_adjust_children_positions(info[0], info[1])
 	
@@ -57,7 +60,7 @@ func _get_minimum_size() -> Vector2:
 
 #region Custom Virtual Methods
 func _on_transformation_changed() -> void:
-	if transformation & TRANSFORMATION_MODE.POSITION:
+	if transformation_mask & TRANSFORMATION_MODE.POSITION:
 		for child : Node in get_children():
 			if child is AnimatableControl:
 				_adjust_children_positions(child, _get_child_exact_bb(child))
@@ -72,16 +75,16 @@ func _adjust_children_positions(
 	var piv_offset : Vector2
 	
 	# Rotates pivot, if needed
-	if transformation & TRANSFORMATION_MODE.ROTATION:
+	if transformation_mask & TRANSFORMATION_MODE.ROTATION:
 		var piv := child.pivot_offset
-		if transformation & TRANSFORMATION_MODE.SCALE:
+		if transformation_mask & TRANSFORMATION_MODE.SCALE:
 			piv *= child.scale
 		
 		piv_offset = child.pivot_offset - piv.rotated(child.rotation)
 		
 	
 	# If adjusts the pivot by scale, if needed
-	elif transformation & TRANSFORMATION_MODE.SCALE:
+	elif transformation_mask & TRANSFORMATION_MODE.SCALE:
 		piv_offset -= child.pivot_offset * (child.scale - Vector2.ONE)
 	
 	# Not clamp because min should have priorty
@@ -92,7 +95,7 @@ func _adjust_children_positions(
 		child.position = new_pos
 
 func _get_scaled_child_size(child : AnimatableControl) -> Vector2:
-	if transformation & TRANSFORMATION_MODE.SCALE:
+	if transformation_mask & TRANSFORMATION_MODE.SCALE:
 		return child.size * child.scale
 	return child.size
 func _get_rotated_bb(rect : Rect2, pivot : Vector2, angle : float) -> Rect2:
@@ -121,9 +124,9 @@ func _get_child_exact_bb(child : AnimatableControl) -> Rect2:
 	ret.size = _get_scaled_child_size(child)
 	
 	# Rotates child size, if needed.
-	if transformation & TRANSFORMATION_MODE.ROTATION:
+	if transformation_mask & TRANSFORMATION_MODE.ROTATION:
 		var pivot := child.pivot_offset
-		if transformation & TRANSFORMATION_MODE.SCALE:
+		if transformation_mask & TRANSFORMATION_MODE.SCALE:
 			pivot *= child.scale
 		
 		# Gets the bounding box of the rect, when rotated around a pivot
