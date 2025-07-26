@@ -32,8 +32,8 @@ const MIN_FONt_SIZE := 1
 		if max_size != val:
 			if val <= -1:
 				val = -1
-			elif val < min_size:
-				val = min_size
+			else:
+				val = maxi(val, min_size)
 			
 			max_size = val
 			
@@ -46,12 +46,7 @@ const MIN_FONt_SIZE := 1
 @export var min_size : int = 1:
 	set(val):
 		if min_size != val:
-			if val <= 0:
-				val = 1
-			elif val > max_size:
-				val = max_size
-			
-			min_size = val
+			min_size = clampi(val, 0, max_size)
 			
 			if is_node_ready():
 				update_font_size()
@@ -144,7 +139,7 @@ func _get_max_allow(fontFile : FontFile) -> int:
 		_paragraph.add_string(
 			text, fontFile, ret_size
 		)
-	return min(ret_size, MAX_FONT_SIZE)
+	return mini(ret_size, MAX_FONT_SIZE)
 
 
 func _on_theme_update() -> void:

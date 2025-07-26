@@ -69,7 +69,8 @@ var _zone_horizontal : float = 0.5
 ## [br][br]
 ## See [member zone_point_pixel]
 var zone_horizontal : float:
-	get: return _zone_horizontal
+	get:
+		return _zone_horizontal
 	set(val):
 		if _zone_horizontal != val:
 			_zone_horizontal = val
@@ -82,7 +83,8 @@ var _zone_vertical : float = 0.5
 ## [br][br]
 ## See [member zone_point_pixel]
 var zone_vertical : float = 0.5:
-	get: return _zone_vertical
+	get:
+		return _zone_vertical
 	set(val):
 		if _zone_vertical != val:
 			_zone_vertical = val
@@ -111,7 +113,8 @@ var _zone_range_horizontal : float = 0.05
 ## [br][br]
 ## See [member zone_vertical]
 var zone_range_horizontal : float:
-	get: return _zone_range_horizontal
+	get:
+		return _zone_range_horizontal
 	set(val):
 		if _zone_range_horizontal != val:
 			_zone_range_horizontal = val
@@ -124,7 +127,8 @@ var _zone_range_vertical : float = 0.05
 ## [br][br]
 ## See [member zone_vertical]
 var zone_range_vertical : float:
-	get: return _zone_range_vertical
+	get:
+		return _zone_range_vertical
 	set(val):
 		if _zone_range_vertical != val:
 			_zone_range_vertical = val
@@ -179,7 +183,7 @@ func _get_property_list() -> Array[Dictionary]:
 		"hint_string": "0, 100, 0.001, or_less, or_greater, suffix:px"
 	}.merged({} if zone_point_pixel & 1 else {
 		"hint": PROPERTY_HINT_RANGE,
-		"hint_string": "0,1,0.001,or_less,or_greater"
+		"hint_string": "0,1,0.001,or_less,or_greater, suffix:%"
 	}, true))
 	ret.append({
 		"name": "zone_vertical",
@@ -189,7 +193,7 @@ func _get_property_list() -> Array[Dictionary]:
 		"hint_string": "0, 100, 0.001, or_less, or_greater, suffix:px"
 	}.merged({} if zone_point_pixel & 2 else {
 		"hint": PROPERTY_HINT_RANGE,
-		"hint_string": "0, 1, 0.001, or_less, or_greater"
+		"hint_string": "0, 1, 0.001, or_less, or_greater, suffix:%"
 	}, true))
 	
 	ret.append({
@@ -212,7 +216,7 @@ func _get_property_list() -> Array[Dictionary]:
 		"hint": PROPERTY_HINT_RANGE,
 		"hint_string": "0, 100, 0.001, or_less, or_greater, suffix:px"
 	}.merged({} if zone_range_by_pixel & 1 else {
-		"hint_string": "0, 1, 0.001, or_less, or_greater"
+		"hint_string": "0, 1, 0.001, or_less, or_greater, suffix:%"
 	}, true))
 	ret.append({
 		"name": "zone_range_vertical",
@@ -222,7 +226,7 @@ func _get_property_list() -> Array[Dictionary]:
 		"hint_string": "0, 100, 0.001, or_less, or_greater, suffix:px"
 	}.merged({} if zone_range_by_pixel & 2 else {
 		"hint": PROPERTY_HINT_RANGE,
-		"hint_string": "0, 1, 0.001, or_less, or_greater"
+		"hint_string": "0, 1, 0.001, or_less, or_greater, suffix:%"
 	}, true))
 	
 	ret.append({
@@ -373,16 +377,16 @@ func get_zone_rect() -> Rect2:
 	
 	if (check_mode == CHECK_MODE.VERTICAL):
 		var pos := zone_pos.y - zone_range.y
-		var max_pos := max(pos, 0)
+		var max_pos := maxf(pos, 0)
 		
 		ret.position.y = max_pos
-		ret.size.y = min(zone_range.y + zone_range.y + pos, scroll.size.y) - max_pos
+		ret.size.y = minf(zone_range.y + zone_range.y + pos, scroll.size.y) - max_pos
 	elif (check_mode == CHECK_MODE.HORIZONTAL):
 		var pos := zone_pos.x - zone_range.x
-		var max_pos := max(pos, 0)
+		var max_pos := maxf(pos, 0)
 		
 		ret.position.x = max_pos
-		ret.size.x = min(zone_range.x + zone_range.x + pos, scroll.size.x) - max_pos
+		ret.size.x = minf(zone_range.x + zone_range.x + pos, scroll.size.x) - max_pos
 	elif (check_mode == CHECK_MODE.BOTH):
 		var pos := zone_pos - zone_range
 		var max_pos := pos.max(Vector2.ZERO)

@@ -53,7 +53,7 @@ func _update_child(child : Control):
 	var set_pos : Vector2
 	match child.size_flags_horizontal & ~SIZE_EXPAND:
 		SIZE_FILL:
-			result_size.x = max(result_size.x, size.x)
+			result_size.x = maxf(result_size.x, size.x)
 			set_pos.x = (size.x - result_size.x) * 0.5
 		SIZE_SHRINK_BEGIN:
 			set_pos.x = 0
@@ -63,7 +63,7 @@ func _update_child(child : Control):
 			set_pos.x = size.x - result_size.x
 	match child.size_flags_vertical & ~SIZE_EXPAND:
 		SIZE_FILL:
-			result_size.y = max(result_size.y, size.y)
+			result_size.y = maxf(result_size.y, size.y)
 			set_pos.y = (size.y - result_size.y) * 0.5
 		SIZE_SHRINK_BEGIN:
 			set_pos.y = 0

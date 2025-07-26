@@ -133,18 +133,18 @@ func _get_property_list() -> Array[Dictionary]:
 		"type": TYPE_FLOAT,
 		"usage": PROPERTY_USAGE_DEFAULT | horizontal,
 		"hint": PROPERTY_HINT_RANGE,
-		"hint_string": "0, 100, 0.001, suffix:px"
+		"hint_string": "0, " + str(size.x) + ", 0.001, or_greater, suffix:px"
 	}.merged({} if threshold_pixel & 1 else {
-		"hint_string": "0, 1, 0.001"
+		"hint_string": "0, 1, 0.001, or_greater, suffix:%"
 	}, true))
 	ret.append({
 		"name": "threshold_vertical",
 		"type": TYPE_FLOAT,
 		"usage": PROPERTY_USAGE_DEFAULT | vertical,
 		"hint": PROPERTY_HINT_RANGE,
-		"hint_string": "0, 100, 0.001, suffix:px"
+		"hint_string": "0, " + str(size.y) + ", 0.001, or_greater, suffix:px"
 	}.merged({} if threshold_pixel & 2 else {
-		"hint_string": "0, 1, 0.001"
+		"hint_string": "0, 1, 0.001, or_greater, suffix:%"
 	}, true))
 	
 	ret.append({
@@ -177,6 +177,7 @@ func _property_get_revert(property: StringName) -> Variant:
 		return true
 	return null
 
+
 func _get_threshold_size() -> Array[Vector2]:
 	var mount := get_mount()
 	if !mount:
@@ -189,11 +190,11 @@ func _get_threshold_size() -> Array[Vector2]:
 		ratio_thr.x = 1
 		full_thr.x = mount.size.x
 	elif threshold_pixel & THRESHOLD_EDITOR_DIMS.Horizontal:
-		var hor := clamp(threshold_horizontal, 0, mount.size.x)
+		var hor := clampf(threshold_horizontal, 0, mount.size.x)
 		ratio_thr.x = hor / mount.size.x
 		full_thr.x = hor
 	else:
-		var hor := clamp(threshold_horizontal, 0, 1)
+		var hor := clampf(threshold_horizontal, 0, 1)
 		ratio_thr.x = hor
 		full_thr.x = hor * mount.size.x
 	
@@ -201,11 +202,11 @@ func _get_threshold_size() -> Array[Vector2]:
 		ratio_thr.y = 1
 		full_thr.y = mount.size.y
 	elif threshold_pixel & THRESHOLD_EDITOR_DIMS.Vertical:
-		var vec := clamp(threshold_vertical, 0, mount.size.y)
+		var vec := clampf(threshold_vertical, 0, mount.size.y)
 		ratio_thr.y = vec / mount.size.y
 		full_thr.y = vec
 	else:
-		var vec := clamp(threshold_vertical, 0, 1)
+		var vec := clampf(threshold_vertical, 0, 1)
 		ratio_thr.y = vec
 		full_thr.y = vec * mount.size.y
 	
@@ -309,10 +310,10 @@ func _draw() -> void:
 					)
 
 func _notification(what: int) -> void:
+	super(what)
 	match what:
 		NOTIFICATION_LOCAL_TRANSFORM_CHANGED:
 			queue_redraw()
-	super(what)
 #endregion
 
 

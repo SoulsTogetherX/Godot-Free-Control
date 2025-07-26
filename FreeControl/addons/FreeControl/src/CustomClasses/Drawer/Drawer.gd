@@ -65,7 +65,8 @@ enum DragMode {
 ## [br][br]
 ## Also see: [method toggle_drawer].
 var state : bool:
-	get: return _state
+	get:
+		return _state
 	set(val):
 		if _state != val:
 			_toggle_drawer(val)
@@ -100,6 +101,7 @@ var drawer_width_by_pixel : bool:
 	set(val):
 		if val != drawer_width_by_pixel:
 			drawer_width_by_pixel = val
+			
 			if val:
 				drawer_width *= size.x
 			else:
@@ -123,15 +125,16 @@ var drawer_height_by_pixel : bool:
 	set(val):
 		if val != drawer_height_by_pixel:
 			drawer_height_by_pixel = val
-			if val:
-				drawer_height *= size.y
-			else:
-				if size.y == 0:
-					drawer_height = 0
-				else:
-					drawer_height /= size.y
 			
 			notify_property_list_changed()
+			if val:
+				drawer_height *= size.y
+				return
+			if size.y == 0:
+				drawer_height = 0
+				return
+			drawer_height /= size.y
+			
 ## The height of the drawer. 
 ## [br][br]
 ## Also see: [member drawer_height_by_pixel].
@@ -183,7 +186,7 @@ var open_bounds : InputAreaMode = InputAreaMode.WithinEmptyBounds
 ## Also see: [member allow_drag].
 var open_drag_threshold : int = 50:
 	set(val):
-		val = max(0, val)
+		val = maxi(0, val)
 		if val != open_drag_threshold:
 			open_drag_threshold = val
 
@@ -197,7 +200,7 @@ var close_bounds : InputAreaMode = InputAreaMode.WithinEmptyBounds
 ## Also see: [member allow_drag].
 var close_drag_threshold : int = 50:
 	set(val):
-		val = max(0, val)
+		val = maxi(0, val)
 		if val != close_drag_threshold:
 			close_drag_threshold = val
 
@@ -214,7 +217,11 @@ var manual_drawer_ease : Tween.EaseType
 ## The animation duration used when manually opening and closing drawer.
 ## [br][br]
 ## Also see: [member state], [method toggle_drawer].
-var manual_drawer_duration : float = 0.2
+var manual_drawer_duration : float = 0.2:
+	set(val):
+		val = maxf(0.001, val)
+		if val != drag_drawer_duration:
+			drag_drawer_duration = val
 
 #@export_subgroup("Drag Animation")
 ## The [enum Tween.TransitionType] used when snapping after a drag.
@@ -222,7 +229,11 @@ var drag_drawer_translate : Tween.TransitionType
 ## The [enum Tween.EaseType] used when snapping after a drag.
 var drag_drawer_ease : Tween.EaseType
 ## The animation duration used when snapping after a drag.
-var drag_drawer_duration : float = 0.2
+var drag_drawer_duration : float = 0.2:
+	set(val):
+		val = maxf(0.001, val)
+		if val != drag_drawer_duration:
+			drag_drawer_duration = val
 #endregion
 
 
@@ -302,7 +313,7 @@ func _get_property_list() -> Array[Dictionary]:
 		"hint": PROPERTY_HINT_RANGE,
 		"hint_string": "0, 1, 0.001, or_less, or_greater, suffix:px",
 	}.merged({} if drawer_width_by_pixel else {
-		"hint_string": "0, 1, 0.001, or_less, or_greater",
+		"hint_string": "0, 1, 0.001, or_less, or_greater, suffix:%",
 	}))
 	ret.append({
 		"name": "drawer_height_by_pixel",
@@ -316,7 +327,7 @@ func _get_property_list() -> Array[Dictionary]:
 		"hint": PROPERTY_HINT_RANGE,
 		"hint_string": "0, 1, 0.001, or_less, or_greater, suffix:px",
 	}.merged({} if drawer_height_by_pixel else {
-		"hint_string": "0, 1, 0.001, or_less, or_greater",
+		"hint_string": "0, 1, 0.001, or_less, or_greater, suffix:%",
 	}))
 	
 	ret.append({
@@ -329,7 +340,7 @@ func _get_property_list() -> Array[Dictionary]:
 		"name": "action_mode",
 		"type": TYPE_INT,
 		"hint": PROPERTY_HINT_FLAGS,
-		"hint_string": "Press Action:1,Release Action:2,Drag Action:4",
+		"hint_string": "Press Action:1, Release Action:2, Drag Action:4",
 		"usage": PROPERTY_USAGE_DEFAULT
 	})
 	

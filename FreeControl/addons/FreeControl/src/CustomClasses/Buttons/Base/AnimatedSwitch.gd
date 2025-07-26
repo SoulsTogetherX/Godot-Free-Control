@@ -22,6 +22,7 @@ class_name AnimatedSwitch extends BaseButton
 ## The size of the switch's base.
 @export var switch_size : Vector2 = Vector2(100, 50):
 	set(val):
+		val = val.maxf(0)
 		if switch_size != val:
 			switch_size = val
 			_handle_resize()
@@ -29,6 +30,7 @@ class_name AnimatedSwitch extends BaseButton
 ## The size of the switch's knob.
 @export var knob_size : Vector2 = Vector2(40, 40):
 	set(val):
+		val = val.maxf(0)
 		if knob_size != val:
 			knob_size = val
 			_handle_resize()
@@ -133,7 +135,11 @@ class_name AnimatedSwitch extends BaseButton
 ## The transition of the knob's movement across the base.
 @export var main_transition : Tween.TransitionType
 ## The duration of the knob's movement across the base.
-@export_range(0.001, 0.5, 0.001, "or_greater", "suffix:sec") var main_duration : float = 0.15
+@export_range(0.001, 0.5, 0.001, "or_greater", "suffix:sec") var main_duration : float = 0.15:
+	set(val):
+		val = maxf(0.001, val)
+		if val != main_duration:
+			main_duration = val
 
 @export_subgroup("Knob Color")
 ## If [code]true[/code], then the knob will change color according to this node's state.
@@ -143,7 +149,11 @@ class_name AnimatedSwitch extends BaseButton
 ## The transition of the knob's color change.
 @export var knob_color_transition : Tween.TransitionType
 ## The duration of the knob's color change.
-@export_range(0.001, 0.5, 0.001, "or_greater", "suffix:sec") var knob_color_duration : float = 0.1
+@export_range(0.001, 0.5, 0.001, "or_greater", "suffix:sec") var knob_color_duration : float = 0.1:
+	set(val):
+		val = maxf(0.001, val)
+		if val != knob_color_duration:
+			knob_color_duration = val
 
 @export_subgroup("Switch Color")
 ## If [code]true[/code], then the base will change color according to this node's state.
@@ -153,7 +163,11 @@ class_name AnimatedSwitch extends BaseButton
 ## The transition of the base's color change.
 @export var switch_color_transition : Tween.TransitionType
 ## The duration of the base's color change.
-@export_range(0.001, 0.5, 0.001, "or_greater", "suffix:sec") var switch_color_duration : float = 0.1
+@export_range(0.001, 0.5, 0.001, "or_greater", "suffix:sec") var switch_color_duration : float = 0.1:
+	set(val):
+		val = maxf(0.001, val)
+		if val != switch_color_duration:
+			switch_color_duration = val
 #endregion
 
 
@@ -193,7 +207,7 @@ func _get_minimum_size() -> Vector2:
 	if clip_contents:
 		return Vector2.ZERO
 	
-	return (knob_size + (knob_offset.abs() * 0.5)).max(switch_size + Vector2(max(0, knob_overextend) * 2, 0))
+	return (knob_size + (knob_offset.abs() * 0.5)).max(switch_size + Vector2(maxf(0, knob_overextend) * 2, 0))
 func _validate_property(property: Dictionary) -> void:
 	if property.name == "toggle_mode":
 		property.usage &= ~PROPERTY_USAGE_EDITOR

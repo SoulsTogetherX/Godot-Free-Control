@@ -103,7 +103,7 @@ var angle_end : float = 360:
 ## The list of angles this ndoe uses to position each child, within the order they are positions in the tree.
 var angles : PackedFloat32Array:
 	set(val):
-		_container_angles.resize(max(_get_control_children().size(), val.size()))
+		_container_angles.resize(maxi(_get_control_children().size(), val.size()))
 		
 		for i in range(0, val.size()):
 			_container_angles[i] = deg_to_rad(val[i])
@@ -279,7 +279,7 @@ func _calculate_angles() -> void:
 	if equal_distant || bound_behavior == BOUND_BEHAVIOR.NONE:
 		inc_func = func(i : int): return (i * step) + start
 	elif bound_behavior == BOUND_BEHAVIOR.STOP:
-		inc_func = func(i : int): return min(i * step, end) + start
+		inc_func = func(i : int): return minf(i * step, end) + start
 	elif bound_behavior == BOUND_BEHAVIOR.LOOP:
 		inc_func = func(i : int): return fmod(i * step, end) + start
 	elif bound_behavior == BOUND_BEHAVIOR.MIRRIOR:

@@ -127,7 +127,7 @@ func _resize_child(child : Control) -> void:
 	match child.size_flags_horizontal & ~SIZE_EXPAND:
 		SIZE_FILL:
 			set_pos.x = 0
-			child_size.x = max(child_size.x, size.x)
+			child_size.x = maxf(child_size.x, size.x)
 		SIZE_SHRINK_BEGIN:
 			set_pos.x = 0
 		SIZE_SHRINK_CENTER:
@@ -137,7 +137,7 @@ func _resize_child(child : Control) -> void:
 	match child.size_flags_vertical & ~SIZE_EXPAND:
 		SIZE_FILL:
 			set_pos.y = 0
-			child_size.y = max(child_size.y, size.y)
+			child_size.y = maxf(child_size.y, size.y)
 		SIZE_SHRINK_BEGIN:
 			set_pos.y = 0
 		SIZE_SHRINK_CENTER:

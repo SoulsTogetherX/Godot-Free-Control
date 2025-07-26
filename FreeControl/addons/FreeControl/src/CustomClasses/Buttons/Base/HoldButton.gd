@@ -84,8 +84,8 @@ signal press_end
 ## The max pixels difference, between the start and current position, that can be tolerated.
 @export_range(0, 500, 0.001, "or_greater", "suffix:px") var distance : float = 30:
 	set(val):
-		distance = val
-		_distance_check.distance = val
+		distance = maxf(0, val)
+		_distance_check.distance = distance
 #endregion
 
 

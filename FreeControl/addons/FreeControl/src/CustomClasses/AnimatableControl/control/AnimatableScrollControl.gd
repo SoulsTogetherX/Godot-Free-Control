@@ -81,7 +81,7 @@ func get_visible_horizontal_percent() -> float:
 	if !scroll || !mount:
 		return 0
 	
-	return (min(mount.global_position.x + mount.size.x, scroll.global_position.x + scroll.size.x) - max(mount.global_position.x, scroll.global_position.x)) / mount.size.x
+	return (minf(mount.global_position.x + mount.size.x, scroll.global_position.x + scroll.size.x) - maxf(mount.global_position.x, scroll.global_position.x)) / mount.size.x
 ## Returns a percentage of how visible this node's [AnimatableMount] is, within the
 ## vertical bounds of [member scroll].
 func get_visible_vertical_percent() -> float:
@@ -89,7 +89,7 @@ func get_visible_vertical_percent() -> float:
 	if !scroll || !mount:
 		return 0
 	
-	return (min(mount.global_position.y + mount.size.y, scroll.global_position.y + scroll.size.y) - max(mount.global_position.y, scroll.global_position.y)) / mount.size.y
+	return (minf(mount.global_position.y + mount.size.y, scroll.global_position.y + scroll.size.y) - maxf(mount.global_position.y, scroll.global_position.y)) / mount.size.y
 #endregion
 
 # Made by Xavier Alvarez. A part of the "FreeControl" Godot addon.

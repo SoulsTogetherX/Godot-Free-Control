@@ -32,11 +32,15 @@ var _focused_color : int = 0
 
 @export_group("Tween Override")
 ## The duration of color animations.
-@export_range(0, 5, 0.001, "or_greater", "suffix:sec") var transitionTime : float = 0.2
+@export_range(0, 5, 0.001, "or_greater", "suffix:sec") var duration : float = 0.2:
+	set(val):
+		val = maxf(0.001, val)
+		if val != duration:
+			duration = val
 ## The [Tween.EaseType] of color animations.
-@export var easeType : Tween.EaseType = Tween.EaseType.EASE_OUT_IN
+@export var ease_type : Tween.EaseType = Tween.EaseType.EASE_OUT_IN
 ## The [Tween.TransitionType] of color animations.
-@export var transition : Tween.TransitionType = Tween.TransitionType.TRANS_CIRC
+@export var transition_type : Tween.TransitionType = Tween.TransitionType.TRANS_CIRC
 ## If [code]true[/code] animations can be interupted midway. Otherwise, any change in the [param focused_color]
 ## will be queued to be reflected after any currently running animation.
 @export var can_cancle : bool = true
@@ -79,11 +83,13 @@ func _on_set_color():
 	
 	_safe_base_set_background()
 	_color_tween = create_tween()
+	_color_tween.set_ease(ease_type)
+	_color_tween.set_trans(transition_type)
 	_color_tween.tween_property(
 		self,
 		"self_modulate",
 		get_current_color(),
-		transitionTime
+		duration
 	)
 	_color_tween.finished.connect(_on_set_color, CONNECT_ONE_SHOT)
 #endregion

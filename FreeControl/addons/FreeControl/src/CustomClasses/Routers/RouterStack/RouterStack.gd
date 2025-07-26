@@ -33,9 +33,9 @@ const ANIMATION_TYPE = SwapContainer.ANIMATION_TYPE
 					route(starting_page, ANIMATION_TYPE.NONE, ANIMATION_TYPE.NONE)
 ## The max size of the stack. If the stack is too big, it will clear the oldest on
 ## the stack first.
-@export_range(0, 1000, 1, "or_greater") var max_stack : int = 50:
+@export_range(1, 1000, 1, "or_greater") var max_stack : int = 50:
 	set(val):
-		val = max(val, 1)
+		val = maxi(val, 1)
 		if max_stack != val:
 			max_stack = val
 
@@ -85,14 +85,16 @@ const ANIMATION_TYPE = SwapContainer.ANIMATION_TYPE
 
 @export_group("Duration")
 ## The duration of the animation used as the new [Control] transitions in.
-@export_range(0, 5, 0.001, "or_greater", "suffix:sec") var duration_enter : float = 0.35:
+@export_range(0.001, 5, 0.001, "or_greater", "suffix:sec") var duration_enter : float = 0.35:
 	set(val):
+		val = maxf(val, 0.001)
 		if val != duration_enter:
 			duration_enter = val
 			_stack.duration_enter = val
 ## The duration of the animation used as the current [Control] transitions out.
-@export_range(0, 5, 0.001, "or_greater", "suffix:sec") var duration_exit : float = 0.35:
+@export_range(0.001, 5, 0.001, "or_greater", "suffix:sec") var duration_exit : float = 0.35:
 	set(val):
+		val = maxf(val, 0.001)
 		if val != duration_exit:
 			duration_exit = val
 			_stack.duration_exit = val

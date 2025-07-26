@@ -11,9 +11,13 @@ grow_horizontal = 2
 grow_vertical = 2
 
 [node name="Carousel" type="Container" parent="."]
+visible = false
 layout_mode = 2
 size_flags_vertical = 3
 script = ExtResource("1_m8f8c")
+allow_loop = false
+snap_behavior = 2
+paging_requirement = 1.0
 
 [node name="I_1" type="TextureRect" parent="Carousel"]
 layout_mode = 2
@@ -75,6 +79,7 @@ texture = ExtResource("2_a7xvh")
 expand_mode = 1
 
 [node name="HBox" type="HBoxContainer" parent="."]
+visible = false
 custom_minimum_size = Vector2(0, 100)
 layout_mode = 2
 

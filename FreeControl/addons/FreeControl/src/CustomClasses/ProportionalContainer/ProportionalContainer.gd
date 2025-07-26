@@ -44,12 +44,14 @@ enum PROPORTION_MODE {
 ## The multiplicative of this node's width to the [member ancher] width.
 @export_range(0., 1., 0.001, "or_greater") var horizontal_ratio : float = 1.:
 	set(val):
+		val = maxf(0, val)
 		if horizontal_ratio != val:
 			horizontal_ratio = val
 			queue_sort()
 ## The multiplicative of this node's height to the [member ancher] height.
 @export_range(0., 1., 0.001, "or_greater") var vertical_ratio : float = 1.:
 	set(val):
+		val = maxf(0, val)
 		if vertical_ratio != val:
 			vertical_ratio = val
 			queue_sort()
@@ -148,14 +150,14 @@ func _fit_child(child : Control) -> void:
 				child_size.x = ancher_size.x
 				set_pos.x = 0
 			SIZE_SHRINK_BEGIN:
-				child_size.x = max(child_size.x, ancher_size.x)
+				child_size.x = maxf(child_size.x, ancher_size.x)
 				set_pos.x = 0
 			SIZE_SHRINK_CENTER:
-				child_size.x = max(child_size.x, ancher_size.x)
-				set_pos.x = max((ancher_size.x - child_size.x) * 0.5, 0)
+				child_size.x = maxf(child_size.x, ancher_size.x)
+				set_pos.x = maxf((ancher_size.x - child_size.x) * 0.5, 0)
 			SIZE_SHRINK_END:
-				child_size.x = max(child_size.x, ancher_size.x)
-				set_pos.x = max(ancher_size.x - child_size.x, 0)
+				child_size.x = maxf(child_size.x, ancher_size.x)
+				set_pos.x = maxf(ancher_size.x - child_size.x, 0)
 		if mode == PROPORTION_MODE.WIDTH:
 			child_size.y = size.y
 		
@@ -169,14 +171,14 @@ func _fit_child(child : Control) -> void:
 				child_size.y = ancher_size.y
 				set_pos.y = 0
 			SIZE_SHRINK_BEGIN:
-				child_size.y = max(child_size.y, ancher_size.y)
+				child_size.y = maxf(child_size.y, ancher_size.y)
 				set_pos.y = 0
 			SIZE_SHRINK_CENTER:
-				child_size.y = max(child_size.y, ancher_size.y)
-				set_pos.y = max((size.y - child_size.y) * 0.5, 0)
+				child_size.y = maxf(child_size.y, ancher_size.y)
+				set_pos.y = maxf((size.y - child_size.y) * 0.5, 0)
 			SIZE_SHRINK_END:
-				child_size.y = max(child_size.y, ancher_size.y)
-				set_pos.y = max(size.y - child_size.y, 0)
+				child_size.y = maxf(child_size.y, ancher_size.y)
+				set_pos.y = maxf(size.y - child_size.y, 0)
 		if mode == PROPORTION_MODE.HEIGHT:
 			child_size.x = size.x
 	

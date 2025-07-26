@@ -35,8 +35,9 @@ const PAGE_LOAD_MODE = RouterSlide.PAGE_LOAD_MODE
 
 
 ## Length of time for this [Node] to swap [Page]s.
-@export var page_speed : float = 0.4:
+@export_range(0.001, 5, 0.001, "or_greater", "suffix:sec") var page_speed : float = 0.4:
 	set(val):
+		val = maxf(val, 0.001)
 		if page_speed != val:
 			page_speed = val
 ## The [enum Tween.EaseType] for [Page] animation.
@@ -390,11 +391,11 @@ func goto_index(idx : int, animate : bool) -> void:
 	var visible_pages := get_visible_pages()
 	
 	if _index < idx:
-		max = max(idx, visible_pages.back())
+		max = maxi(idx, visible_pages.back())
 		min = visible_pages.front()
 	else:
 		max = visible_pages.back()
-		min = min(idx, visible_pages.front())
+		min = mini(idx, visible_pages.front())
 	
 	_load_page_multiple(idx, min, max)
 	_add_page_multiple(min, max)
@@ -414,7 +415,7 @@ func goto_index(idx : int, animate : bool) -> void:
 	
 	_unload_page_multiple(idx, min, max, _ignore_queue == 0)
 	_remove_page_multiple(min, max, _ignore_queue == 0)
-	_ignore_queue = max(0, _ignore_queue - 1)
+	_ignore_queue = maxi(0, _ignore_queue - 1)
 	
 	end_transition.emit()
 

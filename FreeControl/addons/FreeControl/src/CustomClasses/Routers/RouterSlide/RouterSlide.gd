@@ -100,7 +100,7 @@ enum PAGE_HIDE_MODE {
 ## The height of the tabs in pixels.
 @export var tab_height : float = 70:
 	set(val):
-		tab_height = max(0, tab_height)
+		tab_height = maxf(0, tab_height)
 		
 		if tab_height != val:
 			tab_height = val
@@ -110,7 +110,7 @@ enum PAGE_HIDE_MODE {
 ## Value can only be positive.
 @export_range(0, 4096) var tab_z_index : int:
 	set(val):
-		tab_z_index = clampi(tab_z_index, 0, 4096)
+		val = clampi(val, 0, 4096)
 		if tab_z_index != val:
 			tab_z_index = val
 			
@@ -145,7 +145,7 @@ enum PAGE_HIDE_MODE {
 ## The height of the shadow emits from the tabs.
 @export var shadow_height : float = 0:
 	set(val):
-		shadow_height = max(0, shadow_height)
+		shadow_height = maxf(0, shadow_height)
 		
 		if shadow_height != val:
 			shadow_height = val
@@ -267,8 +267,9 @@ enum PAGE_HIDE_MODE {
 @export_group("Animations")
 @export_subgroup("Page")
 ## Length of time for this [Node] to swap [Page]s.
-@export var page_speed : float = 0.4:
+@export_range(0.001, 5, 0.001, "or_greater", "suffix:sec") var page_speed : float = 0.4:
 	set(val):
+		val = maxf(val, 0.001)
 		if page_speed != val:
 			page_speed = val
 			
@@ -290,8 +291,9 @@ enum PAGE_HIDE_MODE {
 
 @export_subgroup("Highlight")
 ## Length of time for the highlight to animate.
-@export var highlight_speed : float = 0.4:
+@export_range(0.001, 5, 0.001, "or_greater", "suffix:sec") var highlight_speed : float = 0.4:
 	set(val):
+		val = maxf(val, 0.001)
 		if highlight_speed != val:
 			highlight_speed = val
 			

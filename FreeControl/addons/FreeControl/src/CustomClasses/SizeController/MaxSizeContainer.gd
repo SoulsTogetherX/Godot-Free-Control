@@ -9,8 +9,19 @@ var _max_size := -Vector2.ONE
 ## [br][br]
 ## If one of the axis is [code]-1[/code], then it is boundless.
 @export var max_size : Vector2 = -Vector2.ONE:
-	get: return _max_size
+	get:
+		return _max_size
 	set(val):
+		if val.x <= -1:
+			val.x = -1
+		elif val.x < 0:
+			val.x = 0
+		
+		if val.y <= -1:
+			val.y = -1
+		elif val.y < 0:
+			val.y = 0
+		
 		_max_size = val
 		queue_sort()
 #endregion

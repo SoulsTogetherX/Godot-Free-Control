@@ -46,9 +46,17 @@ enum ANIMATION_TYPE {
 
 @export_group("Duration")
 ## The duration of the animation used as the new [Control] transitions in.
-@export var duration_enter : float = 0.35
+@export_range(0.001, 5, 0.001, "or_greater", "suffix:sec") var duration_enter : float = 0.35:
+	set(val):
+		val = maxf(val, 0.001)
+		if val != duration_enter:
+			duration_enter = val
 ## The duration of the animation used as the current [Control] transitions out.
-@export var duration_exit : float = 0.35
+@export_range(0.001, 5, 0.001, "or_greater", "suffix:sec") var duration_exit : float = 0.35:
+	set(val):
+		val = maxf(val, 0.001)
+		if val != duration_exit:
+			duration_exit = val
 #endregion
 
 

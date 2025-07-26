@@ -37,7 +37,8 @@ signal press_end
 			button_pressed = false
 			notify_property_list_changed()
 			
-			if _button: _button.toggle_mode = val
+			if _button:
+				_button.toggle_mode = val
 ## If [code]true[/code], then this node does not accept input.
 @export var disabled : bool:
 	set = _set_disabled
@@ -48,21 +49,27 @@ signal press_end
 	set(val):
 		if normal_color != val:
 			normal_color = val
-			if is_node_ready(): colors[0] = val
+			
+			if is_node_ready():
+				colors[0] = val
 			force_color(focused_color)
 ## The color to modulate to when this node is focused.
 @export var focus_color : Color = Color(1.0, 1.0, 1.0, 0.75):
 	set(val):
 		if focus_color != val:
 			focus_color = val
-			if is_node_ready(): colors[1] = val
+			
+			if is_node_ready():
+				colors[1] = val
 			force_color(focused_color)
 ## The color to modulate to when this node is disabled.
 @export var disabled_color : Color = Color(1.0, 1.0, 1.0, 0.5):
 	set(val):
 		if disabled_color != val:
 			disabled_color = val
-			if is_node_ready(): colors[2] = val
+			
+			if is_node_ready():
+				colors[2] = val
 			force_color(focused_color)
 #endregion
 
@@ -146,8 +153,10 @@ func _set_disabled(val : bool) -> void:
 	if _button:
 		_button.disabled = disabled
 func _set_button_color(val : bool) -> void:
-	if disabled: set_color(2)
-	else: set_color(int(val))
+	if disabled:
+		set_color(2)
+		return
+	set_color(int(val))
 
 func _emit_vaild_release(release : bool) -> void:
 	_set_button_color(release)
@@ -158,7 +167,8 @@ func _emit_vaild_release(release : bool) -> void:
 #region Public Methods
 ## Forcibly stops this node's check.
 func force_release() -> void:
-	if _button: _button.force_release()
+	if _button:
+		_button.force_release()
 
 ## Returns if mouse or touch is being held (mouse or touch outside of limit without being released).
 func is_held() -> bool:

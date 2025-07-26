@@ -26,6 +26,7 @@ enum MAX_RATIO_MODE {
 ## The ratio value used to expand and limit children.
 @export_range(0.001, 10, 0.001, "or_greater") var ratio : float = 1.0:
 	set(val):
+		val = maxf(0.001, val)
 		if val != ratio:
 			ratio = val
 			queue_sort()

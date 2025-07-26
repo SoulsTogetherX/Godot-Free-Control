@@ -20,7 +20,7 @@ var child_anchor_left : float = 0:
 		if child_anchor_left != val:
 			child_anchor_left = val
 			
-			child_anchor_right = max(val, child_anchor_right)
+			child_anchor_right = maxf(val, child_anchor_right)
 			queue_sort()
 ## The percentage top padding.
 var child_anchor_top : float = 0:
@@ -28,7 +28,7 @@ var child_anchor_top : float = 0:
 		if child_anchor_top != val:
 			child_anchor_top = val
 			
-			child_anchor_bottom = max(val, child_anchor_bottom)
+			child_anchor_bottom = maxf(val, child_anchor_bottom)
 			queue_sort()
 ## The percentage right padding.
 var child_anchor_right : float = 1:
@@ -36,7 +36,7 @@ var child_anchor_right : float = 1:
 		if child_anchor_right != val:
 			child_anchor_right = val
 			
-			child_anchor_left = min(val, child_anchor_left)
+			child_anchor_left = minf(val, child_anchor_left)
 			queue_sort()
 ## The percentage bottom padding.
 var child_anchor_bottom : float = 1:
@@ -44,12 +44,13 @@ var child_anchor_bottom : float = 1:
 		if child_anchor_bottom != val:
 			child_anchor_bottom = val
 			
-			child_anchor_top = min(val, child_anchor_top)
+			child_anchor_top = minf(val, child_anchor_top)
 			queue_sort()
 
 ## The numerical pixel left padding.
 var child_offset_left : int = 0:
 	set(val):
+		val = mini(val, child_offset_left)
 		if child_offset_left != val:
 			child_offset_left = val
 			
@@ -58,6 +59,7 @@ var child_offset_left : int = 0:
 ## The numerical pixel top padding.
 var child_offset_top : int = 0:
 	set(val):
+		val = mini(val, child_offset_top)
 		if child_offset_top != val:
 			child_offset_top = val
 			
@@ -66,6 +68,7 @@ var child_offset_top : int = 0:
 ## The numerical pixel right padding.
 var child_offset_right : int = 0:
 	set(val):
+		val = mini(val, child_offset_right)
 		if child_offset_right != val:
 			child_offset_right = val
 			
@@ -74,6 +77,7 @@ var child_offset_right : int = 0:
 ## The numerical pixel bottom padding.
 var child_offset_bottom : int = 0:
 	set(val):
+		val = mini(val, child_offset_bottom)
 		if child_offset_bottom != val:
 			child_offset_bottom = val
 			

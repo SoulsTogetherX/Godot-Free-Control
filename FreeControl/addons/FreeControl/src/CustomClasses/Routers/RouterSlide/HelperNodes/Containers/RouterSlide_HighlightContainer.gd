@@ -20,8 +20,9 @@ signal end_transition
 			_position_highlight()
 
 ## Length of time for the highlight to animate.
-@export var animation_speed : float = 0.4:
+@export_range(0.001, 5, 0.001, "or_greater", "suffix:sec") var animation_speed : float = 0.4:
 	set(val):
+		val = maxf(val, 0.001)
 		if animation_speed != val:
 			animation_speed = val
 ## The [enum Tween.EaseType] for highlight animation.

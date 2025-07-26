@@ -39,29 +39,30 @@ class_name StyleTransitionContainer extends Container
 
 @export_group("Tween Override")
 ## The duration of color animations.
-@export_range(0, 5, 0.001, "or_greater", "suffix:sec") var transitionTime : float = 0.2:
+@export_range(0, 5, 0.001, "or_greater", "suffix:sec") var duration : float = 0.2:
 	set(val):
+		val = maxf(0.001, val)
 		if _panel:
-			_panel.transitionTime = val
-			transitionTime = val
-		elif transitionTime != val:
-			transitionTime = val
+			_panel.duration = val
+			duration = val
+		elif duration != val:
+			duration = val
 ## The [Tween.EaseType] of color animations.
-@export var easeType : Tween.EaseType = Tween.EaseType.EASE_OUT_IN:
+@export var ease_type : Tween.EaseType = Tween.EaseType.EASE_OUT_IN:
 	set(val):
 		if _panel:
-			_panel.easeType = val
-			easeType = val
-		elif easeType != val:
-			easeType = val
+			_panel.ease_type = val
+			ease_type = val
+		elif ease_type != val:
+			ease_type = val
 ## The [Tween.TransitionType] of color animations.
-@export var transition : Tween.TransitionType = Tween.TransitionType.TRANS_CIRC:
+@export var transition_type : Tween.TransitionType = Tween.TransitionType.TRANS_CIRC:
 	set(val):
 		if _panel:
-			_panel.transition = val
-			transition = val
-		elif transition != val:
-			transition = val
+			_panel.transition_type = val
+			transition_type = val
+		elif transition_type != val:
+			transition_type = val
 ## If [code]true[/code] animations can be interupted midway. Otherwise, any change in the [param focused_color]
 ## will be queued to be reflected after any currently running animation.
 @export var can_cancle : bool = true:
@@ -125,18 +126,21 @@ func _sort_children() -> void:
 ## [br][br]
 ## Also see: [member focused_color].
 func set_color(color: int) -> void:
-	if !_panel: return
+	if !_panel:
+		return
 	_panel.set_color(color)
 ## Sets the current color index. Performing this will ignore any animation and instantly set the color.
 ## [br][br]
 ## Also see: [member focused_color].
 func force_color(color: int) -> void:
-	if !_panel: return
+	if !_panel:
+		return
 	_panel.force_color(color)
 
 ## Gets the current color attributed to the current color index.
 func get_current_color() -> Color:
-	if !_panel: return Color.BLACK
+	if !_panel:
+		return Color.BLACK
 	return _panel.get_current_color()
 #endregion
 
