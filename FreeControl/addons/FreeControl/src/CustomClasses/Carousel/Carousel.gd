@@ -46,7 +46,7 @@ enum SNAP_BEHAVIOR {
 	SNAP = 0b01, ## Once drag is released, the carousel will snap to the nearest item.
 	PAGING = 0b10 ## Carousel items will not scroll when dragged, unless [member paging_requirement] threshold is met. [member hard_stop] will be assumed as [code]true[/code] for this.
 }
-## Internel enum used to determine how to adjust the scroll when the item difference changed.
+## Changes how this node adjusts the scroll when the item spacing changed.
 enum ADJUST_SCROLL_BEHAVIOR {
 	NONE = 0b00, ## No adjustment.
 	PROPORTIONAL = 0b01, ## Multiplies the current scroll by the ratio of the old over the next item difference.
@@ -80,6 +80,7 @@ enum ANIMATION_TYPE {
 			if is_node_ready():
 				_reconfigure_distance(item_seperation, carousel_angle, val)
 				item_size = val
+				
 				queue_sort()
 				return
 			
@@ -91,6 +92,7 @@ enum ANIMATION_TYPE {
 			if is_node_ready():
 				_reconfigure_distance(val, carousel_angle, item_size)
 				item_seperation = val
+				
 				_adjust_children()
 				return
 			
@@ -102,6 +104,7 @@ enum ANIMATION_TYPE {
 			if is_node_ready():
 				_reconfigure_distance(item_seperation, val, item_size)
 				carousel_angle = val
+				
 				_adjust_children()
 				return
 			
@@ -461,8 +464,8 @@ func _adjust_children() -> void:
 	var item_count := _item_infos.size()
 	
 	var scroll := get_adjusted_scroll(true)
-	var index_delta := scroll / _distance_cache
-	var index_offset = int(index_delta)
+	var index_delta := (scroll / _distance_cache)
+	var index_offset := floori(index_delta)
 	var scroll_offset := fmod(scroll, _distance_cache)
 	
 	# Calls custom virtual method
@@ -475,7 +478,10 @@ func _adjust_children() -> void:
 			var offset_rect := info.rect
 			
 			# Gets the local index of the item according to the loop
-			var local_index := posmod(idx - index_offset - mid_index, item_count) - mid_index
+			#var local_index := posmod(idx - index_offset - mid_index, item_count) - mid_index
+			var local_index := posmod(idx - index_offset, item_count)
+			local_index -= item_count * int(local_index > mid_index)
+			
 			# Changes item visibility if outside range
 			info.node.visible = display_range == -1 || (absi(local_index) <= display_range)
 			
