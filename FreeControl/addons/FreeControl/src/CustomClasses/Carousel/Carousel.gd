@@ -46,17 +46,24 @@ enum SNAP_BEHAVIOR {
 	SNAP = 0b01, ## Once drag is released, the carousel will snap to the nearest item.
 	PAGING = 0b10 ## Carousel items will not scroll when dragged, unless [member paging_requirement] threshold is met. [member hard_stop] will be assumed as [code]true[/code] for this.
 }
+## Changes the direction the carousel will animate towards an item. Does not work if [member allow_loop] is [code]false[/code].
+enum ANiMATE_DIRECTION {
+	AUTO = 0b00, ## Will automatically chose the shortest direction to reach an item.
+	LEFT = 0b01, ## Will always move left to reach an item. 
+	RIGHT = 0b10 ## Will always move right to reach an item.
+}
 ## Changes how this node adjusts the scroll when the item spacing changed.
 enum ADJUST_SCROLL_BEHAVIOR {
 	NONE = 0b00, ## No adjustment.
 	PROPORTIONAL = 0b01, ## Multiplies the current scroll by the ratio of the old over the next item difference.
-	INDEX_SNAP = 0b10 ## Snaps the scroll to the nearest item's center.
+	INDEX_SNAP = 0b10, ## Snaps the scroll to the nearest item's center.
+	INSTANT = 0b11 ## Instantly snaps the scroll to the nearest item's center.
 }
 ## Internel enum used to differentiate what animation is currently playing
 enum ANIMATION_TYPE {
 	NONE = 0b00, ## No behavior.
 	MANUAL = 0b01, ## Currently animating via request by [method go_to_index].
-	SNAP = 0b10 ## Currently animating via an auto-item snapping request.
+	SNAP = 0b10, ## Currently animating via an auto-item snapping request.
 }
 #endregion
 
@@ -340,7 +347,12 @@ func _get_allowed_size_flags_vertical() -> PackedInt32Array:
 
 #region Custom Virtual Methods
 ## A virtual function that is is called whenever the scroll changes.
-func _on_progress(scroll : float) -> void:
+## [br][br]
+## [param ratio] is the ratio, between 0 to 1, of how far the carousel has been
+## fully rotated across.
+## [br][br]
+## Also see [method get_scroll_ratio].
+func _on_progress(ratio : float) -> void:
 	pass
 ## A virtual function that is is called whenever the scroll changes, for each visible
 ## item in the carousel.
@@ -431,8 +443,10 @@ func _reconfigure_distance(seperation : float, angle : float, item_s : Vector2) 
 		return
 
 	_distance_cache = new_distance
-	if dynamic_scroll_behavior == ADJUST_SCROLL_BEHAVIOR.INDEX_SNAP:
+	if dynamic_scroll_behavior == ADJUST_SCROLL_BEHAVIOR.INSTANT:
 		go_to_index(_index, false)
+	elif dynamic_scroll_behavior == ADJUST_SCROLL_BEHAVIOR.INDEX_SNAP && !is_animating():
+		go_to_index(_index, true)
 #endregion
 
 
@@ -469,7 +483,7 @@ func _adjust_children() -> void:
 	var scroll_offset := fmod(scroll, _distance_cache)
 	
 	# Calls custom virtual method
-	_on_progress(scroll)
+	_on_progress(scroll / _distance_cache)
 	
 	if display_loop:
 		var mid_index : int = floori(item_count * 0.5)
@@ -478,7 +492,6 @@ func _adjust_children() -> void:
 			var offset_rect := info.rect
 			
 			# Gets the local index of the item according to the loop
-			#var local_index := posmod(idx - index_offset - mid_index, item_count) - mid_index
 			var local_index := posmod(idx - index_offset, item_count)
 			local_index -= item_count * int(local_index > mid_index)
 			
@@ -517,7 +530,7 @@ func _on_animation_finished() -> void:
 		ANIMATION_TYPE.SNAP:
 			snap_end.emit()
 	_current_animation = ANIMATION_TYPE.NONE
-func _create_animation(idx : int, animation_type : ANIMATION_TYPE) -> void:
+func _create_animation(idx : int, animation_type : ANIMATION_TYPE, animate_direction : ANiMATE_DIRECTION = ANiMATE_DIRECTION.AUTO) -> void:
 	_reconfigure_drag()
 	_kill_animation()
 
@@ -532,15 +545,25 @@ func _create_animation(idx : int, animation_type : ANIMATION_TYPE) -> void:
 	if _is_allow_loop() && display_loop:
 		var item_count := _item_infos.size()
 		
-		# Loops if distance is shorter when looping
-		if absi(idx_delta - idx) > (item_count * 0.5):
-			var left_distance := posmod(idx_delta - idx, item_count)
-			var right_distance := posmod(idx - idx_delta, item_count)
-		
-			if left_distance < right_distance:
-				idx -= item_count
-			else:
-				idx += item_count
+		match animate_direction:
+			ANiMATE_DIRECTION.AUTO:
+				# Loops if distance is shorter when looping.
+				if absi(idx_delta - idx) > (item_count * 0.5):
+					var left_distance := posmod(idx_delta - idx, item_count)
+					var right_distance := posmod(idx - idx_delta, item_count)
+					
+					if left_distance < right_distance:
+						idx -= item_count
+					else:
+						idx += item_count
+			ANiMATE_DIRECTION.LEFT:
+				# Always loop left if needed.
+				if idx_delta < idx:
+					idx = posmod(idx, item_count) - item_count
+			ANiMATE_DIRECTION.RIGHT:
+				# Always loop right if needed.
+				if idx_delta > idx:
+					idx = posmod(idx, item_count) + item_count
 	
 	if _current_animation != ANIMATION_TYPE.NONE:
 		animation_end.emit()
@@ -599,26 +622,19 @@ func _handle_drag_angle(local_pos : Vector2) -> void:
 			_index += 1
 			
 			if page_with_animation:
-				_create_animation(
-					_index, ANIMATION_TYPE.SNAP
-				)
+				_create_animation(_index, ANIMATION_TYPE.SNAP, ANiMATE_DIRECTION.RIGHT)
 				return
 			
 			_scroll_delta = _index_to_scroll(_index)
-			_adjust_children()
 		elif -paging_requirement > _drag_delta:
 			_drag_delta = 0
 			_index -= 1
 			
 			if page_with_animation:
-				_create_animation(
-					_index, ANIMATION_TYPE.SNAP
-				)
+				_create_animation(_index, ANIMATION_TYPE.SNAP, ANiMATE_DIRECTION.LEFT)
 				return
 			
 			_scroll_delta = _index_to_scroll(_index)
-			_adjust_children()
-		return
 	
 	_adjust_children()
 
@@ -689,27 +705,27 @@ func _handle_slowdown() -> void:
 
 #region Public Methods (Movement Methods)
 ## Moves to an item of the given index within the carousel. If an invalid index is given, it will be posmod into a vaild index.
-func go_to_index(idx : int, animation : bool = true) -> void:
+func go_to_index(idx : int, animation : bool = true, animation_direction : ANiMATE_DIRECTION = ANiMATE_DIRECTION.AUTO) -> void:
 	if _item_infos.is_empty():
 		return
 	var item_count := _item_infos.size()
 	_index = posmod(idx, item_count) if _is_allow_loop() else clampi(idx, 0, item_count - 1)
 	
 	if animation:
-		_create_animation(_index, ANIMATION_TYPE.MANUAL)
+		_create_animation(_index, ANIMATION_TYPE.MANUAL, animation_direction)
 		return
 	_scroll_delta = _distance_cache * _index
 	_adjust_children()
 ## Moves to the previous item in the carousel, if there is one.
-func prev(animation : bool = true) -> void:
+func prev(animation : bool = true, animation_direction : ANiMATE_DIRECTION = ANiMATE_DIRECTION.AUTO) -> void:
 	_reconfigure_drag()
 	_reconfigure_index()
-	go_to_index(_index - 1, animation)
+	go_to_index(_index - 1, animation, animation_direction)
 ## Moves to the next item in the carousel, if there is one.
-func next(animation : bool = true) -> void:
+func next(animation : bool = true, animation_direction : ANiMATE_DIRECTION = ANiMATE_DIRECTION.AUTO) -> void:
 	_reconfigure_drag()
 	_reconfigure_index()
-	go_to_index(_index + 1, animation)
+	go_to_index(_index + 1, animation, animation_direction)
 
 
 ## Enacts a manual drag on the carousel. This can be used even if [member can_drag] is [code]false[/code].
@@ -753,6 +769,9 @@ func get_item_offset() -> Vector2:
 ## Returns the pixel distance each item is placed at from each other (including item_seperation).
 func get_item_distance() -> float:
 	return _distance_cache
+## Returns the number of items on this carousel.
+func get_item_count() -> float:
+	return _item_infos.size()
 
 
 ## Returns the adjusted scroll delta.[br]
@@ -772,6 +791,12 @@ func get_adjusted_scroll(with_drag : bool = false) -> float:
 	elif enforce_border:
 		ret = clampf(ret, -border_limit, _distance_cache * (_item_infos.size() - 1) + border_limit)
 	return ret
+## Returns the scroll delta within a ratio from 0 to 1 (inclusive).[br]
+## Returns [code]-1[/code] if this [Carousel] has no items on it.
+func get_scroll_ratio(with_drag : bool = false) -> float:
+	if _item_infos.is_empty():
+		return -1
+	return get_scroll(with_drag) / _distance_cache
 ## Returns the raw scroll delta.[br]
 ## Returns [code]-1[/code] if this [Carousel] has no items on it.
 func get_scroll(with_drag : bool = false) -> float:
