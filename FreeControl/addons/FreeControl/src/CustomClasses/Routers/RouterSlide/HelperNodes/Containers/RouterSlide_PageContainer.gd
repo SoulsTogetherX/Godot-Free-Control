@@ -5,7 +5,7 @@ extends Container
 
 #region Signal
 ## Emits when the current [Page] requests an event.
-signal event_action(event : String, args : Variant)
+signal event_action(event : StringName, args : Variant)
 
 ## Emits at the start of a transition.
 signal start_transition
@@ -55,6 +55,7 @@ const PAGE_LOAD_MODE = RouterSlide.PAGE_LOAD_MODE
 
 #region Private Variables
 var _index : int = -1
+var _desire_index : int = -1
 
 var _pages : Array[Page]
 var _pages_info : Array[RouterTabInfo]
@@ -361,6 +362,7 @@ func inital_pages(pages_info : Array[RouterTabInfo], start_idx : int) -> void:
 	
 	start_idx = clampi(start_idx, 0, _pages_info.size())
 	_index = -1
+	_desire_index = -1
 	
 	_clear_pages()
 	
@@ -376,8 +378,9 @@ func inital_pages(pages_info : Array[RouterTabInfo], start_idx : int) -> void:
 ## the node will animated the transition between pages. 
 func goto_index(idx : int, animate : bool) -> void:
 	idx = clampi(idx, 0, _pages_info.size())
-	if _index == idx:
+	if _desire_index == idx:
 		return
+	_desire_index = idx
 	
 	start_transition.emit()
 	

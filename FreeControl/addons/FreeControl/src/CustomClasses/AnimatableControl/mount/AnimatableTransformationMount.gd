@@ -106,8 +106,8 @@ func _get_rotated_bb(rect : Rect2, pivot : Vector2, angle : float) -> Rect2:
 	
 	# Simplified equation for centerPoint - bb_size*0.5
 	var bb_pos := Vector2(
-		(sze.x * (trig.x - abs(trig.x)) - sze.y * (trig.y + abs(trig.y))) * 0.5 + pivot.x * (1 - trig.x) + trig.y * pivot.y + pos.x,
-		(sze.x * (trig.y - abs(trig.y)) + sze.y * (trig.x - abs(trig.x))) * 0.5 + pivot.y * (1 - trig.x) - trig.y * pivot.x + pos.y
+		(sze.x * (trig.x - absf(trig.x)) - sze.y * (trig.y + absf(trig.y))) * 0.5 + pivot.x * (1 - trig.x) + trig.y * pivot.y + pos.x,
+		(sze.x * (trig.y - absf(trig.y)) + sze.y * (trig.x - absf(trig.x))) * 0.5 + pivot.y * (1 - trig.x) - trig.y * pivot.x + pos.y
 	)
 	trig = trig.abs()
 	## Finds the fix of the bounding box of the rotated rectangle

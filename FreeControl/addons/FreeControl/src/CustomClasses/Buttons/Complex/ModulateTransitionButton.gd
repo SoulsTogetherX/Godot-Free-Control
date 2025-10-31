@@ -5,6 +5,8 @@ class_name ModulateTransitionButton extends ModulateTransitionContainer
 ## input.
 
 #region Signals
+## Emits the state of the button after it is pressed.
+signal press_state(toggle : bool)
 ## Emits the state of the button as it is released.
 signal release_state(toggle : bool)
 
@@ -24,10 +26,15 @@ signal press_end
 ## or toggled (if [member toggle_mode] is active). Only works if [member toggle_mode] is
 ## [code]false[/code].
 @export var button_pressed : bool:
+	get:
+		return _button_pressed
 	set(val):
-		if button_pressed != val:
-			button_pressed = val
+		if _button_pressed != val:
+			_button_pressed = val
 			_set_button_color(val)
+			
+			if _button:
+				_button.button_pressed = val
 ## If [code]true[/code], the button is in [member toggle_mode]. Makes the button
 ## flip state between pressed and unpressed each time its area is clicked.
 @export var toggle_mode : bool:
@@ -41,8 +48,10 @@ signal press_end
 				_button.toggle_mode = val
 ## If [code]true[/code], then this node does not accept input.
 @export var disabled : bool:
-	set = _set_disabled
-
+	set(val):
+		if disabled != val:
+			disabled = val
+			_set_disabled(val)
 @export_group("Alpha")
 ## The color to modulate to when this node is unfocused.
 @export var normal_color : Color = Color(1.0, 1.0, 1.0, 1.0):
@@ -75,6 +84,9 @@ signal press_end
 
 
 #region Private Variables
+var _button_pressed : bool
+var _disabled : bool
+
 var _button : HoldButton
 #endregion
 
@@ -92,12 +104,12 @@ func _init() -> void:
 	if !Engine.is_editor_hint():
 		child_order_changed.connect(_button.move_to_front, CONNECT_DEFERRED)
 		
-		_button.button_state.connect(_set_button_color)
-		_button.release_state.connect(_emit_vaild_release)
+		_button.pressed_state.connect(_on_press_state)
+		_button.release_state.connect(_on_release_state)
 		
 		_button.press_start.connect(press_start.emit)
 		_button.press_end.connect(press_end.emit)
-		_button.press_vaild.connect(press_vaild.emit)
+		_button.press_vaild.connect(_emit_vaild_press)
 	
 	_button.mouse_filter = mouse_filter
 	_button.mouse_force_pass_scroll_events = mouse_force_pass_scroll_events
@@ -145,31 +157,37 @@ func _notification(what : int) -> void:
 #endregion
 
 
-#region Private Methods
+#region Private Methods (Helper)
 func _set_disabled(val : bool) -> void:
-	disabled = val
+	_disabled = val || disabled
 	
-	_set_button_color(button_pressed)
+	_set_button_color(_button_pressed)
 	if _button:
-		_button.disabled = disabled
+		_button.disabled = _disabled
 func _set_button_color(val : bool) -> void:
-	if disabled:
-		set_color(2)
-		return
-	set_color(int(val))
-
-func _emit_vaild_release(release : bool) -> void:
-	_set_button_color(release)
-	release_state.emit(release)
+	set_color(2 if _disabled else int(val))
 #endregion
 
 
-#region Public Methods
+#region Private Methods (On Events)
+func _on_press_state(press : bool) -> void:
+	_set_button_color(press)
+	press_state.emit(press)
+func _on_release_state(release : bool) -> void:
+	_set_button_color(release)
+	release_state.emit(release)
+
+func _emit_vaild_press() -> void:
+	_button_pressed = _button.button_pressed
+	press_vaild.emit()
+#endregion
+
+
+#region Public Methods (Helper)
 ## Forcibly stops this node's check.
 func force_release() -> void:
 	if _button:
 		_button.force_release()
-
 ## Returns if mouse or touch is being held (mouse or touch outside of limit without being released).
 func is_held() -> bool:
 	return _button && _button.is_held()

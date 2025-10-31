@@ -5,7 +5,7 @@ class_name RouterStack extends PanelContainer
 
 #region Signals
 ## Emits when the current [Page] requests an event.
-signal event_action(event : String, args : Variant)
+signal event_action(event : StringName, args : Variant)
 
 ## Emits at the start of a transition.
 signal start_transition
@@ -130,6 +130,18 @@ func _init() -> void:
 	
 	_stack.duration_enter = duration_enter
 	_stack.duration_exit = duration_exit
+	
+	_stack.mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+func _get_minimum_size() -> Vector2:
+	if clip_contents:
+		return Vector2.ZERO
+	
+	var min := Vector2.ZERO
+	for child in get_children():
+		if child is Control:
+			min = min.max(child.get_combined_minimum_size())
+	return min
 #endregion
 
 
@@ -167,7 +179,7 @@ func _append_to_page_queue(page_node: PageStackInfo) -> void:
 	_page_stack.append(page_node)
 	
 	var page := page_node.get_page()
-	if !page.event_action.is_connected(event_action.emit):
+	if page && !page.event_action.is_connected(event_action.emit):
 		page.event_action.connect(event_action.emit)
 
 func _reverse_animate(animation : ANIMATION_TYPE) -> ANIMATION_TYPE:
@@ -274,9 +286,6 @@ func route_node(
 	params : Dictionary = {},
 	args : Dictionary = {}
 ) -> Page:
-	if !page:
-		push_error("page cannot be 'null'")
-		return null
 	_params = params
 	
 	var enter_page := PageStackInfo.create(
@@ -345,9 +354,6 @@ func navigate_node(
 	params : Dictionary = {},
 	args : Dictionary = {}
 ) -> Page:
-	if !page:
-		push_error("page cannot be 'null'")
-		return null
 	_params = params
 	
 	var enter_info := PageStackInfo.create(
@@ -377,7 +383,8 @@ func back(
 	params : Dictionary = {},
 	args : Dictionary = {}
 ) -> void:
-	if is_empty(): return
+	if is_empty():
+		return
 	_params = params
 	_stack.set_modifers(args)
 	
@@ -411,6 +418,11 @@ func is_empty() -> bool:
 ## Returns the current [Page] on display.
 func get_current_page() -> PageStackInfo:
 	return null if _page_stack.is_empty() else _page_stack.back()
+
+## Returns the [SwapContainer] used by this node. Freeing the node may result in
+## crashes.
+func get_swap_container() -> SwapContainer:
+	return _stack
 #endregion
 
 

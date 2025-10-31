@@ -59,20 +59,20 @@ class_name AnimatedSwitch extends BaseButton
 		if switch_bg != val:
 			switch_bg = val
 			
-			if knob_bg:
-				_switch.add_theme_stylebox_override("panel", switch_bg)
-			else:
-				_switch.remove_theme_stylebox_override("panel")
+			if _switch:
+				_switch.visible = switch_bg != null
+				if switch_bg:
+					_switch.add_theme_stylebox_override("panel", switch_bg)
 ## The style of the knob.
 @export var knob_bg : StyleBox:
 	set(val):
 		if knob_bg != val:
 			knob_bg = val
 			
-			if knob_bg:
-				_knob.add_theme_stylebox_override("panel", knob_bg)
-			else:
-				_knob.remove_theme_stylebox_override("panel")
+			if _knob:
+				_knob.visible = knob_bg != null
+				if knob_bg:
+					_knob.add_theme_stylebox_override("panel", knob_bg)
 
 @export_group("Colors")
 @export_subgroup("Switch")
@@ -189,9 +189,13 @@ func _init() -> void:
 	if _switch && is_instance_valid(_switch):
 		_switch.queue_free()
 	_switch = Panel.new()
+	_switch.visible = switch_bg != null
+	
+	
 	if _knob && is_instance_valid(_knob):
 		_knob.queue_free()
 	_knob = Panel.new()
+	_knob.visible = knob_bg != null
 	
 	_switch.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_knob.mouse_filter = Control.MOUSE_FILTER_IGNORE

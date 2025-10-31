@@ -11,13 +11,14 @@ config_version=5
 [application]
 
 config/name="FreeControl"
+run/main_scene="res://Main.tscn"
 config/features=PackedStringArray("4.3", "Mobile")
 config/icon="res://icon.svg"
 
 [display]
 
-window/size/viewport_width=1000
-window/size/viewport_height=800
+window/size/viewport_width=400
+window/size/viewport_height=400
 
 [editor_plugins]
 

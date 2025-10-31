@@ -90,7 +90,7 @@ func _args_updated() -> void:
 ## The parameter [param animate] is [code]true[/code] when an animation is requested.
 ## [br][br]
 ## Also see [method toggle_focus]. 
-func _on_focus_updated(focused : bool, animate : bool) -> void:
+func _on_focus_updated(focused : bool, animate : bool, user_tapped : bool) -> void:
 	pass
 ## This is a virtual method called when this tab is disabled or enabled.
 ## The parameter [param animate] is [code]true[/code] when an animation is requested.
@@ -145,12 +145,12 @@ func update_args(parent_args : Dictionary) -> void:
 
 
 ## Toggles the focus of this tab.
-func toggle_focus(focus : bool, animate : bool) -> void:
+func toggle_focus(focus : bool, animate : bool, user_tapped : bool = true) -> void:
 	if _focused == focus:
 		return
 	
 	_focused = focus
-	_on_focus_updated(focus, animate)
+	_on_focus_updated(focus, animate, user_tapped)
 ## Toggles the disabled status of this tab.
 func toggle_disable(disable : bool, animate : bool) -> void:
 	if is_disabled() == disable:

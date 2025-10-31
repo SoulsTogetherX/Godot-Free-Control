@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="16"
+   height="16"
+   version="1.1"
+   id="svg1"
+   sodipodi:docname="AnimatablePositionalControl.svg"
+   inkscape:version="1.4.2 (f4327f4, 2025-05-13)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs1" />
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#505050"
+     bordercolor="#eeeeee"
+     borderopacity="1"
+     inkscape:showpageshadow="0"
+     inkscape:pageopacity="0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#505050"
+     inkscape:zoom="32"
+     inkscape:cx="7.609375"
+     inkscape:cy="6.109375"
+     inkscape:window-width="1920"
+     inkscape:window-height="1001"
+     inkscape:window-x="-9"
+     inkscape:window-y="-9"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg1" />
+  <text
+     xml:space="preserve"
+     style="font-size:13.3333px;font-family:Cambria;-inkscape-font-specification:Cambria;fill:#8654ce;stroke-width:5.66929;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:0.2;font-weight:normal;font-style:normal;font-stretch:normal;font-variant:normal"
+     x="4.4930115"
+     y="10.958069"
+     id="text1"><tspan
+       sodipodi:role="line"
+       id="tspan1" /></text>
+  <g
+     id="g7" />
+  <g
+     id="path2"
+     style="opacity:1;stroke-width:2.32843;fill:#8eef97;fill-opacity:1;stroke:none"
+     transform="matrix(0.42947187,0,0,0.42947187,1.3942417,0.85488554)">
+    <path
+       id="path11"
+       style="baseline-shift:baseline;display:inline;overflow:visible;vector-effect:none;stroke-width:2.32843;stroke-miterlimit:3.9;paint-order:stroke fill markers;enable-background:accumulate;stop-color:#000000;stop-opacity:1;fill:#8eef97;fill-opacity:1;stroke:none"
+       d="m 8.6328126,0.3378905 -3.0781252,5.324219 h 2.078125 v 3.2265624 h -3.226562 v -2.078125 l -5.324219,3.078125 5.324219,3.0781251 v -2.078125 h 3.226562 v 3.226562 h -2.078125 l 3.0781252,5.324219 3.0781254,-5.324219 H 9.6328126 v -3.226562 h 3.2265624 v 2.078125 l 5.324219,-3.0781251 -5.324219,-3.078125 v 2.078125 H 9.6328126 V 5.6621095 H 11.710938 Z M 19.683279,9.6516553 V 20.816349 H 30.847972 V 9.6516553 Z M 19.014762,10.320173 8.2411733,31.771847 30.179456,21.484866 H 19.014762 Z" />
+  </g>
+</svg>

@@ -316,10 +316,6 @@ func _notification(what : int) -> void:
 func _gui_input(event: InputEvent) -> void:
 	if (event is InputEventScreenDrag || event is InputEventMouseMotion):
 		if _is_dragging:
-			if event.pressure == 0:
-				_end_drag()
-				return
-			
 			# Prevents drag from handled multiple times in a single frame.
 			if _drag_input_stopper:
 				return
@@ -662,8 +658,8 @@ func _start_drag() -> void:
 		return
 	
 	_is_dragging = true
-	_kill_animation()
 	_end_slowdown()
+	_kill_animation()
 	
 	drag_begin.emit()
 #endregion
@@ -770,7 +766,7 @@ func get_item_offset() -> Vector2:
 func get_item_distance() -> float:
 	return _distance_cache
 ## Returns the number of items on this carousel.
-func get_item_count() -> float:
+func get_item_count() -> int:
 	return _item_infos.size()
 
 

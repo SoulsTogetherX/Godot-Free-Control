@@ -101,9 +101,7 @@ func _notification(what: int) -> void:
 			transformation_changed.emit()
 		NOTIFICATION_SORT_CHILDREN:
 			_sort_children()
-		NOTIFICATION_RESIZED:
-			_update_offsets()
-		NOTIFICATION_READY:
+		NOTIFICATION_READY, NOTIFICATION_RESIZED:
 			_update_offsets()
 #endregion
 

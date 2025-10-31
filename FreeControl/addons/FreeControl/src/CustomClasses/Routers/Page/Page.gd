@@ -8,7 +8,7 @@ class_name Page extends Container
 ## [br][br]
 ## If this Router is a decedent of another [Page], connect that [Page]'s
 ## [method emit_event] with this [Signal].
-signal event_action(event_name : String, args : Variant)
+signal event_action(event_name : StringName, args : Variant)
 
 ## Emits when this page is added as a child and finished animation by a Router.
 @warning_ignore("unused_signal")
@@ -26,9 +26,15 @@ signal exiting
 
 
 #region Private Virtual Methods
-func _enter_tree() -> void:
-	if !Engine.is_editor_hint():
-		clip_contents = true
+func _get_minimum_size() -> Vector2:
+	if clip_contents:
+		return Vector2.ZERO
+	
+	var min := Vector2.ZERO
+	for child in get_children():
+		if child is Control:
+			min = min.max(child.get_combined_minimum_size())
+	return min
 
 func _notification(what : int) -> void:
 	match what:
@@ -78,7 +84,7 @@ func _update_child(child : Control):
 
 #region Public Methods
 ## Requests an event to the attached Router parent.
-func emit_event(event_name : String, args : Variant) -> void:
+func emit_event(event_name : StringName, args : Variant) -> void:
 	event_action.emit(event_name, args)
 #endregion
 

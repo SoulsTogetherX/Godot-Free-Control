@@ -19,7 +19,6 @@ static func create(
 	exit_animate : SwapContainer.ANIMATION_TYPE,
 	auto_clean : bool
 ) -> PageStackInfo:
-	page.clip_contents = true
 	
 	var info = PageStackInfo.new()
 	info._page = page

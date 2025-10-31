@@ -137,6 +137,7 @@ func _validate_property(property: Dictionary) -> void:
 
 
 func _gui_input(event: InputEvent) -> void:
+	
 	if event is InputEventMouseMotion || event is InputEventScreenDrag || event is InputEventMouseButton || event is InputEventScreenTouch:
 		event.position += global_position
 		_bounds_check._gui_input(event)

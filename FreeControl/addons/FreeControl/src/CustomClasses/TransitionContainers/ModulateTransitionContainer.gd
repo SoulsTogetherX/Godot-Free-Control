@@ -6,7 +6,10 @@ class_name ModulateTransitionContainer extends Container
 #region External Variables
 @export_group("Alpha Override")
 ## The colors to animate between.
-@export var colors : PackedColorArray = [Color.WHITE, Color(1.0, 1.0, 1.0, 0.5)]:
+@export var colors : PackedColorArray = [
+	Color.WHITE,
+	Color(1.0, 1.0, 1.0, 0.5)
+]:
 	set(val):
 		if colors != val:
 			colors = val
@@ -38,7 +41,7 @@ var _focused_color : int = 0
 		if val != duration:
 			duration = val
 ## The [enum Tween.EaseType] of color animations.
-@export var ease_type : Tween.EaseType = Tween.EaseType.EASE_OUT_IN
+@export var ease_type : Tween.EaseType = Tween.EaseType.EASE_IN_OUT
 ## The [enum Tween.TransitionType] of color animations.
 @export var transition_type : Tween.TransitionType = Tween.TransitionType.TRANS_CIRC
 ## If [code]true[/code] animations can be interupted midway. Otherwise, any change in the [param focused_color]
@@ -48,7 +51,7 @@ var _focused_color : int = 0
 
 
 #region Private Variables
-var _color_tween : Tween = null
+var _color_tween : Tween
 var _current_focused_color : int
 #endregion
 
@@ -79,15 +82,18 @@ func _notification(what : int) -> void:
 
 
 #region Private Methods
+func _kill_color_tween() -> void:
+	if _color_tween && _color_tween.is_running():
+		_color_tween.kill()
 func _on_set_color():
 	if _focused_color == _current_focused_color:
 		return
 	if can_cancle:
-		if _color_tween: _color_tween.kill()
+		_kill_color_tween()
 	elif _color_tween && _color_tween.is_running():
 		return
 	_current_focused_color = _focused_color
-		
+	
 	_color_tween = create_tween()
 	_color_tween.set_ease(ease_type)
 	_color_tween.set_trans(transition_type)
@@ -106,26 +112,43 @@ func _sort_children() -> void:
 
 
 #region Public Methods
+## Returns if the given color index is vaild.
+func is_vaild_color(color: int) -> bool:
+	return 0 <= color && color < colors.size() 
 ## Sets the current color index.
 ## [br][br]
 ## Also see: [member focused_color].
 func set_color(color: int) -> void:
+	if !is_vaild_color(color):
+		return
+	
 	focused_color = color
 ## Sets the current color index. Performing this will ignore any animation and instantly set the color.
 ## [br][br]
 ## Also see: [member focused_color].
 func force_color(color: int) -> void:
+	if !is_vaild_color(color):
+		return
+	
 	if _color_tween && _color_tween.is_running():
-		if !can_cancle: return
-		_color_tween.kill()
+		if !can_cancle:
+			return
+		_kill_color_tween()
 	_current_focused_color = color
 	_focused_color = color
 	modulate = colors[color]
 
 ## Gets the current color attributed to the current color index.
 func get_current_color() -> Color:
-	if _focused_color == -1: return 1
+	if _focused_color == -1:
+		return 1
 	return colors[_focused_color]
+
+## An async method that awaits until the color finished changing.
+## If the color isn't changing, then this immediately returns.
+func await_color_change() -> void:
+	if _color_tween && _color_tween.is_running():
+		await _color_tween.finished
 #endregion
 
 # Made by Xavier Alvarez. A part of the "FreeControl" Godot addon.

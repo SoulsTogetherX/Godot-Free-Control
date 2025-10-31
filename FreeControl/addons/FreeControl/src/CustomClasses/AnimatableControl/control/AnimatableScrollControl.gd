@@ -1,7 +1,8 @@
 # Made by Xavier Alvarez. A part of the "FreeControl" Godot addon.
 @tool
-class_name AnimatableScrollControl extends AnimatableControl
+class_name AnimatableScrollControl extends AnimatablePositionalControl
 ## A container to be used for free transformation, within a UI, depended on a [ScrollContainer]'s scroll progress.
+
 
 #region External Variables
 ## The [ScrollContainer] this node will consider for operations. Is automatically
@@ -56,7 +57,8 @@ func get_origin_offset() -> Vector2:
 	return mount.global_position - scroll.global_position 
 ## Returns the horizontal and vertical progress of [member scroll].
 func get_scroll_offset() -> Vector2:
-	if !scroll: return Vector2.ZERO
+	if !scroll:
+		return Vector2.ZERO
 	return Vector2(scroll.scroll_horizontal, scroll.scroll_vertical)
 ## Gets the closet parent [ScrollContainer] in the tree.
 func get_parent_scroll() -> ScrollContainer:

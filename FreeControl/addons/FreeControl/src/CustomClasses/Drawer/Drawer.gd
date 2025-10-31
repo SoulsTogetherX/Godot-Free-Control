@@ -659,14 +659,14 @@ func _find_offsets() -> void:
 		var inner_point_half := inner_point + half_drawer_size
 		_outer_offset = inner_point
 		
-		if abs(inner_point_half.x - size.x) < 0.01:
+		if absf(inner_point_half.x - size.x) < 0.01:
 			_outer_offset.x += half_drawer_size.x
-		elif abs(inner_point_half.x) < 0.01:
+		elif absf(inner_point_half.x) < 0.01:
 			_outer_offset.x -= half_drawer_size.x
 		
-		if abs(inner_point_half.y - size.y) < 0.01:
+		if absf(inner_point_half.y - size.y) < 0.01:
 			_outer_offset.y += half_drawer_size.y
-		elif abs(inner_point_half.y) < 0.01:
+		elif absf(inner_point_half.y) < 0.01:
 			_outer_offset.y -= half_drawer_size.y
 	else:
 		var distances_to_outer_center := ((size + drawer_size) / _angle_vec).abs()

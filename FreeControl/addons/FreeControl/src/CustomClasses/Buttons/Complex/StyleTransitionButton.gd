@@ -4,8 +4,11 @@ class_name StyleTransitionButton extends StyleTransitionContainer
 ## A button that inherts from [StyleTransitionContainer] and uses [HoldButton] as
 ## input.
 
+
 #region Signals
-## Emits the state of the button as it is released.
+## Emits the state of the button after it is pressed.
+signal press_state(toggle : bool)
+## Emits the state of the button before it is released.
 signal release_state(toggle : bool)
 
 ## Emits when button is released with all vaild conditions.
@@ -24,10 +27,15 @@ signal press_end
 ## or toggled (if [member toggle_mode] is active). Only works if [member toggle_mode] is
 ## [code]false[/code].
 @export var button_pressed : bool:
+	get:
+		return _button_pressed
 	set(val):
-		if button_pressed != val:
-			button_pressed = val
+		if _button_pressed != val:
+			_button_pressed = val
 			_set_button_color(val)
+			
+			if _button:
+				_button.button_pressed = val
 ## If [code]true[/code], the button is in [member toggle_mode]. Makes the button
 ## flip state between pressed and unpressed each time its area is clicked.
 @export var toggle_mode : bool:
@@ -39,8 +47,6 @@ signal press_end
 			
 			if _button:
 				_button.toggle_mode = val
-var _disabled : bool:
-	set = _set_disabled
 ## If [code]true[/code], then this node does not accept input.
 @export var disabled : bool:
 	set(val):
@@ -80,8 +86,12 @@ var _disabled : bool:
 
 
 #region Private Variables
+var _button_pressed : bool
+var _disabled : bool
+
 var _button : HoldButton
 #endregion
+
 
 
 #region Private Virtual Methods
@@ -99,19 +109,19 @@ func _init() -> void:
 	if !Engine.is_editor_hint():
 		child_order_changed.connect(_button.move_to_front, CONNECT_DEFERRED)
 		
-		_button.button_state.connect(_set_button_color)
-		_button.release_state.connect(_emit_vaild_release)
+		_button.pressed_state.connect(_on_press_state)
+		_button.release_state.connect(_on_release_state)
 		
 		_button.press_start.connect(press_start.emit)
 		_button.press_end.connect(press_end.emit)
-		_button.press_vaild.connect(press_vaild.emit)
+		_button.press_vaild.connect(_emit_vaild_press)
 	
 	_button.mouse_filter = mouse_filter
 	_button.mouse_force_pass_scroll_events = mouse_force_pass_scroll_events
 	_button.mouse_default_cursor_shape = mouse_default_cursor_shape
 	
 	_button.toggle_mode = toggle_mode
-	_button.button_pressed = button_pressed
+	_button.button_pressed = _button_pressed
 	_button.disabled = _disabled
 
 
@@ -149,30 +159,37 @@ func _notification(what : int) -> void:
 	match what:
 		NOTIFICATION_READY:
 			colors = [normal_color, focus_color, disabled_color]
-			force_color(2 if _disabled else (1 if button_pressed else 0))
+			force_color(2 if _disabled else int(_button_pressed))
 #endregion
 
 
-#region Private Methods
+#region Private Methods (Helper)
 func _set_disabled(val : bool) -> void:
 	_disabled = val || disabled
 	
-	_set_button_color(button_pressed)
+	_set_button_color(_button_pressed)
 	if _button:
 		_button.disabled = _disabled
 func _set_button_color(val : bool) -> void:
-	if _disabled:
-		set_color(2)
-	else:
-		set_color(int(val))
-
-func _emit_vaild_release(release : bool) -> void:
-	_set_button_color(release)
-	release_state.emit(release)
+	set_color(2 if _disabled else int(val))
 #endregion
 
 
-#region Public Methods
+#region Private Methods (On Events)
+func _on_press_state(press : bool) -> void:
+	_set_button_color(press)
+	press_state.emit(press)
+func _on_release_state(release : bool) -> void:
+	_set_button_color(release)
+	release_state.emit(release)
+
+func _emit_vaild_press() -> void:
+	_button_pressed = _button.button_pressed
+	press_vaild.emit()
+#endregion
+
+
+#region Public Methods (Helper)
 ## Forcibly stops this node's check.
 func force_release() -> void:
 	if _button:

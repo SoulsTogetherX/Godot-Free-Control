@@ -75,7 +75,7 @@ func _get_tab(idx : int) -> BaseRouterTab:
 	return _tabs[idx]
 #endregion
 
-
+var old_args : Dictionary
 #region Public Methods
 ## Frees and recreates all tabs.
 func refresh_tabs(
@@ -87,13 +87,14 @@ func refresh_tabs(
 	margin_right : int,
 	margin_bottom : int
 ) -> void:
+	old_args = parent_args
 	_create_tabs(tab_info, template)
 	set_args(parent_args)
 	set_margins(margin_left, margin_top, margin_right, margin_bottom)
 
-
 ## Sets the parent arguments for all tabs
 func set_args(parent_args : Dictionary) -> void:
+	old_args = parent_args
 	for tab : BaseRouterTab in _tabs:
 		tab.update_args(parent_args)
 ## Sets the margins for all tabs
@@ -125,15 +126,15 @@ func toggle_disable(idx : int, disable : bool, animate : bool = true) -> void:
 ## [br][br]
 ## If [param animate] is [code]true[/code], the tab is expected to animate to a
 ## disabled state. Otherwise, it won't.
-func goto_index(idx : int, animate : bool = true) -> void:
+func goto_index(idx : int, animate : bool = true, user_tapped : bool = true) -> void:
 	var tab : BaseRouterTab
 	
 	tab = _get_tab(_index)
 	if tab:
-		tab.toggle_focus(false, animate)
+		tab.toggle_focus(false, animate, user_tapped)
 	tab = _get_tab(idx)
 	if tab:
-		tab.toggle_focus(true, animate)
+		tab.toggle_focus(true, animate, user_tapped)
 	
 	_index = idx
 #endregion

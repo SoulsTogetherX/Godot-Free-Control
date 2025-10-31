@@ -34,7 +34,7 @@ func _get_minimum_size() -> Vector2:
 	# Ensures size is the same as the largest size (of both axis) of children
 	for child : Node in get_children():
 		if child is AnimatableControl:
-			if child.size_mode & child.SIZE_MODE.MIN:
+			if child.size_mode & AnimatableControl.SIZE_MODE.MIN:
 				_min_size = _min_size.max(child.get_combined_minimum_size())
 	return _min_size
 
@@ -128,6 +128,8 @@ func _sort_children() -> void:
 	for child : Node in get_children():
 		if child is AnimatableControl:
 			_sort_child(child)
+		elif child:
+			fit_child_in_rect(child, Rect2(Vector2.ZERO,size), false)
 	
 	propagate_notification(NOTIFICATION_SORT_CHILDREN)
 	sort_children.emit()
@@ -178,6 +180,23 @@ func queue_sort() -> void:
 	
 	call_deferred("_sort_children")
 	_queued_sort = true
+
+## Fit a child control in a given rect. This is mainly a helper for creating custom container classes.
+func fit_child_in_rect(child: Control, rect: Rect2, perserve_trans : bool = false) -> void:
+	if !child:
+		push_error("Parameter \"p_child\" is null.")
+		return
+	if child.get_parent() != self:
+		push_error("Condition \"p_child->get_parent() != this\" is true.")
+		return
+	
+	if !perserve_trans:
+		child.scale = Vector2.ONE
+		child.pivot_offset = Vector2.ZERO
+		child.rotation = 0
+	
+	child.position = rect.position
+	child.size = rect.size
 #endregion
 
 # Made by Xavier Alvarez. A part of the "FreeControl" Godot addon.

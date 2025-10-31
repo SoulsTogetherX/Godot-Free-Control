@@ -16,6 +16,12 @@ func _enter_tree() -> void:
 		load(ICON_FOLDER + "AnimatableControl.svg")
 	)
 	add_custom_type(
+		"AnimatablePositionalControl",
+		"Container",
+		load(CUSTOM_CLASS_FOLDER + "AnimatableControl/control/AnimatablePositionalControl.gd"), 
+		load(ICON_FOLDER + "AnimatablePositionalControl.svg")
+	)
+	add_custom_type(
 		"AnimatableScrollControl",
 		"Container",
 		load(CUSTOM_CLASS_FOLDER + "AnimatableControl/control/AnimatableScrollControl.gd"), 
@@ -232,6 +238,7 @@ func _exit_tree() -> void:
 	# AnimatableControls
 		# Control
 	remove_custom_type("AnimatableControl")
+	remove_custom_type("AnimatablePositionalControl")
 	remove_custom_type("AnimatableScrollControl")
 	remove_custom_type("AnimatableZoneControl")
 	remove_custom_type("AnimatableVisibleControl")

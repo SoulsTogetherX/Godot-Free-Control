@@ -67,22 +67,50 @@ var _current_node : Control
 #endregion
 
 
+#region Virtual Methods
+func _get_minimum_size() -> Vector2:
+	if clip_contents:
+		return Vector2.ZERO
+	
+	var min := Vector2.ZERO
+	for child in get_children():
+		if child is Control:
+			min = min.max(child.get_combined_minimum_size())
+	return min
+
+func _notification(what: int) -> void:
+	match what:
+		NOTIFICATION_SORT_CHILDREN:
+			_sort_children()
+#endregion
+
+
 #region Private Methods
+func _sort_children() -> void:
+	for child : Node in get_children():
+		if child is Control:
+			fit_child_in_rect(child, Rect2(Vector2.ZERO, size))
+
+
 func _parent_control(node: Control, front : bool) -> void:
-	if !node: return
+	if !node:
+		return
 	if !node.get_parent():
 		add_child(node)
-	
-	if is_inside_tree():
-		node.hide()
-		get_tree().process_frame.connect(node.show, CONNECT_ONE_SHOT)
+	elif node.get_parent() != self:
+		node.get_parent().remove_child(node)
 	
 	if front:
 		node.move_to_front()
 	else:
 		move_child(node, 0)
 	
-	node.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	if is_inside_tree():
+		node.hide()
+		get_tree().process_frame.connect(node.show, CONNECT_ONE_SHOT)
+		
+		node.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		node.size_flags_vertical = Control.SIZE_EXPAND_FILL
 func _unparent_control(node: Control) -> void:
 	remove_child(node)
 
@@ -130,30 +158,34 @@ func _handle_enter_animation(
 	match animation:
 		ANIMATION_TYPE.DEFAULT, ANIMATION_TYPE.LEFT:
 			animation_tween.tween_method(
-				func (val): node.position.x = val,
-				border.position.x,
-				0,
+				func (val):
+					node.position.x = val * border.position.x,
+				1.,
+				0.,
 				duration_enter
 			)
 		ANIMATION_TYPE.RIGHT:
 			animation_tween.tween_method(
-				func (val): node.position.x = val,
-				border.size.x - border.position.x,
-				0,
+				func (val):
+					node.position.x = val * (border.size.x - border.position.x),
+				1.,
+				0.,
 				duration_enter
 			)
 		ANIMATION_TYPE.TOP:
 			animation_tween.tween_method(
-				func (val): node.position.y = val,
-				border.position.y,
-				0,
+				func (val):
+					node.position.y = val * border.position.y,
+				1.,
+				0.,
 				duration_enter
 			)
 		ANIMATION_TYPE.BOTTOM:
 			animation_tween.tween_method(
-				func (val): node.position.y = val,
-				border.size.y - border.position.y,
-				0,
+				func (val):
+					node.position.y = val * (border.size.y - border.position.y),
+				1.,
+				0.,
 				duration_enter
 			)
 		_:
@@ -171,30 +203,34 @@ func _handle_exit_animation(
 	match animation:
 		ANIMATION_TYPE.DEFAULT, ANIMATION_TYPE.LEFT:
 			animation_tween.tween_method(
-				func (val): node.position.x = val,
-				0,
-				border.size.x - border.position.x,
+				func (val):
+					node.position.x = val * (border.size.x - border.position.x),
+				0.,
+				1.,
 				duration_enter
 			)
 		ANIMATION_TYPE.RIGHT:
 			animation_tween.tween_method(
-				func (val): node.position.x = val,
-				0,
-				border.position.x,
+				func (val):
+					node.position.x = val * border.position.x,
+				0.,
+				1.,
 				duration_enter
 			)
 		ANIMATION_TYPE.TOP:
 			animation_tween.tween_method(
-				func (val): node.position.y = val,
-				0,
-				border.size.y - border.position.y,
+				func (val):
+					node.position.y = val * (border.size.y - border.position.y),
+				0.,
+				1.,
 				duration_enter
 			)
 		ANIMATION_TYPE.BOTTOM:
 			animation_tween.tween_method(
-				func (val): node.position.y = val,
-				0,
-				border.position.y,
+				func (val):
+					node.position.y = val * border.position.y,
+				0.,
+				1.,
 				duration_enter
 			)
 		_:

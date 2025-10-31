@@ -5,7 +5,7 @@ class_name RouterSlide extends Container
 
 #region Signals
 ## Emits when the current [Page] requests an event.
-signal event_action(event : String, args : Variant)
+signal event_action(event : StringName, args : Variant)
 
 ## Emits at the start of a page transition.
 signal start_transition_page
@@ -341,9 +341,9 @@ func _init() -> void:
 	
 	add_child(_background)
 	add_child(_page_container)
-	add_child(_shadow)
 	
 	add_child(_tab_background)
+	_tab_background.add_child(_shadow)
 	_tab_background.add_child(_tab_container)
 	_tab_background.add_child(_highlight_container)
 	
@@ -421,11 +421,10 @@ func _position_components() -> void:
 		
 		_page_container.position = Vector2(0, _tab_background.size.y)
 		_background.position = Vector2.ZERO if bg_include_tabs else _page_container.position
-		_shadow.position = _page_container.position
+		_shadow.position = Vector2(0.0, _tab_background.size.y)
 	else:
 		_tab_background.position = Vector2(0, _page_container.size.y)
-		_shadow.position = _tab_background.position
-		_shadow.position.y -= _shadow.size.y
+		_shadow.position = Vector2(0.0, -_shadow.size.y)
 		
 		_page_container.position = Vector2.ZERO
 		_background.position = _page_container.position
@@ -532,12 +531,12 @@ func _init_shadow_style() -> void:
 ## [br][br]
 ## The [param idx] is clamped to a vaild index. If [code]animate[/code] is true
 ## the node will animated the transition between pages. 
-func goto_page(idx : int, animate : bool) -> void:
+func goto_page(idx : int, animate : bool, animate_tap : bool = true) -> void:
 	animate = animate && (!Engine.is_editor_hint() || animate_in_engine)
 	_selected_index = idx
 	
 	_highlight_container.goto_index(idx, animate)
-	_tab_container.goto_index(idx, animate)
+	_tab_container.goto_index(idx, animate, animate_tap)
 	_page_container.goto_index(idx, animate)
 
 ## Toggle if a tab is disabled or not. If so, then the user will not be able to select
@@ -570,7 +569,7 @@ func get_visible_pages() -> Array[int]:
 ## [b]Warning[/b]: This is a required internal node, removing and freeing it
 ## may cause a crash.
 func get_page_node(idx : int) -> Page:
-	return _page_container.get_page_node(idx)
+	return _page_container.get_page_node_by_index(idx)
 
 ## Emits the [signal Page.entered] signal in the current [Page].
 func emit_entered() -> void:

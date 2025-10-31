@@ -132,8 +132,8 @@ func _get_property_list() -> Array[Dictionary]:
 			"usage" : PROPERTY_USAGE_EDITOR
 		})
 	else:
-		var unbounded = PROPERTY_USAGE_READ_ONLY if bound_behavior == BOUND_BEHAVIOR.NONE else 0
-		var allow_step = PROPERTY_USAGE_READ_ONLY if equal_distant && bound_behavior == BOUND_BEHAVIOR.STOP else 0
+		var unbounded = PROPERTY_USAGE_READ_ONLY if !equal_distant && bound_behavior == BOUND_BEHAVIOR.NONE else 0
+		var allow_step = PROPERTY_USAGE_READ_ONLY if equal_distant else 0
 		
 		properties.append({
 			"name": "bound_behavior",
@@ -265,25 +265,31 @@ func _calculate_angles() -> void:
 	var count := _get_control_children().size()
 	_container_angles.resize(count)
 	
+	if count == 0:
+		return
+	
 	var start := deg_to_rad(angle_start)
 	var end := deg_to_rad(angle_end)
 	
 	var step : float
 	if equal_distant:
-		if count != 0:
-			step = deg_to_rad((angle_end - angle_start) / count)
+		step = deg_to_rad(angle_end / count)
+		
+		if bound_behavior == BOUND_BEHAVIOR.LOOP || bound_behavior == BOUND_BEHAVIOR.MIRRIOR:
+			step *= 2
 	else:
 		step = deg_to_rad(angle_step)
 	
 	var inc_func : Callable
-	if equal_distant || bound_behavior == BOUND_BEHAVIOR.NONE:
-		inc_func = func(i : int): return (i * step) + start
-	elif bound_behavior == BOUND_BEHAVIOR.STOP:
-		inc_func = func(i : int): return minf(i * step, end) + start
-	elif bound_behavior == BOUND_BEHAVIOR.LOOP:
-		inc_func = func(i : int): return fmod(i * step, end) + start
-	elif bound_behavior == BOUND_BEHAVIOR.MIRRIOR:
-		inc_func = func(i : int): return abs(fmod((i * step) - end, 2 * end) - end) + start
+	match BOUND_BEHAVIOR.NONE if end == 0.0 else bound_behavior:
+		BOUND_BEHAVIOR.NONE:
+			inc_func = func(i : int): return (i * step) + start
+		BOUND_BEHAVIOR.STOP:
+			inc_func = func(i : int): return minf(i * step, end) + start
+		BOUND_BEHAVIOR.LOOP:
+			inc_func = func(i : int): return fmod(i * step, end) + start
+		BOUND_BEHAVIOR.MIRRIOR:
+			inc_func = func(i : int): return absf(fmod((i * step) - end, 2 * end) - end) + start
 	
 	for i : int in range(0, _container_angles.size()):
 		_container_angles[i] = fposmod(inc_func.call(i), TAU)

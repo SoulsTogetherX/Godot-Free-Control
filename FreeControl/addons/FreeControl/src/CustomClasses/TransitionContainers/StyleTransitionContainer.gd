@@ -9,17 +9,18 @@ class_name StyleTransitionContainer extends Container
 @export var background : StyleBox:
 	set(val):
 		if _panel:
-			_panel.add_theme_stylebox_override("panel", val)
+			if val:
+				_panel.add_theme_stylebox_override("panel", val)
+			else:
+				_panel.remove_theme_stylebox_override("panel")
+			
 			background = val
 		elif background != val:
 			background = val
 
 @export_group("Colors Override")
 ## The colors to animate between.
-@export var colors : PackedColorArray = [
-	Color.WEB_GRAY,
-	Color.DIM_GRAY
-]:
+@export var colors : PackedColorArray:
 	set(val):
 		if _panel:
 			_panel.colors = val
@@ -48,7 +49,7 @@ class_name StyleTransitionContainer extends Container
 		elif duration != val:
 			duration = val
 ## The [enum Tween.EaseType] of color animations.
-@export var ease_type : Tween.EaseType = Tween.EaseType.EASE_OUT_IN:
+@export var ease_type : Tween.EaseType = Tween.EaseType.EASE_IN_OUT:
 	set(val):
 		if _panel:
 			_panel.ease_type = val
@@ -122,6 +123,10 @@ func _sort_children() -> void:
 
 
 #region Public Methods
+## Returns if the given color index is vaild.
+func is_vaild_color(color: int) -> bool:
+	return _panel && _panel.is_vaild_color(color)
+
 ## Sets the current color index.
 ## [br][br]
 ## Also see: [member focused_color].
@@ -142,6 +147,12 @@ func get_current_color() -> Color:
 	if !_panel:
 		return Color.BLACK
 	return _panel.get_current_color()
+
+## An async method that awaits until the panel's color finished changing.
+## If the panel's color isn't changing, then this immediately returns.
+func await_color_change() -> void:
+	if _panel:
+		await _panel.await_color_change()
 #endregion
 
 # Made by Xavier Alvarez. A part of the "FreeControl" Godot addon.
