@@ -81,6 +81,7 @@ var _panel : StyleTransitionPanel
 #endregion
 
 
+
 #region Private Virtual Methods
 func _init() -> void:
 	_panel = StyleTransitionPanel.new()

@@ -77,6 +77,7 @@ var _paragraph := TextParagraph.new()
 #endregion
 
 
+
 #region Private Virtual Methods
 func _init() -> void:
 	clip_text = true

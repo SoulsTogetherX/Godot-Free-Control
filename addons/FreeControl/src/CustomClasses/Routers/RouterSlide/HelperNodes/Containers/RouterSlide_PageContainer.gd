@@ -68,6 +68,7 @@ var _ignore_queue : int = 0
 #endregion
 
 
+
 #region Private Virtual Methods
 func _init() -> void:
 	_shift_node = Container.new()

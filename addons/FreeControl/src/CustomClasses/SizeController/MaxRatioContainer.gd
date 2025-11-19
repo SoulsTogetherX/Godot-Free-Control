@@ -33,6 +33,7 @@ enum MAX_RATIO_MODE {
 #endregion
 
 
+
 #region Private Virtual Methods
 func _init() -> void:
 	clip_contents = false

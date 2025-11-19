@@ -252,6 +252,7 @@ var _max_offset : float
 #endregion
 
 
+
 #region Private Virtual Methods
 func _init() -> void:
 	_angle_vec = Vector2.RIGHT.rotated(deg_to_rad(drawer_angle))

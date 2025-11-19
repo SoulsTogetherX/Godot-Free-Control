@@ -24,6 +24,7 @@ var _queued_sort : bool
 #endregion
 
 
+
 #region Private Virtual Methods
 func _get_minimum_size() -> Vector2:
 	if clip_contents:

@@ -27,6 +27,7 @@ var _max_size := -Vector2.ONE
 #endregion
 
 
+
 #region Private Virtual Methods
 func _get_minimum_size() -> Vector2:
 	if clip_contents:

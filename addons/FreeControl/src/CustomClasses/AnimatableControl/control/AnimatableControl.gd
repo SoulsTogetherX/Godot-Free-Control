@@ -58,6 +58,7 @@ enum SIZE_MODE {
 #endregion
 
 
+
 #region Private Virtual Methods
 func _init() -> void:
 	set_notify_local_transform(true)

@@ -15,35 +15,46 @@ enum BOUND_BEHAVIOR {
 
 
 #region External Variables
+@export_group("Positioning")
 ## The horizontal offset of the ellipse's center.
 ## [br][br]
 ## [code]0[/code] is fully left and [code]1[/code] is fully right.
-@export_range(0, 1) var origin_x : float = 0.5:
+@export_range(0, 1, 0.001, "or_less", "or_greater") var origin_x : float = 0.5:
 	set(val):
-		origin_x = val
-		queue_sort()
+		if origin_x != val:
+			origin_x = val
+			queue_sort()
 ## The vertical offset of the ellipse's center.
 ## [br][br]
 ## [code]0[/code] is fully top and [code]1[/code] is fully bottom.
-@export_range(0, 1) var origin_y : float = 0.5:
+@export_range(0, 1, 0.001, "or_less", "or_greater") var origin_y : float = 0.5:
 	set(val):
-		origin_y = val
-		queue_sort()
+		if origin_y != val:
+			origin_y = val
+			queue_sort()
 
 ## The horizontal radius of the ellipse's center.
 ## [br][br]
 ## [code]0[/code] is [code]0[/code], [code]0.5[/code] is half of [member Control.size].x, and [code]1[/code] is [member Control.size].x.
-@export_range(0, 1) var xRadius : float = 0.5:
+@export_range(0, 1, 0.001, "or_greater") var xRadius : float = 0.3:
 	set(val):
-		xRadius = val
-		queue_sort()
+		if xRadius != val:
+			xRadius = val
+			queue_sort()
 ## The vertical radius of the ellipse's center.
 ## [br][br]
 ## [code]0[/code] is [code]0[/code], [code]0.5[/code] is half of [member Control.size].y, and [code]1[/code] is [member Control.size].y.
-@export_range(0, 1) var yRadius : float = 0.5:
+@export_range(0, 1, 0.001, "or_greater") var yRadius : float = 0.3:
 	set(val):
-		yRadius = val
-		queue_sort()
+		if yRadius != val:
+			yRadius = val
+			queue_sort()
+## Determines if children should be confined within the container boundaries.
+@export var children_unbounded : bool = false:
+	set(val):
+		if children_unbounded != val:
+			children_unbounded = val
+			queue_sort()
 
 @export_group("Angles")
 ## If [code]false[/code], the node will automatically write the angles of children.[br]
@@ -119,6 +130,7 @@ var angles : PackedFloat32Array:
 			ret[i] = rad_to_deg(_container_angles[i])
 		return ret
 #endregion
+
 
 
 #region Private Virtual Methods
@@ -241,19 +253,8 @@ func _fix_child(child : Control, index : int) -> void:
 	var child_size := child.get_combined_minimum_size()
 	var child_pos := -(child_size * 0.5) + (Vector2(origin_x, origin_y) + (Vector2(xRadius, yRadius) * Vector2(cos(_container_angles[index]), sin(_container_angles[index])))) * size
 	
-	# Keeps children in the rect's top-left boundards
-	if child_pos.x < 0:
-		child_pos.x = 0
-	if child_pos.y < 0:
-		child_pos.y = 0
-	
-	# Keeps children in the rect's bottom-right boundards
-	if child_pos.x + child_size.x > size.x:
-		child_pos.x += size.x - (child_pos.x + child_size.x)
-	if child_pos.y + child_size.y > size.y:
-		child_pos.y += size.y - (child_pos.y + child_size.y)
-	if child_pos.y + child_size.y > size.y:
-		child_size.y = size.y - child_pos.y
+	if !children_unbounded:
+		child_pos = child_pos.clamp(Vector2.ZERO, size - child_size)
 	
 	fit_child_in_rect(child, Rect2(child_pos, child_size))
 

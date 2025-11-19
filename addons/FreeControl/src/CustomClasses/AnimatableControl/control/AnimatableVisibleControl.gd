@@ -104,6 +104,7 @@ var _last_visible : bool
 #endregion
 
 
+
 #region Private Virtual Methods
 func _get_property_list() -> Array[Dictionary]:
 	var ret : Array[Dictionary] = []

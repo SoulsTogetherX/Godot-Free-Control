@@ -11,6 +11,7 @@ var _exit_animate : SwapContainer.ANIMATION_TYPE
 #endregion
 
 
+
 #region Static Methods
 ## Static create function for this [Resource].
 static func create(

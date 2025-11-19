@@ -29,6 +29,7 @@ var _child_min_size : Vector2
 #endregion
 
 
+
 #region Private Virtual Methods
 func _get_minimum_size() -> Vector2:
 	if clip_contents:

@@ -15,6 +15,7 @@ var _tabs : Array[BaseRouterTab]
 #endregion
 
 
+
 #region Private Virtual Methods
 func _get_minimum_size() -> Vector2:
 	if clip_contents:

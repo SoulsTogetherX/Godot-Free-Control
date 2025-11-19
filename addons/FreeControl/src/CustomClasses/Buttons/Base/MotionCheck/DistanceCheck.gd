@@ -36,6 +36,7 @@ var _prev_pos : Vector2
 #endregion
 
 
+
 #region Custom Methods Overwriting
 func _pos_check(pos : Vector2) -> bool:
 	if mode & CHECK_MODE.DISTANCE:

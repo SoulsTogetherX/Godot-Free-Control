@@ -279,6 +279,7 @@ var _current_animation := ANIMATION_TYPE.NONE
 #endregion
 
 
+
 #region Private Virtual Methods
 func _validate_property(property: Dictionary) -> void:
 	if property.name == "border_limit":

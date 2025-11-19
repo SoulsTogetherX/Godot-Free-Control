@@ -53,6 +53,7 @@ signal arguments_changed
 #endregion
 
 
+
 #region Static Methods
 ## Checks if the given [PackedScene] has a root node that inherts
 ## from class [Page].

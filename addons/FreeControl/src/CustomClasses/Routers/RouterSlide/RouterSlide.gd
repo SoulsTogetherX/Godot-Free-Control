@@ -329,6 +329,7 @@ var _tab_margins_update_queued : bool
 #endregion
 
 
+
 #region Private Virtual Methods
 func _init() -> void:
 	_page_container = load("res://addons/FreeControl/src/CustomClasses/Routers/RouterSlide/HelperNodes/Containers/RouterSlide_PageContainer.gd").new()

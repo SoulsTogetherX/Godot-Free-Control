@@ -50,6 +50,7 @@ var _current_focused_color : int
 #endregion
 
 
+
 #region Private Virtual Methods
 func _init() -> void:
 	_current_focused_color = _focused_color

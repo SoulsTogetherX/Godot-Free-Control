@@ -6,6 +6,8 @@ const GLOBAL_FOLDER := "res://addons/FreeControl/src/Other/Global/"
 const CUSTOM_CLASS_FOLDER := "res://addons/FreeControl/src/CustomClasses/"
 const ICON_FOLDER := "res://addons/FreeControl/assets/icons/CustomType/"
 
+
+
 func _enter_tree() -> void:
 	# AnimatableControls
 		# Control

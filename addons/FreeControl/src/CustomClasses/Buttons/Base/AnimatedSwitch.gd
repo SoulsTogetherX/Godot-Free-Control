@@ -181,6 +181,7 @@ var _switch_color_animate_tween : Tween
 #endregion
 
 
+
 #region Private Virtual Methods
 func _init() -> void:
 	if !toggled.is_connected(toggle_state):

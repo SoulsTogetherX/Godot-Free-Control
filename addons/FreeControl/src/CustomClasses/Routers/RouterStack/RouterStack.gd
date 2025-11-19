@@ -108,6 +108,7 @@ var _stack : SwapContainer
 #endregion
 
 
+
 #region Private Virtual Methods
 func _init() -> void:
 	if _stack && is_instance_valid(_stack):

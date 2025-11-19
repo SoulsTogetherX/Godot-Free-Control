@@ -111,6 +111,7 @@ var _distance_check : DistanceCheck
 #endregion
 
 
+
 #region Private Virtual Methods
 func _init() -> void:
 	if _distance_check && is_instance_valid(_distance_check):

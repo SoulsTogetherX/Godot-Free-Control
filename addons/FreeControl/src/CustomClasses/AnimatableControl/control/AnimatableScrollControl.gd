@@ -28,6 +28,7 @@ class_name AnimatableScrollControl extends AnimatablePositionalControl
 #endregion
 
 
+
 #region Private Virtual Methods
 func _enter_tree() -> void:
 	if !scroll && Engine.is_editor_hint(): scroll = get_parent_scroll()
