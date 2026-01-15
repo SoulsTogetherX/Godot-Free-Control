@@ -156,16 +156,24 @@ func _enter_tree() -> void:
 		# RouterSlide
 			# BaseRouterTab
 	add_custom_type(
-		"BaseRouterTab",
+		"BaseRouterSlideTab",
 		"Container",
-		load(CUSTOM_CLASS_FOLDER + "Routers/RouterSlide/HelperNodes/Tab/BaseRouterTab.gd"), 
-		load(ICON_FOLDER + "BaseRouterTab.svg")
+		load(CUSTOM_CLASS_FOLDER + "Routers/RouterSlide/HelperNodes/Containers/BaseRouterSlideTab.gd"), 
+		load(ICON_FOLDER + "BaseRouterSlideTab.svg")
 	)
-			# RouterTabInfo
+			# Resources
+				# RouterSlideInfo
 	add_custom_type(
-		"RouterTabInfo",
+		"RouterSlideInfo",
 		"Resource",
-		load(CUSTOM_CLASS_FOLDER + "Routers/RouterSlide/HelperNodes/Tab/RouterTabInfo.gd"), 
+		load(CUSTOM_CLASS_FOLDER + "Routers/RouterSlide/HelperNodes/Resources/RouterSlideInfo.gd"), 
+		null
+	)
+				# RouterSlidePageInfo
+	add_custom_type(
+		"RouterSlidePageInfo",
+		"Resource",
+		load(CUSTOM_CLASS_FOLDER + "Routers/RouterSlide/HelperNodes/Resources/RouterSlidePageInfo.gd"), 
 		null
 	)
 			# RouterStack
@@ -277,10 +285,24 @@ func _exit_tree() -> void:
 	remove_custom_type("PaddingContainer")
 	
 	# Routers
-	remove_custom_type("RouterStack")
-		# Base
+		# Page
 	remove_custom_type("Page")
-	remove_custom_type("PageInfo")
+		# RouterSlide
+			# BaseRouterTab
+	remove_custom_type("BaseRouterSlideTab")
+			# Resources
+				# RouterSlideInfo
+	remove_custom_type("RouterSlideInfo")
+				# RouterSlidePageInfo
+	remove_custom_type("RouterSlidePageInfo")
+			# RouterStack
+	remove_custom_type("RouterSlide")
+	
+		# RouterStack
+			# PageStackInfo
+	remove_custom_type("PageStackInfo")
+			# RouterStack
+	remove_custom_type("RouterStack")
 	
 	# SizeControllers
 	remove_custom_type("MaxSizeContainer")

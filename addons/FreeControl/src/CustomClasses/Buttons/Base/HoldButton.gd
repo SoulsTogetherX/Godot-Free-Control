@@ -154,12 +154,10 @@ func _validate_property(property: Dictionary) -> void:
 
 
 func _gui_input(event: InputEvent) -> void:
-	if event is InputEventScreenDrag || event is InputEventScreenTouch:
-		pass
-	elif event is InputEventMouseMotion || event is InputEventMouseButton:
-		if !(event.button_mask & button_mask):
+	if event is InputEventMouseMotion || event is InputEventMouseButton:
+		if !(event.button_mask & button_mask) && (event is InputEventMouseMotion || event.pressed):
 			return
-	else:
+	elif !(event is InputEventScreenDrag || event is InputEventScreenTouch):
 		return
 	
 	event.position += global_position
