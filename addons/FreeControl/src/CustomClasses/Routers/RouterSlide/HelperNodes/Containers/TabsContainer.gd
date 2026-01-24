@@ -43,7 +43,8 @@ func _notification(what: int) -> void:
 #region Private Methods (Construct/Deconstruct)
 func _destroy_tabs() -> void:
 	for tab : BaseRouterSlideTab in _tabs:
-		tab.queue_free()
+		if tab:
+			tab.queue_free()
 	_clear_tabs()
 func _create_tabs() -> void:
 	_destroy_tabs()
@@ -52,7 +53,11 @@ func _create_tabs() -> void:
 	
 	var tab_width : float = size.x / router_info.size()
 	for i : int in router_info.size():
-		var tab : BaseRouterSlideTab = router_info.tab_template.instantiate()
+		var tab : BaseRouterSlideTab = (
+			router_info.tab_template.instantiate()
+			if router_info.tab_template
+			else BaseRouterSlideTab.new()
+		)
 		tab.info = router_info.page_infos[i]
 		tab.tab_pressed.connect(_on_tab_selected.bind(i))
 		

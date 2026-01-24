@@ -7,7 +7,7 @@ class_name RouterSlidePageInfo extends Resource
 ## Emitted when the page index is changed.
 signal changed_page_idx(old_index : int, new_index : int)
 ## Emitted when the page scene changes.
-signal changed_page_scene
+signal changed_page_scene(index : int)
 ## Emitted when the tab's arguments changes.
 signal changed_tabs_args
 ## Emitted when the tab's focus status changes.
@@ -22,15 +22,12 @@ signal changed_disabled(use_animation : bool)
 @export var page : PackedScene:
 	set(val):
 		if val != page:
-			if !scene_is_page(val):
-				if page == null:
-					return
-				val = null
-			
+			if val && !scene_is_page(val):
+				return
 			page = val
 			
 			changed.emit()
-			changed_page_scene.emit()
+			changed_page_scene.emit(_page_idx)
 ## The individual argument for this tab. 
 @export var tab_args : Dictionary = {}:
 	set(val):
@@ -68,24 +65,11 @@ static func scene_is_page(scene : PackedScene) -> bool:
 	if !scene:
 		return false
 	
-	var state : SceneState
-	while true:
-		state = scene.get_state()
-		if state.get_node_type(0).is_empty():
-			scene = scene._bundled.get("variants")[0]
-			continue
-		break
-	
-	var root_script_raw: Variant = state.get_node_property_value(
-		0, state.get_node_property_count(0) - 1
-	)
-	
-	if root_script_raw is GDScript:
-		var temp = root_script_raw.new()
-		if temp is Page:
-			temp.queue_free()
-			return true
-		temp.queue_free()
+	var node : Node = scene.instantiate()
+	if node is Page:
+		node.free()
+		return true
+	node.free()
 	return false
 #endregion
 

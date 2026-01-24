@@ -12,9 +12,11 @@ extends Container
 		if router_info != val:
 			if router_info:
 				router_info.changed_idx.disconnect(_on_index_changed)
+				router_info.changed_size.disconnect(_on_size_changed)
 			router_info = val
 			if router_info:
 				router_info.changed_idx.connect(_on_index_changed)
+				router_info.changed_size.connect(_on_size_changed)
 			
 			if is_node_ready():
 				_on_info_update()
@@ -51,7 +53,7 @@ var _remove_lambda := Callable()
 
 #region Virtual Methods
 func _init() -> void:
-	_page_slide = preload(RouterSlide.PAGE_SLIDE_CONTAINER_PATH).new()
+	_page_slide = preload(RouterSlide.PAGE_SLIDE_CONTAINER_UID).new()
 	add_child(_page_slide)
 func _notification(what: int) -> void:
 	match what:
@@ -69,11 +71,14 @@ func _on_info_update() -> void:
 		return
 	
 	_on_index_changed(-1, router_info.get_index(), false)
+	_on_size_changed()
 func _on_index_changed(old_idx : int, new_idx : int, use_animation : bool) -> void:
 	if !use_animation:
 		_force_pages(old_idx, new_idx)
 		return
 	_animate_pages(old_idx, new_idx)
+func _on_size_changed() -> void:
+	queue_sort()
 #endregion
 
 

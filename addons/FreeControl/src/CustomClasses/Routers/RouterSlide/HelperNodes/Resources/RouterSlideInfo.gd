@@ -61,11 +61,7 @@ enum PAGE_HIDE_MODE {
 			changed.emit()
 			if val.size() != old_len:
 				changed_size.emit()
-				
-				if _idx == -1:
-					_idx = 0
-				elif val.is_empty():
-					_idx = -1
+				set_index(clamp_idx(_idx), false)
 ## The current page index.
 @export var index : int:
 	set(val):
@@ -77,7 +73,7 @@ enum PAGE_HIDE_MODE {
 ## Controls how this node will lazy-initiated [Page]s.
 ## [br][br]
 ## Also see: [signal changed_load_mode].
-@export var page_load_mode : PAGE_LOAD_MODE = PAGE_LOAD_MODE.ON_DEMAND:
+@export var page_load_mode : PAGE_LOAD_MODE = PAGE_LOAD_MODE.ON_DEMAND_BRIDGE:
 	set(val):
 		if val != page_load_mode:
 			page_load_mode = val
@@ -108,11 +104,8 @@ enum PAGE_HIDE_MODE {
 @export var tab_template : PackedScene:
 	set(val):
 		if val != tab_template:
-			if !scene_is_tab(val):
-				if tab_template == null:
-					return
-				val = null
-			
+			if val && !scene_is_tab(val):
+				return
 			tab_template = val
 			
 			changed.emit()
@@ -141,27 +134,14 @@ var _idx : int = -1
 ## Checks if the given [PackedScene] has a root node that inherts
 ## from class [Page].
 static func scene_is_tab(scene : PackedScene) -> bool:
-	if !scene:
+	if scene == null:
 		return false
 	
-	var state : SceneState
-	while true:
-		state = scene.get_state()
-		if state.get_node_type(0).is_empty():
-			scene = scene._bundled.get("variants")[0]
-			continue
-		break
-	
-	var root_script_raw: Variant = state.get_node_property_value(
-		0, state.get_node_property_count(0) - 1
-	)
-	
-	if root_script_raw is GDScript:
-		var temp = root_script_raw.new()
-		if temp is BaseRouterSlideTab:
-			temp.queue_free()
-			return true
-		temp.queue_free()
+	var node : Node = scene.instantiate()
+	if node is BaseRouterSlideTab:
+		node.free()
+		return true
+	node.free()
 	return false
 #endregion
 

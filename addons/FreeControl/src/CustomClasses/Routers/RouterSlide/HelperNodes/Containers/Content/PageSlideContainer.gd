@@ -23,11 +23,22 @@ const PAGE_HIDE_MODE = RouterSlideInfo.PAGE_HIDE_MODE
 				router_info.changed_hide_mode.disconnect(_on_hide_mode_changed)
 				router_info.changed_load_mode.disconnect(_on_load_mode_changed)
 				router_info.changed_size.disconnect(_on_size_changed)
+				
+				for info : RouterSlidePageInfo in router_info.page_infos:
+					if info:
+						info.changed_page_scene.disconnect(_on_page_changed)
+						info.changed_page_idx.disconnect(_on_changed_page_idx)
+				
 			router_info = val
 			if router_info:
 				router_info.changed_hide_mode.connect(_on_hide_mode_changed)
 				router_info.changed_load_mode.connect(_on_load_mode_changed)
 				router_info.changed_size.connect(_on_size_changed)
+				
+				for info : RouterSlidePageInfo in router_info.page_infos:
+					if info:
+						info.changed_page_scene.connect(_on_page_changed)
+						info.changed_page_idx.connect(_on_changed_page_idx)
 			
 			if is_node_ready():
 				_on_info_update()
@@ -37,6 +48,8 @@ const PAGE_HIDE_MODE = RouterSlideInfo.PAGE_HIDE_MODE
 
 #region Private Variables
 var _pages : Array[Page]
+
+var _page_reorder_queue : Array[int]
 #endregion
 
 
@@ -60,9 +73,52 @@ func _on_info_update() -> void:
 	_on_size_changed()
 func _on_load_mode_changed() -> void:
 	if router_info.page_load_mode == PAGE_LOAD_MODE.ALL:
+		_bridge_call(0, router_info.size() - 1, _get_toggle_callable(true, PAGE_HIDE_MODE.HIDE_DISABLE))
 		_bridge_call(0, router_info.size() - 1, _toggle_load.bind(true))
-	_on_hide_mode_changed()
+		return
+	_refresh_offscreen_pages()
 func _on_hide_mode_changed() -> void:
+	_refresh_offscreen_pages()
+func _on_size_changed() -> void:
+	_pages.resize(router_info.size())
+	queue_sort()
+func _on_page_changed(page_idx : int) -> void:
+	refresh_page(page_idx)
+func _on_changed_page_idx(old_index : int, new_index : int) -> void:
+	if _page_reorder_queue.is_empty():
+		call_deferred("_page_idx_changed_queued")
+	
+	_page_reorder_queue.append(old_index)
+	_page_reorder_queue.append(new_index)
+#endregion
+
+
+#region Private Methods (Helper)
+func _on_sort_children() -> void:
+	if !router_info:
+		return
+	for idx : int in _pages.size():
+		var page := _pages[idx]
+		if page:
+			fit_child_in_rect(page, get_page_rect(idx))
+
+func _page_idx_changed_queued() -> void:
+	var old_pages : Array[Page] = _pages.duplicate()
+	
+	for i : int in range(_page_reorder_queue.size() >> 1):
+		var from : int = _page_reorder_queue[i << 1]
+		var to : int = _page_reorder_queue[(i << 1) + 1]
+		
+		var page : Page = old_pages[from]
+		if page:
+			fit_child_in_rect(page, get_page_rect(to))
+		_pages[to] = page
+	
+	_page_reorder_queue.clear()
+	_toggle_load(router_info.get_index(), true)
+	_refresh_offscreen_pages()
+
+func _refresh_offscreen_pages() -> void:
 	var foo : Callable
 	match router_info.page_hide_mode:
 		PAGE_HIDE_MODE.NONE:
@@ -78,20 +134,6 @@ func _on_hide_mode_changed() -> void:
 	
 	_bridge_call(0, router_info.get_index() - 1, foo)
 	_bridge_call(router_info.get_index() + 1, router_info.size() - 1, foo)
-func _on_size_changed() -> void:
-	_pages.resize(router_info.size())
-#endregion
-
-
-#region Private Methods (Positioning)
-func _on_sort_children() -> void:
-	if !router_info:
-		return
-	
-	for idx : int in _pages.size():
-		var page := _pages[idx]
-		if page:
-			fit_child_in_rect(page, get_page_rect(idx))
 #endregion
 
 
@@ -126,10 +168,12 @@ func _toggle_load(idx : int, toggle : bool) -> void:
 	
 	if toggle:
 		# Load Page
-		var page : Page = router_info.page_infos[idx].page.instantiate()
-		_pages[idx] = page
-		add_child(page)
-		fit_child_in_rect(page, get_page_rect(idx))
+		var page_scene := router_info.page_infos[idx].page
+		if page_scene:
+			var page : Page = page_scene.instantiate()
+			_pages[idx] = page
+			add_child(page)
+			fit_child_in_rect(page, get_page_rect(idx))
 		return
 	
 	if router_info.page_load_mode == PAGE_LOAD_MODE.ALL:
@@ -142,11 +186,8 @@ func _toggle_load(idx : int, toggle : bool) -> void:
 
 
 #region Private Methods (Rendering Selector Utility)
-func _get_toggle_callable(toggle : bool) -> Callable:
-	if !router_info:
-		return Callable()
-	
-	match router_info.page_hide_mode:
+func _get_toggle_callable(toggle : bool, hide_mode : PAGE_HIDE_MODE) -> Callable:
+	match hide_mode:
 		PAGE_HIDE_MODE.NONE:
 			return func (idx : int): pass
 		PAGE_HIDE_MODE.HIDE:
@@ -175,6 +216,8 @@ func get_visible_pages() -> Array[int]:
 	return [flr, flr + 1]
 
 ## Gets the page node associated with given page [param idx]. 
+## [br][br]
+## Returns [code]null[/code] if page is not loaded.
 func get_page_node(idx : int) -> Page:
 	if !router_info || !router_info.is_vaild_idx(idx) || !_pages[idx]:
 		return null
@@ -187,10 +230,14 @@ func get_page_node(idx : int) -> Page:
 ## [br][br]
 ## Also see: [enum RouterSlideInfo.PAGE_HIDE_MODE].
 func add_pages(from : int, to : int) -> void:
+	if !router_info:
+		return
+	
+	var foo := _get_toggle_callable(true, router_info.page_hide_mode)
 	match router_info.page_load_mode:
 		PAGE_LOAD_MODE.ON_DEMAND:
 			_toggle_load(to, true)
-			_get_toggle_callable(true).call(to)
+			foo.call(to)
 		PAGE_LOAD_MODE.ON_DEMAND_BRIDGE:
 			# Swap if from > to
 			if from > to:
@@ -199,16 +246,20 @@ func add_pages(from : int, to : int) -> void:
 				from = from ^ to
 			
 			_bridge_call(from, to, _toggle_load.bind(true))
-			_bridge_call(from, to, _get_toggle_callable(true))
+			_bridge_call(from, to, foo)
 		PAGE_LOAD_MODE.ALL:
 			pass
 ## Removes the pages needed after animation.
 ## [br][br]
 ## Also see: [enum RouterSlideInfo.PAGE_HIDE_MODE].
 func remove_pages(from : int, to : int) -> void:
+	if !router_info:
+		return
+	
+	var foo := _get_toggle_callable(false, router_info.page_hide_mode)
 	match router_info.page_load_mode:
 		PAGE_LOAD_MODE.ON_DEMAND:
-			_get_toggle_callable(false).call(from)
+			foo.call(from)
 		PAGE_LOAD_MODE.ON_DEMAND_BRIDGE:
 			# Swap if from > to
 			if from > to:
@@ -218,16 +269,31 @@ func remove_pages(from : int, to : int) -> void:
 			else:
 				to -= 1
 			
-			_bridge_call(from, to, _get_toggle_callable(false))
+			_bridge_call(from, to, foo)
 		PAGE_LOAD_MODE.ALL:
 			pass
 ## Removes and adds only the pages needed, without animation.
 func force_pages(from : int, to : int) -> void:
-	if router_info.page_load_mode != PAGE_LOAD_MODE.ALL:
-		_get_toggle_callable(false).call(from)
-		_toggle_load(to, true)
+	if !router_info:
+		return
 	
-	_get_toggle_callable(true).call(to)
+	if router_info.page_load_mode != PAGE_LOAD_MODE.ALL:
+		_get_toggle_callable(false, router_info.page_hide_mode).call(from)
+		_toggle_load(to, true)
+	_get_toggle_callable(true, router_info.page_hide_mode).call(to)
+
+## Refreshes all pages. If a page isn't loaded, it does not reload it.
+## Otherwise, unloads and reloads in.
+func refresh_pages() -> void:
+	for i : int in range(_pages.size()):
+		refresh_page(i)
+## Refreshes the given page. If the page isn't loaded, does nothing.
+## Otherwise, unloads and reloads in.
+func refresh_page(page_idx : int) -> void:
+	if get_page_node(page_idx) == null:
+		return
+	_toggle_load(page_idx, false)
+	_toggle_load(page_idx, true)
 #endregion
 
 

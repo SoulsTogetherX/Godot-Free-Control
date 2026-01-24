@@ -5,17 +5,14 @@ class_name RouterSlide extends Container
 
 
 #region Constants (PackedScene Paths)
-## The path to where all[Script]s needed for this node to function.
-const PATH_ORIGIN = "res://addons/FreeControl/src/CustomClasses/Routers/RouterSlide"
-
-## The local path to the page slide script.
-const PAGE_SLIDE_CONTAINER_PATH = PATH_ORIGIN + "/HelperNodes/Containers/Content/PageSlideContainer.gd"
-## The local path to the content container script.
-const CONTENT_CONTAINER_PATH = PATH_ORIGIN + "/HelperNodes/Containers/Content/ContentContainer.gd"
-## The local path to the highlight container script.
-const HIGHLIGHT_CONTAINER_PATH = PATH_ORIGIN + "/HelperNodes/Containers/HighlightContainer.gd"
-## The local path to the tabs container script.
-const TABS_CONTAINER_PATH = PATH_ORIGIN + "/HelperNodes/Containers/TabsContainer.gd"
+## The UID to the page slide script.
+const PAGE_SLIDE_CONTAINER_UID = "uid://dt0ohckuas7ur"
+## The UID to the content container script.
+const CONTENT_CONTAINER_UID = "uid://3ofgv2q2gqjt"
+## The UID to the highlight container script.
+const HIGHLIGHT_CONTAINER_UID = "uid://cssmagqrr3ly1"
+## The UID to the tabs container script.
+const TABS_CONTAINER_UID = "uid://b5mte6dbnkbc5"
 #endregion
 
 
@@ -28,9 +25,9 @@ const TABS_CONTAINER_PATH = PATH_ORIGIN + "/HelperNodes/Containers/TabsContainer
 			if !val:
 				val = RouterSlideInfo.new()
 			router_info = val
+			
 			if !is_node_ready():
 				return
-			
 			_on_info_update()
 
 @export_group("Scene Layout")
@@ -226,9 +223,11 @@ var _tabs_shadow : Panel
 
 #region Virtual Methods
 func _init() -> void:
-	_content_container = preload(CONTENT_CONTAINER_PATH).new()
-	_highlight_container = preload(HIGHLIGHT_CONTAINER_PATH).new()
-	_tabs_container = preload(TABS_CONTAINER_PATH).new()
+	router_info = RouterSlideInfo.new()
+	
+	_content_container = preload(CONTENT_CONTAINER_UID).new()
+	_highlight_container = preload(HIGHLIGHT_CONTAINER_UID).new()
+	_tabs_container = preload(TABS_CONTAINER_UID).new()
 	
 	_content_background = Panel.new()
 	_tabs_background = Panel.new()
