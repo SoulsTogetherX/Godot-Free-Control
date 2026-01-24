@@ -1,6 +1,6 @@
 # Godot-Free-Control
 
-A Godot 4.5 addon that includes 20+ new control nodes best suited for dynamic UI and moble UI design.
+A Godot 4.5 addon that includes 20+ new control nodes best suited for dynamic UI and mobile UI design.
 
 ## Contains
 
