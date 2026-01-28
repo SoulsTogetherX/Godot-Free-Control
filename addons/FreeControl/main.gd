@@ -2,6 +2,8 @@
 @tool
 extends EditorPlugin
 
+const ICON_FOLDER := "res://addons/FreeControl/assets/icons/CustomType/"
+
 func _enter_tree() -> void:
 	# AnimatableControls
 		# Control
@@ -9,44 +11,44 @@ func _enter_tree() -> void:
 		"AnimatableControl",
 		"Container",
 		load("uid://bdebqplr7au8q"),
-		load("uid://bq0lhbd2ta2e8")
+		load(ICON_FOLDER + "AnimatableControl.svg")
 	)
 	add_custom_type(
 		"AnimatablePositionalControl",
 		"Container",
 		load("uid://0i5secg3em7k"),
-		load("uid://4tsqbmjbowum")
+		load(ICON_FOLDER + "AnimatablePositionalControl.svg")
 	)
 	add_custom_type(
 		"AnimatableScrollControl",
 		"Container",
 		load("uid://c7in16lfr4lx6"),
-		load("uid://b6osyfr4ww5xn")
+		load(ICON_FOLDER + "AnimatableScrollControl.svg")
 	)
 	add_custom_type(
 		"AnimatableZoneControl",
 		"Container",
 		load("uid://c1bjrg3xbnp1f"),
-		load("uid://dngia4pggibje")
+		load(ICON_FOLDER + "AnimatableZoneControl.svg")
 	)
 	add_custom_type(
 		"AnimatableVisibleControl",
 		"Container",
 		load("uid://bhcb3ijflvfwj"),
-		load("uid://bc2unp7gcrn1b")
+		load(ICON_FOLDER + "AnimatableVisibleControl.svg")
 	)
 		# Mount
 	add_custom_type(
 		"AnimatableMount",
 		"Control",
 		load("uid://bikr31ssqqgxe"),
-		load("uid://daxpji6uv1g46")
+		load(ICON_FOLDER + "AnimatableMount.svg")
 	)
 	add_custom_type(
 		"AnimatableTransformationMount",
 		"Control",
 		load("uid://clu5ifocno1fc"),
-		load("uid://cotvxfxb3vswy")
+		load(ICON_FOLDER + "AnimatableTransformationMount.svg")
 	)
 
 	# AutoSizeLabels
@@ -55,7 +57,7 @@ func _enter_tree() -> void:
 		"AutoSizeLabel",
 		"Label",
 		load("uid://v0ehje2clt8q"),
-		load("uid://dq34kjc4fapt4")
+		load(ICON_FOLDER + "AutoSizeLabel.svg")
 	)
 	
 	# Buttons
@@ -64,32 +66,32 @@ func _enter_tree() -> void:
 		"AnimatedSwitch",
 		"BaseButton",
 		load("uid://ba40c75ghd5jn"),
-		load("uid://cagqaca7g37hu")
+		load(ICON_FOLDER + "AnimatedSwitch.svg")
 	)
 	add_custom_type(
 		"HoldButton",
 		"Control",
 		load("uid://cxpavl8t4pjda"),
-		load("uid://d2tx1trtvayki")
+		load(ICON_FOLDER + "HoldButton.svg")
 	)
 			# MotionCheck
 	add_custom_type(
 		"BoundsCheck",
 		"Control",
 		load("uid://bmarfghi5ygvt"),
-		load("uid://cyim00qnkag0s")
+		load(ICON_FOLDER + "BoundsCheck.svg")
 	)
 	add_custom_type(
 		"DistanceCheck",
 		"Control",
 		load("uid://dxfjq3ihql3b8"),
-		load("uid://dk23pvtfisnr1")
+		load(ICON_FOLDER + "DistanceCheck.svg")
 	)
 	add_custom_type(
 		"MotionCheck",
 		"Control",
 		load("uid://dalcaavf4vj2w"),
-		load("uid://cs6768dpea36w")
+		load(ICON_FOLDER + "MotionCheck.svg")
 	)
 	
 		# Complex
@@ -97,13 +99,13 @@ func _enter_tree() -> void:
 		"ModulateTransitionButton",
 		"Container",
 		load("uid://cbavvc7w51o1e"),
-		load("uid://dcsh4v2wd0gxd")
+		load(ICON_FOLDER + "ModulateTransitionButton.svg")
 	)
 	add_custom_type(
 		"StyleTransitionButton",
 		"Container",
 		load("uid://8jyk6thl41yx"),
-		load("uid://d2f0h0csexl37")
+		load(ICON_FOLDER + "StyleTransitionButton.svg")
 	)
 	
 	# Carousel
@@ -111,7 +113,7 @@ func _enter_tree() -> void:
 		"Carousel",
 		"Container",
 		load("uid://dl8gv5mo2s7ce"),
-		load("uid://b0boo7h5iafbu")
+		load(ICON_FOLDER + "Carousel.svg")
 	)
 	
 	# CircularContainer
@@ -119,7 +121,7 @@ func _enter_tree() -> void:
 		"CircularContainer",
 		"Container",
 		load("uid://dy227jqsnl5sw"),
-		load("uid://dkm1xiqpo4cms")
+		load(ICON_FOLDER + "CircularContainer.svg")
 	)
 	
 	# Drawer
@@ -127,7 +129,7 @@ func _enter_tree() -> void:
 		"Drawer",
 		"Container",
 		load("uid://bqll335fobepk"),
-		load("uid://c0hu6q3b2n6im")
+		load(ICON_FOLDER + "Drawer.svg")
 	)
 	
 	# PaddingContainer
@@ -135,7 +137,7 @@ func _enter_tree() -> void:
 		"PaddingContainer",
 		"Container",
 		load("uid://dube6kmp8e6dk"),
-		load("uid://mgfp36i5f8fb")
+		load(ICON_FOLDER + "PaddingContainer.svg")
 	)
 	
 	# Routers
@@ -144,7 +146,7 @@ func _enter_tree() -> void:
 		"Page",
 		"Container",
 		load("uid://est7fe85qyrr"),
-		load("uid://baajocq0otlbt")
+		load(ICON_FOLDER + "Page.svg")
 	)
 	
 		# RouterSlide
@@ -153,7 +155,7 @@ func _enter_tree() -> void:
 		"BaseRouterSlideTab",
 		"Container",
 		load("uid://cpfk05hayu1bi"),
-		load("uid://cmhybg2uglq8g")
+		load(ICON_FOLDER + "BaseRouterSlideTab.svg")
 	)
 			# Resources
 				# RouterSlideInfo
@@ -175,7 +177,7 @@ func _enter_tree() -> void:
 		"RouterSlide",
 		"Container",
 		load("uid://3jrwrwipf7l2"),
-		load("uid://c4rat7q035412")
+		load(ICON_FOLDER + "RouterSlide.svg")
 	)
 	
 		# RouterStack
@@ -191,7 +193,7 @@ func _enter_tree() -> void:
 		"RouterStack",
 		"PanelContainer",
 		load("uid://c2ao0xk5wpenk"),
-		load("uid://d04agqiqsbw4f")
+		load(ICON_FOLDER + "RouterStack.svg")
 	)
 	
 	# SizeControllers
@@ -200,14 +202,14 @@ func _enter_tree() -> void:
 		"MaxSizeContainer",
 		"Container",
 		load("uid://qyynh24u37dl"),
-		load("uid://cas71sna8pvfd")
+		load(ICON_FOLDER + "MaxSizeContainer.svg")
 	)
 		# MaxRatioContainer
 	add_custom_type(
 		"MaxRatioContainer",
 		"Container",
 		load("uid://dxat85kl81ij8"),
-		load("uid://gx7wjtdyu0kx")
+		load(ICON_FOLDER + "MaxRatioContainer.svg")
 	)
 	
 	# SwapContainer
@@ -215,7 +217,7 @@ func _enter_tree() -> void:
 		"SwapContainer",
 		"Container",
 		load("uid://xy6iej3vgplw"),
-		load("uid://dlmlimt80wyed")
+		load(ICON_FOLDER + "SwapContainer.svg")
 	)
 	
 	# TransitionContainers
@@ -223,19 +225,19 @@ func _enter_tree() -> void:
 		"ModulateTransitionContainer",
 		"Container",
 		load("uid://pgglabrqqqf8"),
-		load("uid://frrreb5gdmcc")
+		load(ICON_FOLDER + "ModulateTransitionContainer.svg")
 	)
 	add_custom_type(
 		"StyleTransitionContainer",
 		"Container",
 		load("uid://dpxv0jw7hjhta"),
-		load("uid://cvy6f5pfxqkao")
+		load(ICON_FOLDER + "StyleTransitionContainer.svg")
 	)
 	add_custom_type(
 		"StyleTransitionPanel",
 		"Panel",
 		load("uid://b1byk6qaj6eg4"),
-		load("uid://i20h00snyguv")
+		load(ICON_FOLDER + "StyleTransitionPanel.svg")
 	)
 
 func _exit_tree() -> void:
