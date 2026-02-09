@@ -65,15 +65,16 @@ func _on_disabled_changed(use_animation : bool) -> void:
 func _get_minimum_size() -> Vector2:
 	if clip_children:
 		return Vector2.ZERO
-	var min_size := Vector2.ZERO
 	
+	var min_size := Vector2.ZERO
 	for child : Node in get_children():
-		if child is Control:
+		if child is Control && child.is_visible_in_tree():
 			min_size = min_size.max(child.get_combined_minimum_size())
+	
 	return min_size
 func _on_sort_children() -> void:
 	for child : Node in get_children():
-		if child is Control:
+		if child is Control && child.is_visible_in_tree():
 			fit_child_in_rect(child, Rect2(Vector2.ZERO, size))
 #endregion
 

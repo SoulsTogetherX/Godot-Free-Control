@@ -71,6 +71,50 @@ func _property_get_revert(property: StringName) -> Variant:
 	return null
 
 func _gui_input(event: InputEvent) -> void:
+	process_input(event)
+func _notification(what: int) -> void:
+	match what:
+		NOTIFICATION_EXIT_TREE:
+			force_release()
+#endregion
+
+
+#region Custom Virtual Methods
+## A virtual method that should be overloaded. Returns [code]true[/code] if [param pos] is
+## within the distance limit. [code]false[/code] otherwise.
+func _pos_check(pos : Vector2) -> bool:
+	return false
+## A virtual method that should be overloaded. This is called when an input starts a
+## check.
+func _on_check_start(event: InputEvent) -> void:
+	pass
+## A virtual method that should be overloaded. This is called when an input releases a
+## check.
+func _on_check_release(event: InputEvent) -> void:
+	pass
+## A virtual method that should be overloaded. This is called when an input exceeds a
+## check.
+## [br][br]
+## Also see [method _pos_check].
+func _on_check_exceeded(event: InputEvent) -> void:
+	pass 
+#endregion
+
+
+#region Private Methods
+func _invaild_end() -> void:
+	end_invaild.emit()
+	end_check.emit()
+func _vaild_end() -> void:
+	end_vaild.emit()
+	end_check.emit()
+#endregion
+
+
+#region Public Methods
+## Processes the given input as if it was passed in via
+## [method Control._gui_input].
+func process_input(event: InputEvent) -> void:
 	if disabled: return
 	
 	if event is InputEventMouseButton || event is InputEventScreenTouch:
@@ -122,47 +166,8 @@ func _gui_input(event: InputEvent) -> void:
 		
 			if mouse_filter == MOUSE_FILTER_STOP:
 				accept_event()
+	
 
-func _notification(what: int) -> void:
-	match what:
-		NOTIFICATION_EXIT_TREE:
-			force_release()
-#endregion
-
-
-#region Custom Virtual Methods
-## A virtual method that should be overloaded. Returns [code]true[/code] if [param pos] is
-## within the distance limit. [code]false[/code] otherwise.
-func _pos_check(pos : Vector2) -> bool:
-	return false
-## A virtual method that should be overloaded. This is called when an input starts a
-## check.
-func _on_check_start(event: InputEvent) -> void:
-	pass
-## A virtual method that should be overloaded. This is called when an input releases a
-## check.
-func _on_check_release(event: InputEvent) -> void:
-	pass
-## A virtual method that should be overloaded. This is called when an input exceeds a
-## check.
-## [br][br]
-## Also see [method _pos_check].
-func _on_check_exceeded(event: InputEvent) -> void:
-	pass 
-#endregion
-
-
-#region Private Methods
-func _invaild_end() -> void:
-	end_invaild.emit()
-	end_check.emit()
-func _vaild_end() -> void:
-	end_vaild.emit()
-	end_check.emit()
-#endregion
-
-
-#region Public Methods
 ## Forcibly stops this node's check.
 func force_release() -> void:
 	if _holding:

@@ -108,7 +108,8 @@ func _on_set_color():
 
 func _sort_children() -> void:
 	for child : Node in get_children():
-		fit_child_in_rect(child, Rect2(Vector2.ZERO, size))
+		if child is Control && child.is_visible_in_tree():
+			fit_child_in_rect(child, Rect2(Vector2.ZERO, size))
 #endregion
 
 

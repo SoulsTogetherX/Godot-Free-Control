@@ -31,11 +31,11 @@ func _get_minimum_size() -> Vector2:
 	if clip_contents:
 		return Vector2.ZERO
 	
-	var min := Vector2.ZERO
+	var min_size := Vector2.ZERO
 	for child : Node in get_children():
 		if child is Control && child.is_visible_in_tree():
-			min = min.max(child.get_combined_minimum_size())
-	return min
+			min_size = min_size.max(child.get_combined_minimum_size())
+	return min_size
 
 func _notification(what : int) -> void:
 	match what:
@@ -52,7 +52,8 @@ func _get_allowed_size_flags_vertical() -> PackedInt32Array:
 #region Private Methods
 func _sort_children() -> void:
 	for child : Node in get_children():
-		if child is Control: _update_child(child)
+		if child is Control && child.is_visible_in_tree():
+			_update_child(child)
 func _update_child(child : Control):
 	var child_min_size := child.get_minimum_size()
 	var result_size := child_min_size

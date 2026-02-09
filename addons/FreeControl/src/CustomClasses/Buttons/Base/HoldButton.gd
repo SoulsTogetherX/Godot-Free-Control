@@ -161,8 +161,8 @@ func _gui_input(event: InputEvent) -> void:
 		return
 	
 	event.position += global_position
-	_bounds_check._gui_input(event)
-	_distance_check._gui_input(event)
+	_bounds_check.process_input(event)
+	_distance_check.process_input(event)
 #endregion
 
 

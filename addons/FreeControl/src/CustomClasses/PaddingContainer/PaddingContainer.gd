@@ -96,21 +96,21 @@ func _get_minimum_size() -> Vector2:
 	if !minimum_size || clip_contents:
 		return Vector2.ZERO
 	
-	var min : Vector2
+	var min_size : Vector2
 	for child : Node in get_children():
 		if child is Control && child.is_visible_in_tree():
-			min = min.max(child.get_combined_minimum_size())
+			min_size = min_size.max(child.get_combined_minimum_size())
 	
-	min += get_parent_area_size() * Vector2(
+	min_size += get_parent_area_size() * Vector2(
 		child_anchor_left + (1 - child_anchor_right),
 		child_anchor_top + (1 - child_anchor_bottom)
 	)
-	min += Vector2(
+	min_size += Vector2(
 		child_offset_left + child_offset_right,
 		child_offset_top + child_offset_bottom
 	)
 	
-	return min
+	return min_size
 
 func _get_property_list() -> Array[Dictionary]:
 	var properties : Array[Dictionary] = []
@@ -242,7 +242,7 @@ func _sort_children() -> void:
 	var rect := get_padding_rect()
 	
 	for child : Node in get_children():
-		if child is Control:
+		if child is Control && child.is_visible_in_tree():
 			_sort_child(child, rect)
 func _sort_child(child : Control, rect : Rect2) -> void:
 	var min_size := child.get_combined_minimum_size()

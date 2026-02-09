@@ -34,28 +34,26 @@ var _child_min_size : Vector2
 func _get_minimum_size() -> Vector2:
 	if clip_contents:
 		return Vector2.ZERO
-	
-	var _min_size := Vector2.ZERO
 	_child_min_size = Vector2.ZERO
 	
 	var children_info: Array[Array] = []
-	
+	var min_size := Vector2.ZERO
 	for child : Node in get_children():
-		if child is AnimatableControl:
+		if child is AnimatableControl && child.is_visible_in_tree():
 			var child_bb := _get_child_exact_bb(child)
 			
 			# Scale child size, if needed
 			_child_min_size = _child_min_size.max(_get_scaled_child_size(child))
 			
 			children_info.append([child, child_bb])
-			_min_size = _min_size.max(child_bb.size)
+			min_size = min_size.max(child_bb.size)
 	
 	# Leaves position adjusts after so size, after calculating min-size of children, can be used 
 	if transformation_mask & TRANSFORMATION_MODE.POSITION:
 		for info : Array in children_info:
 			_adjust_children_positions(info[0], info[1])
 	
-	return _min_size
+	return min_size
 #endregion
 
 
@@ -82,7 +80,6 @@ func _adjust_children_positions(
 			piv *= child.scale
 		
 		piv_offset = child.pivot_offset - piv.rotated(child.rotation)
-		
 	
 	# If adjusts the pivot by scale, if needed
 	elif transformation_mask & TRANSFORMATION_MODE.SCALE:

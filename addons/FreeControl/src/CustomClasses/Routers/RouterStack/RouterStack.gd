@@ -138,11 +138,11 @@ func _get_minimum_size() -> Vector2:
 	if clip_contents:
 		return Vector2.ZERO
 	
-	var min := Vector2.ZERO
+	var min_size := Vector2.ZERO
 	for child : Node in get_children():
 		if child is Control && child.is_visible_in_tree():
-			min = min.max(child.get_combined_minimum_size())
-	return min
+			min_size = min_size.max(child.get_combined_minimum_size())
+	return min_size
 #endregion
 
 

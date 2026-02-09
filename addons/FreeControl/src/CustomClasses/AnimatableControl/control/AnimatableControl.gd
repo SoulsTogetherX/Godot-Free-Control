@@ -69,7 +69,7 @@ func _get_minimum_size() -> Vector2:
 	
 	var min_size := Vector2.ZERO
 	for child : Node in get_children():
-		if child is Control:
+		if child is Control && child.is_visible_in_tree():
 			min_size = min_size.max(child.get_combined_minimum_size())
 	return min_size
 
@@ -117,7 +117,7 @@ func _update_offsets() -> void:
 
 func _sort_children() -> void:
 	for child : Node in get_children():
-		if child is Control:
+		if child is Control && child.is_visible_in_tree():
 			_resize_child(child)
 func _resize_child(child : Control) -> void:
 	var child_size := child.get_combined_minimum_size()

@@ -31,10 +31,8 @@ func _get_minimum_size() -> Vector2:
 		return Vector2.ZERO
 	
 	var _min_size := Vector2.ZERO
-	
-	# Ensures size is the same as the largest size (of both axis) of children
 	for child : Node in get_children():
-		if child is AnimatableControl:
+		if child is AnimatableControl && child.is_visible_in_tree():
 			if child.size_mode & AnimatableControl.SIZE_MODE.MIN && child.is_visible_in_tree():
 				_min_size = _min_size.max(child.get_combined_minimum_size())
 	
@@ -66,7 +64,7 @@ func add_child(child : Node, force_readable_name: bool = false, internal: Intern
 	var animatable := child as AnimatableControl
 	if !animatable:
 		return
-		
+	
 	animatable.transformation_changed.connect(_on_transformation_changed)
 	
 	animatable.resized.connect(queue_sort)
@@ -85,7 +83,7 @@ func remove_child(child : Node) -> void:
 	var animatable := child as AnimatableControl
 	if !animatable:
 		return
-		
+	
 	animatable.transformation_changed.disconnect(_on_transformation_changed)
 	
 	animatable.resized.disconnect(queue_sort)
@@ -130,7 +128,7 @@ func _sort_children() -> void:
 	for child : Node in get_children():
 		if child is AnimatableControl:
 			_sort_child(child)
-		elif child:
+		elif child is Control:
 			fit_child_in_rect(child, Rect2(Vector2.ZERO,size), false)
 	
 	propagate_notification(NOTIFICATION_SORT_CHILDREN)

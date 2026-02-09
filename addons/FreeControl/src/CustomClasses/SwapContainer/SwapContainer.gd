@@ -73,11 +73,11 @@ func _get_minimum_size() -> Vector2:
 	if clip_contents:
 		return Vector2.ZERO
 	
-	var min := Vector2.ZERO
+	var min_size := Vector2.ZERO
 	for child : Node in get_children():
 		if child is Control && child.is_visible_in_tree():
-			min = min.max(child.get_combined_minimum_size())
-	return min
+			min_size = min_size.max(child.get_combined_minimum_size())
+	return min_size
 
 func _notification(what: int) -> void:
 	match what:
@@ -89,9 +89,8 @@ func _notification(what: int) -> void:
 #region Private Methods
 func _resize_children() -> void:
 	for child : Node in get_children():
-		if child is Control:
+		if child is Control && child.is_visible_in_tree():
 			child.set_deferred("size", size)
-
 
 func _parent_control(node: Control, front : bool) -> void:
 	if !node:
