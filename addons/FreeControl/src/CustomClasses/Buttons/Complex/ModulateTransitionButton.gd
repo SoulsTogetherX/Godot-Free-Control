@@ -122,30 +122,30 @@ func _init() -> void:
 
 func _validate_property(property: Dictionary) -> void:
 	match property.name:
-		"pressed":
+		&"button_pressed":
 			if !toggle_mode:
 				property.usage |= PROPERTY_USAGE_READ_ONLY
-		"focused_alpha", "alphas":
+		&"focused_alpha", "alphas":
 			property.usage &= ~PROPERTY_USAGE_EDITOR
 	
 func _set(property: StringName, value: Variant) -> bool:
 	if _button:
 		match property:
-			"mouse_filter":
+			&"mouse_filter":
 				_button.mouse_filter = value
-			"mouse_force_pass_scroll_events":
+			&"mouse_force_pass_scroll_events":
 				_button.mouse_force_pass_scroll_events = value
-			"mouse_default_cursor_shape":
+			&"mouse_default_cursor_shape":
 				_button.mouse_default_cursor_shape = value
 	return false
 func _get(property: StringName) -> Variant:
 	if _button:
 		match property:
-			"mouse_filter":
+			&"mouse_filter":
 				return _button.mouse_filter
-			"mouse_force_pass_scroll_events":
+			&"mouse_force_pass_scroll_events":
 				return _button.mouse_force_pass_scroll_events
-			"mouse_default_cursor_shape":
+			&"mouse_default_cursor_shape":
 				return _button.mouse_default_cursor_shape
 	return null
 
