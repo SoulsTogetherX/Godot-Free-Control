@@ -118,8 +118,8 @@ func _notification(what : int) -> void:
 #region Private Methods (Componet Manager)
 func _handle_ready() -> void:
 	_panel = StyleTransitionPanel.new()
-	add_child(_panel, false, Node.INTERNAL_MODE_BACK)
-
+	add_child(_panel, false, Node.INTERNAL_MODE_FRONT)
+	
 	_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_panel.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	

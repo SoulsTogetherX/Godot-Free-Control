@@ -171,7 +171,7 @@ func _toggle_load(idx : int, toggle : bool) -> void:
 		if page_scene:
 			var page : Page = page_scene.instantiate()
 			_pages[idx] = page
-			add_child(page, false, Node.INTERNAL_MODE_BACK)
+			add_child(page, false, Node.INTERNAL_MODE_FRONT)
 			fit_child_in_rect(page, get_page_rect(idx))
 		return
 	

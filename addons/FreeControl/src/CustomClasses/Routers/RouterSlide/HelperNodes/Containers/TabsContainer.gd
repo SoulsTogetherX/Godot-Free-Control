@@ -61,7 +61,7 @@ func _create_tabs() -> void:
 		tab.tab_pressed.connect(_on_tab_selected.bind(i))
 		
 		_tabs[i] = tab
-		add_child(tab, false, Node.INTERNAL_MODE_BACK)
+		add_child(tab, false, Node.INTERNAL_MODE_FRONT)
 	_sort_tabs()
 #endregion
 

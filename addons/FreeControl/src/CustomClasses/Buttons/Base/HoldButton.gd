@@ -154,7 +154,7 @@ func _handel_ready() -> void:
 	_distance_check = DistanceCheck.new()
 	_distance_check.name = "distance_check"
 	_distance_check.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	add_child(_distance_check, false, INTERNAL_MODE_FRONT)
+	add_child(_distance_check, false, INTERNAL_MODE_BACK)
 	
 	_distance_check.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_distance_check.cancel_when_outside = true
@@ -170,7 +170,7 @@ func _handel_ready() -> void:
 	_bounds_check = BoundsCheck.new()
 	_bounds_check.name = "bounds_check"
 	_bounds_check.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	add_child(_bounds_check, false, INTERNAL_MODE_FRONT)
+	add_child(_bounds_check, false, INTERNAL_MODE_BACK)
 	
 	_bounds_check.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_bounds_check.disabled = disabled

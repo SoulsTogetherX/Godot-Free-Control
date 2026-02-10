@@ -134,7 +134,7 @@ func _handle_ready() -> void:
 	if _stack && is_instance_valid(_stack):
 		_stack.queue_free()
 	_stack = SwapContainer.new()
-	add_child(_stack, false, Node.INTERNAL_MODE_BACK)
+	add_child(_stack, false, Node.INTERNAL_MODE_FRONT)
 	_stack.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	
 	_stack.start_transition.connect(start_transition.emit)

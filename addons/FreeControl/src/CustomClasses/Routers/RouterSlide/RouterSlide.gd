@@ -233,15 +233,15 @@ func _handle_ready() -> void:
 	_tabs_background = Panel.new()
 	_tabs_shadow = Panel.new()
 	
-	add_child(_content_background, false, Node.INTERNAL_MODE_BACK)
-	add_child(_content_container, false, Node.INTERNAL_MODE_BACK)
-	add_child(_tabs_background, false, Node.INTERNAL_MODE_BACK)
+	add_child(_content_background, false, Node.INTERNAL_MODE_FRONT)
+	add_child(_content_container, false, Node.INTERNAL_MODE_FRONT)
+	add_child(_tabs_background, false, Node.INTERNAL_MODE_FRONT)
 	
 	# Option to make shadow above or below highlight
-	_tabs_background.add_child(_tabs_shadow, false, Node.INTERNAL_MODE_BACK)
-	_tabs_background.add_child(_highlight_container, false, Node.INTERNAL_MODE_BACK)
+	_tabs_background.add_child(_tabs_shadow, false, Node.INTERNAL_MODE_FRONT)
+	_tabs_background.add_child(_highlight_container, false, Node.INTERNAL_MODE_FRONT)
 	
-	_tabs_background.add_child(_tabs_container, false, Node.INTERNAL_MODE_BACK)
+	_tabs_background.add_child(_tabs_container, false, Node.INTERNAL_MODE_FRONT)
 
 func _on_componet_update() -> void:
 	_content_container.animation_speed = page_speed

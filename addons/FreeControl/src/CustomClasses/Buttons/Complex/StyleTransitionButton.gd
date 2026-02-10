@@ -138,7 +138,7 @@ func _handle_ready() -> void:
 	if _button:
 		_button.queue_free()
 	_button = HoldButton.new()
-	add_child(_button, false, Node.INTERNAL_MODE_FRONT)
+	add_child(_button, false, Node.INTERNAL_MODE_BACK)
 	_button.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	
 	if !Engine.is_editor_hint():

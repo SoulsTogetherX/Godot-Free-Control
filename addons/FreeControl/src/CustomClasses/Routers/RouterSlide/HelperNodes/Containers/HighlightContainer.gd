@@ -68,7 +68,7 @@ func _notification(what: int) -> void:
 #region Private Methods (Helper)
 func _handle_ready() -> void:
 	_highlight = ColorRect.new()
-	add_child(_highlight, false, Node.INTERNAL_MODE_BACK)
+	add_child(_highlight, false, Node.INTERNAL_MODE_FRONT)
 #endregion
 
 

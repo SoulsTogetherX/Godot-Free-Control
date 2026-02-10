@@ -215,8 +215,8 @@ func _handle_ready() -> void:
 	_switch.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_knob.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	
-	add_child(_switch, false, Node.INTERNAL_MODE_BACK)
-	add_child(_knob, false, Node.INTERNAL_MODE_BACK)
+	add_child(_switch, false, Node.INTERNAL_MODE_FRONT)
+	add_child(_knob, false, Node.INTERNAL_MODE_FRONT)
 	
 	toggle_mode = true
 	_handle_resize()

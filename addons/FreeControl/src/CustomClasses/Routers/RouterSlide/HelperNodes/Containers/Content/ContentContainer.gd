@@ -64,7 +64,7 @@ func _notification(what: int) -> void:
 #region Private Methods (Helper)
 func _handle_ready() -> void:
 	_page_slide = preload(RouterSlide.PAGE_SLIDE_CONTAINER_UID).new()
-	add_child(_page_slide, false, Node.INTERNAL_MODE_BACK)
+	add_child(_page_slide, false, Node.INTERNAL_MODE_FRONT)
 #endregion
 
 
