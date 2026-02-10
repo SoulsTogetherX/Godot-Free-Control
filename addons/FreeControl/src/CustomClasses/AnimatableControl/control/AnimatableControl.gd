@@ -60,9 +60,6 @@ enum SIZE_MODE {
 
 
 #region Private Virtual Methods
-func _init() -> void:
-	set_notify_local_transform(true)
-
 func _get_minimum_size() -> Vector2:
 	if clip_contents:
 		return Vector2.ZERO
@@ -98,6 +95,8 @@ func _get_configuration_warnings() -> PackedStringArray:
 
 func _notification(what: int) -> void:
 	match what:
+		NOTIFICATION_POSTINITIALIZE:
+			set_notify_local_transform(true)
 		NOTIFICATION_LOCAL_TRANSFORM_CHANGED:
 			transformation_changed.emit()
 		NOTIFICATION_SORT_CHILDREN:

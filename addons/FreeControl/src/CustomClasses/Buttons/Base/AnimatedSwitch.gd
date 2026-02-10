@@ -3,6 +3,7 @@
 class_name AnimatedSwitch extends BaseButton
 ## Animated verison of a switch button.
 
+
 #region External Variables
 @export_group("Redirect")
 ## If [code]true[/code], the switch will be displayed vertical.
@@ -25,6 +26,7 @@ class_name AnimatedSwitch extends BaseButton
 		val = val.maxf(0)
 		if switch_size != val:
 			switch_size = val
+			
 			_handle_resize()
 			update_minimum_size()
 ## The size of the switch's knob.
@@ -33,6 +35,7 @@ class_name AnimatedSwitch extends BaseButton
 		val = val.maxf(0)
 		if knob_size != val:
 			knob_size = val
+			
 			_handle_resize()
 			update_minimum_size()
 ## The base offset of the knob from it's set position.
@@ -40,6 +43,7 @@ class_name AnimatedSwitch extends BaseButton
 	set(val):
 		if knob_offset != val:
 			knob_offset = val
+			
 			_handle_resize()
 			update_minimum_size()
 ## An amount of pixels the knob will extend past the switch's base.
@@ -49,6 +53,7 @@ class_name AnimatedSwitch extends BaseButton
 	set(val):
 		if knob_overextend != val:
 			knob_overextend = val
+			
 			_handle_resize()
 			update_minimum_size()
 
@@ -58,21 +63,13 @@ class_name AnimatedSwitch extends BaseButton
 	set(val):
 		if switch_bg != val:
 			switch_bg = val
-			
-			if _switch:
-				_switch.visible = switch_bg != null
-				if switch_bg:
-					_switch.add_theme_stylebox_override("panel", switch_bg)
+			_set_switch_bg()
 ## The style of the knob.
 @export var knob_bg : StyleBox:
 	set(val):
 		if knob_bg != val:
 			knob_bg = val
-			
-			if _knob:
-				_knob.visible = knob_bg != null
-				if knob_bg:
-					_knob.add_theme_stylebox_override("panel", knob_bg)
+			_set_knob_bg()
 
 @export_group("Colors")
 @export_subgroup("Switch")
@@ -135,11 +132,7 @@ class_name AnimatedSwitch extends BaseButton
 ## The transition of the knob's movement across the base.
 @export var main_transition : Tween.TransitionType
 ## The duration of the knob's movement across the base.
-@export_range(0.001, 0.5, 0.001, "or_greater", "suffix:sec") var main_duration : float = 0.15:
-	set(val):
-		val = maxf(0.001, val)
-		if val != main_duration:
-			main_duration = val
+@export_range(0.001, 0.5, 0.001, "or_greater", "suffix:sec") var main_duration : float = 0.15
 
 @export_subgroup("Knob Color")
 ## If [code]true[/code], then the knob will change color according to this node's state.
@@ -149,11 +142,7 @@ class_name AnimatedSwitch extends BaseButton
 ## The transition of the knob's color change.
 @export var knob_color_transition : Tween.TransitionType
 ## The duration of the knob's color change.
-@export_range(0.001, 0.5, 0.001, "or_greater", "suffix:sec") var knob_color_duration : float = 0.1:
-	set(val):
-		val = maxf(0.001, val)
-		if val != knob_color_duration:
-			knob_color_duration = val
+@export_range(0.001, 0.5, 0.001, "or_greater", "suffix:sec") var knob_color_duration : float = 0.1
 
 @export_subgroup("Switch Color")
 ## If [code]true[/code], then the base will change color according to this node's state.
@@ -163,11 +152,7 @@ class_name AnimatedSwitch extends BaseButton
 ## The transition of the base's color change.
 @export var switch_color_transition : Tween.TransitionType
 ## The duration of the base's color change.
-@export_range(0.001, 0.5, 0.001, "or_greater", "suffix:sec") var switch_color_duration : float = 0.1:
-	set(val):
-		val = maxf(0.001, val)
-		if val != switch_color_duration:
-			switch_color_duration = val
+@export_range(0.001, 0.5, 0.001, "or_greater", "suffix:sec") var switch_color_duration : float = 0.1
 #endregion
 
 
@@ -186,27 +171,6 @@ var _switch_color_animate_tween : Tween
 func _init() -> void:
 	if !toggled.is_connected(toggle_state):
 		toggled.connect(toggle_state)
-	
-	if _switch && is_instance_valid(_switch):
-		_switch.queue_free()
-	_switch = Panel.new()
-	_switch.visible = switch_bg != null
-	
-	
-	if _knob && is_instance_valid(_knob):
-		_knob.queue_free()
-	_knob = Panel.new()
-	_knob.visible = knob_bg != null
-	
-	_switch.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_knob.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	
-	add_child(_switch)
-	add_child(_knob)
-	
-	toggle_mode = true
-	_handle_resize()
-	_animate_color(false)
 
 func _get_minimum_size() -> Vector2:
 	if clip_contents:
@@ -220,24 +184,68 @@ func _validate_property(property: Dictionary) -> void:
 func _set(property: StringName, value: Variant) -> bool:
 	if property == "disabled":
 		disabled = value
+		
 		_animate_color()
 		return true
 	return false
 
 func _notification(what: int) -> void:
 	match what:
+		NOTIFICATION_READY:
+			_handle_ready()
 		NOTIFICATION_RESIZED:
 			_handle_resize()
 #endregion
 
 
 #region Private Methods
-func _handle_resize() -> void:
-	_switch.position = (size - switch_size) * 0.5
-	_switch.size = switch_size
+func _handle_ready() -> void:
+	if _switch && is_instance_valid(_switch):
+		_switch.queue_free()
+	_switch = Panel.new()
+	_switch.visible = switch_bg != null
+	_set_switch_bg()
 	
-	_knob.size = knob_size
+	if _knob && is_instance_valid(_knob):
+		_knob.queue_free()
+	_knob = Panel.new()
+	_knob.visible = knob_bg != null
+	_set_knob_bg()
+	
+	_switch.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_knob.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	
+	add_child(_switch, false, Node.INTERNAL_MODE_BACK)
+	add_child(_knob, false, Node.INTERNAL_MODE_BACK)
+	
+	toggle_mode = true
+	_handle_resize()
+	_animate_color(false)
+
+
+func _handle_resize() -> void:
+	if _switch:
+		_switch.position = (size - switch_size) * 0.5
+		_switch.size = switch_size
+	
+	if _knob:
+		_knob.size = knob_size
 	force_state(button_pressed)
+
+func _set_switch_bg() -> void:
+	if !_switch:
+		return
+	
+	_switch.visible = switch_bg != null
+	if switch_bg:
+		_switch.add_theme_stylebox_override("panel", switch_bg)
+func _set_knob_bg() -> void:
+	if !_knob:
+		return
+	
+	_knob.visible = knob_bg != null
+	if knob_bg:
+		_knob.add_theme_stylebox_override("panel", knob_bg)
 
 
 func _kill_main_animation() -> void:
@@ -264,6 +272,9 @@ func _handle_animations(animate : bool, knob_state : bool) -> void:
 	_animate_color(false)
 
 func _animate_knob(knob_state : bool) -> void:
+	if !_knob:
+		return
+	
 	_main_animate_tween = create_tween()
 	_main_animate_tween.set_ease(main_ease)
 	_main_animate_tween.set_trans(main_transition)
@@ -274,6 +285,9 @@ func _animate_knob(knob_state : bool) -> void:
 		main_duration
 	)
 func _position_knob(delta : float) -> void:
+	if !_knob:
+		return
+	
 	if flip:
 		delta = 1.0 - delta
 	
@@ -292,31 +306,33 @@ func _position_knob(delta : float) -> void:
 		+ knob_offset # Offset
 	)
 func _animate_color(animate : bool = false) -> void:
-	if animate && animate_knob_color:
-		_knob_color_animate_tween = create_tween()
-		_knob_color_animate_tween.set_ease(knob_color_ease)
-		_knob_color_animate_tween.set_trans(knob_color_transition)
-		_knob_color_animate_tween.tween_property(
-			_knob,
-			"self_modulate",
-			get_knob_color(),
-			knob_color_duration
-		)
-	else:
-		_knob.self_modulate = get_knob_color()
+	if _knob:
+		if animate && animate_knob_color:
+			_knob_color_animate_tween = create_tween()
+			_knob_color_animate_tween.set_ease(knob_color_ease)
+			_knob_color_animate_tween.set_trans(knob_color_transition)
+			_knob_color_animate_tween.tween_property(
+				_knob,
+				"self_modulate",
+				get_knob_color(),
+				knob_color_duration
+			)
+		else:
+			_knob.self_modulate = get_knob_color()
 	
-	if animate && animate_switch_color:
-		_switch_color_animate_tween = create_tween()
-		_switch_color_animate_tween.set_ease(switch_color_ease)
-		_switch_color_animate_tween.set_trans(switch_color_transition)
-		_switch_color_animate_tween.tween_property(
-			_switch,
-			"self_modulate",
-			get_switch_color(),
-			switch_color_duration
-		)
-	else:
-		_switch.self_modulate = get_switch_color()
+	if _switch:
+		if animate && animate_switch_color:
+			_switch_color_animate_tween = create_tween()
+			_switch_color_animate_tween.set_ease(switch_color_ease)
+			_switch_color_animate_tween.set_trans(switch_color_transition)
+			_switch_color_animate_tween.tween_property(
+				_switch,
+				"self_modulate",
+				get_switch_color(),
+				switch_color_duration
+			)
+		else:
+			_switch.self_modulate = get_switch_color()
 #endregion
 
 

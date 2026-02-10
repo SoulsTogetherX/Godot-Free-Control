@@ -69,7 +69,8 @@ static func scene_is_page(scene : PackedScene) -> bool:
 	if node is Page:
 		node.free()
 		return true
-	node.free()
+	if node:
+		node.free()
 	return false
 #endregion
 

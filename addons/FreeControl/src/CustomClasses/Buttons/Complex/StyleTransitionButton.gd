@@ -61,7 +61,7 @@ signal press_end
 		if normal_color != val:
 			normal_color = val
 			
-			if is_node_ready():
+			if !colors.is_empty():
 				colors[0] = val
 			force_color(focused_color)
 ## The color to modulate to when this node is focused.
@@ -70,7 +70,7 @@ signal press_end
 		if focus_color != val:
 			focus_color = val
 			
-			if is_node_ready():
+			if !colors.is_empty():
 				colors[1] = val
 			force_color(focused_color)
 ## The color to modulate to when this node is disabled.
@@ -79,7 +79,7 @@ signal press_end
 		if disabled_color != val:
 			disabled_color = val
 			
-			if is_node_ready():
+			if !colors.is_empty():
 				colors[2] = val
 			force_color(focused_color)
 #endregion
@@ -95,36 +95,6 @@ var _button : HoldButton
 
 
 #region Private Virtual Methods
-func _init() -> void:
-	super()
-	
-	if _button && is_instance_valid(_button):
-		_button.queue_free()
-	_button = HoldButton.new()
-	add_child(_button)
-	
-	_button.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	_button.move_to_front()
-	
-	if !Engine.is_editor_hint():
-		child_order_changed.connect(_button.move_to_front, CONNECT_DEFERRED)
-		
-		_button.pressed_state.connect(_on_press_state)
-		_button.release_state.connect(_on_release_state)
-		
-		_button.press_start.connect(press_start.emit)
-		_button.press_end.connect(press_end.emit)
-		_button.press_vaild.connect(_emit_vaild_press)
-	
-	_button.mouse_filter = mouse_filter
-	_button.mouse_force_pass_scroll_events = mouse_force_pass_scroll_events
-	_button.mouse_default_cursor_shape = mouse_default_cursor_shape
-	
-	_button.toggle_mode = toggle_mode
-	_button.button_pressed = _button_pressed
-	_button.disabled = _disabled
-
-
 func _validate_property(property: Dictionary) -> void:
 	match property.name:
 		&"button_pressed":
@@ -158,12 +128,40 @@ func _notification(what : int) -> void:
 	super(what)
 	match what:
 		NOTIFICATION_READY:
-			colors = [normal_color, focus_color, disabled_color]
-			force_color(2 if _disabled else int(_button_pressed))
+			_handle_ready()
 #endregion
 
 
 #region Private Methods (Helper)
+func _handle_ready() -> void:
+	super()
+	if _button:
+		_button.queue_free()
+	_button = HoldButton.new()
+	add_child(_button, false, Node.INTERNAL_MODE_FRONT)
+	_button.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	
+	if !Engine.is_editor_hint():
+		child_order_changed.connect(_button.move_to_front, CONNECT_DEFERRED)
+		
+		_button.pressed_state.connect(_on_press_state)
+		_button.release_state.connect(_on_release_state)
+		
+		_button.press_start.connect(press_start.emit)
+		_button.press_end.connect(press_end.emit)
+		_button.press_vaild.connect(_emit_vaild_press)
+	
+	_button.mouse_filter = mouse_filter
+	_button.mouse_force_pass_scroll_events = mouse_force_pass_scroll_events
+	_button.mouse_default_cursor_shape = mouse_default_cursor_shape
+	
+	_button.toggle_mode = toggle_mode
+	_button.button_pressed = _button_pressed
+	_button.disabled = _disabled
+	
+	colors = [normal_color, focus_color, disabled_color]
+	force_color(2 if _disabled else int(_button_pressed))
+
 func _set_disabled(val : bool) -> void:
 	_disabled = val || disabled
 	

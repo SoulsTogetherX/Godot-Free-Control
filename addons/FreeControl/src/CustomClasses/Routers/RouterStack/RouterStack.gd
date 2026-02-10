@@ -27,10 +27,12 @@ const ANIMATION_TYPE = SwapContainer.ANIMATION_TYPE
 	set(val):
 		if val != starting_page:
 			starting_page = val
-			if Engine.is_editor_hint() && is_node_ready():
-				_clear_all_pages()
-				if ResourceLoader.exists(starting_page) && starting_page.get_extension() == "tscn":
-					route(starting_page, ANIMATION_TYPE.NONE, ANIMATION_TYPE.NONE)
+			if !Engine.is_editor_hint() || !is_node_ready():
+				return
+				
+			_clear_all_pages()
+			if ResourceLoader.exists(starting_page) && starting_page.get_extension() == "tscn":
+				route(starting_page, ANIMATION_TYPE.NONE, ANIMATION_TYPE.NONE)
 ## The max size of the stack. If the stack is too big, it will clear the oldest on
 ## the stack first.
 @export_range(1, 1000, 1, "or_greater") var max_stack : int = 50:
@@ -110,11 +112,29 @@ var _stack : SwapContainer
 
 
 #region Private Virtual Methods
-func _init() -> void:
+func _get_minimum_size() -> Vector2:
+	if clip_contents:
+		return Vector2.ZERO
+	
+	var min_size := Vector2.ZERO
+	for child : Node in get_children():
+		if child is Control && child.is_visible_in_tree():
+			min_size = min_size.max(child.get_combined_minimum_size())
+	return min_size
+
+func _notification(what: int) -> void:
+	match what:
+		NOTIFICATION_READY:
+			_handle_ready()
+#endregion
+
+
+#region Private Methods
+func _handle_ready() -> void:
 	if _stack && is_instance_valid(_stack):
 		_stack.queue_free()
 	_stack = SwapContainer.new()
-	add_child(_stack)
+	add_child(_stack, false, Node.INTERNAL_MODE_BACK)
 	_stack.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	
 	_stack.start_transition.connect(start_transition.emit)
@@ -134,19 +154,6 @@ func _init() -> void:
 	
 	_stack.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
-func _get_minimum_size() -> Vector2:
-	if clip_contents:
-		return Vector2.ZERO
-	
-	var min_size := Vector2.ZERO
-	for child : Node in get_children():
-		if child is Control && child.is_visible_in_tree():
-			min_size = min_size.max(child.get_combined_minimum_size())
-	return min_size
-#endregion
-
-
-#region Private Methods
 func _handle_swap(
 	enter_page : Page,
 	enter_animation: ANIMATION_TYPE = ANIMATION_TYPE.DEFAULT,

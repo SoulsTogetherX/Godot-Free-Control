@@ -243,7 +243,7 @@ enum ANIMATION_TYPE {
 			hard_stop = val
 			
 			notify_property_list_changed()
-			if is_node_ready():
+			if is_inside_tree():
 				_end_slowdown()
 ## The percentage multiplier the drag velocity will experience each frame.
 ## [br][br]

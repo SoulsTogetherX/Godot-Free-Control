@@ -611,7 +611,8 @@ func _gui_input(event: InputEvent) -> void:
 				_has_dragged = true
 			
 			_progress_changed(get_progress_adjusted(true))
-			if smooth_drag: _adjust_children()
+			if smooth_drag:
+				_adjust_children()
 #endregion
 
 

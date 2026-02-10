@@ -26,8 +26,6 @@ const TABS_CONTAINER_UID = "uid://b5mte6dbnkbc5"
 				val = RouterSlideInfo.new()
 			router_info = val
 			
-			if !is_node_ready():
-				return
 			_on_info_update()
 
 @export_group("Scene Layout")
@@ -50,10 +48,9 @@ const TABS_CONTAINER_UID = "uid://b5mte6dbnkbc5"
 	set(val):
 		if val != tab_z_index:
 			tab_z_index = val
-			if !is_node_ready():
-				return
 			
-			_tabs_container.z_index = val
+			if _tabs_container:
+				_tabs_container.z_index = val
 
 
 @export_group("Tab Layout")
@@ -69,7 +66,8 @@ const TABS_CONTAINER_UID = "uid://b5mte6dbnkbc5"
 	set(val):
 		if val != shadow_gradient:
 			shadow_gradient = val
-			if !is_node_ready():
+			
+			if !_tabs_shadow:
 				return
 			
 			if shadow_gradient:
@@ -118,10 +116,9 @@ const TABS_CONTAINER_UID = "uid://b5mte6dbnkbc5"
 @export var highlight_color : Color = Color(0.608, 0.329, 0.808):
 	set(val):
 		highlight_color = val
-		if !is_node_ready():
-			return
 		
-		_highlight_container.highlight_color = val
+		if _highlight_container:
+			_highlight_container.highlight_color = val
 
 
 @export_group("Background")
@@ -137,10 +134,9 @@ const TABS_CONTAINER_UID = "uid://b5mte6dbnkbc5"
 	set(val):
 		if val != content_bg_style:
 			content_bg_style = val
-			if !is_node_ready():
-				return
 			
-			_change_theme(_tabs_background, content_bg_style)
+			if _tabs_background:
+				_change_theme(_tabs_background, content_bg_style)
 ## Background style for the tab nodes.
 ## [br][br]
 ## Also see [member tab_scene].
@@ -148,10 +144,9 @@ const TABS_CONTAINER_UID = "uid://b5mte6dbnkbc5"
 	set(val):
 		if val != tab_bg_style:
 			tab_bg_style = val
-			if !is_node_ready():
-				return
 			
-			_change_theme(_tabs_background, tab_bg_style)
+			if _tabs_background:
+				_change_theme(_tabs_background, tab_bg_style)
 
 
 @export_group("Animations")
@@ -160,52 +155,46 @@ const TABS_CONTAINER_UID = "uid://b5mte6dbnkbc5"
 @export_range(0.001, 5, 0.001, "or_greater", "suffix:sec") var page_speed : float = 0.4:
 	set(val):
 		page_speed = val
-		if !is_node_ready():
-			return
 		
-		_content_container.animation_speed = val
+		if _content_container:
+			_content_container.animation_speed = val
 ## The [enum Tween.EaseType] for [Page] animation.
 @export var page_ease : Tween.EaseType = Tween.EASE_IN_OUT:
 	set(val):
 		page_ease = val
-		if !is_node_ready():
-			return
 		
-		_content_container.animation_ease = val
+		if _content_container:
+			_content_container.animation_ease = val
 ## The [enum Tween.TransitionType] for [Page] animation.
 @export var page_trans : Tween.TransitionType = Tween.TRANS_CUBIC:
 	set(val):
 		page_trans = val
-		if !is_node_ready():
-			return
 		
-		_content_container.animation_trans = val
+		if _content_container:
+			_content_container.animation_trans = val
 
 @export_subgroup("Highlight")
 ## Length of time for the highlight to animate.
 @export_range(0.001, 5, 0.001, "or_greater", "suffix:sec") var highlight_speed : float = 0.4:
 	set(val):
 		highlight_speed = val
-		if !is_node_ready():
-			return
 		
-		_highlight_container.animation_speed = val
+		if _highlight_container:
+			_highlight_container.animation_speed = val
 ## The [enum Tween.EaseType] for highlight animation.
 @export var highlight_ease : Tween.EaseType = Tween.EASE_OUT:
 	set(val):
 		highlight_ease = val
-		if !is_node_ready():
-			return
 		
-		_highlight_container.animation_ease = val
+		if _highlight_container:
+			_highlight_container.animation_ease = val
 ## The [enum Tween.TransitionType] for highlight animation.
 @export var highlight_trans : Tween.TransitionType = Tween.TRANS_CUBIC:
 	set(val):
 		highlight_trans = val
-		if !is_node_ready():
-			return
 		
-		_highlight_container.animation_trans = val
+		if _highlight_container:
+			_highlight_container.animation_trans = val
 #endregion
 
 
@@ -222,7 +211,18 @@ var _tabs_shadow : Panel
 
 
 #region Virtual Methods
-func _init() -> void:
+func _notification(what: int) -> void:
+	match what:
+		NOTIFICATION_READY:
+			_handle_ready()
+			_on_info_update()
+		NOTIFICATION_SORT_CHILDREN:
+			_position_componets()
+#endregion
+
+
+#region Private Methods (Settup)
+func _handle_ready() -> void:
 	router_info = RouterSlideInfo.new()
 	
 	_content_container = preload(CONTENT_CONTAINER_UID).new()
@@ -233,25 +233,16 @@ func _init() -> void:
 	_tabs_background = Panel.new()
 	_tabs_shadow = Panel.new()
 	
-	add_child(_content_background)
-	add_child(_content_container)
-	add_child(_tabs_background)
+	add_child(_content_background, false, Node.INTERNAL_MODE_BACK)
+	add_child(_content_container, false, Node.INTERNAL_MODE_BACK)
+	add_child(_tabs_background, false, Node.INTERNAL_MODE_BACK)
 	
 	# Option to make shadow above or below highlight
-	_tabs_background.add_child(_tabs_shadow)
-	_tabs_background.add_child(_highlight_container)
+	_tabs_background.add_child(_tabs_shadow, false, Node.INTERNAL_MODE_BACK)
+	_tabs_background.add_child(_highlight_container, false, Node.INTERNAL_MODE_BACK)
 	
-	_tabs_background.add_child(_tabs_container)
-func _notification(what: int) -> void:
-	match what:
-		NOTIFICATION_READY:
-			_on_info_update()
-		NOTIFICATION_SORT_CHILDREN:
-			_position_componets()
-#endregion
+	_tabs_background.add_child(_tabs_container, false, Node.INTERNAL_MODE_BACK)
 
-
-#region Private Methods (Settup)
 func _on_componet_update() -> void:
 	_content_container.animation_speed = page_speed
 	_content_container.animation_ease = page_ease
@@ -276,9 +267,12 @@ func _on_componet_update() -> void:
 	else:
 		_change_theme(_tabs_shadow, null)
 func _on_info_update() -> void:
-	_content_container.router_info = router_info
-	_highlight_container.router_info = router_info
-	_tabs_container.router_info = router_info
+	if _content_container:
+		_content_container.router_info = router_info
+	if _highlight_container:
+		_highlight_container.router_info = router_info
+	if _tabs_container:
+		_tabs_container.router_info = router_info
 #endregion
 
 

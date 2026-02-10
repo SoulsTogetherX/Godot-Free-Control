@@ -18,8 +18,7 @@ extends Container
 				router_info.changed_idx.connect(_on_index_changed)
 				router_info.changed_size.connect(_on_size_changed)
 			
-			if is_node_ready():
-				_on_info_update()
+			_on_info_update()
 
 @export_group("Animation")
 ## Length of time for the pages to animate.
@@ -52,21 +51,27 @@ var _remove_lambda := Callable()
 
 
 #region Virtual Methods
-func _init() -> void:
-	_page_slide = preload(RouterSlide.PAGE_SLIDE_CONTAINER_UID).new()
-	add_child(_page_slide)
 func _notification(what: int) -> void:
 	match what:
 		NOTIFICATION_READY:
+			_handle_ready()
 			_on_info_update()
 		NOTIFICATION_SORT_CHILDREN:
 			_position_componets()
 #endregion
 
 
+#region Private Methods (Helper)
+func _handle_ready() -> void:
+	_page_slide = preload(RouterSlide.PAGE_SLIDE_CONTAINER_UID).new()
+	add_child(_page_slide, false, Node.INTERNAL_MODE_BACK)
+#endregion
+
+
 #region Private Methods (Info Update)
 func _on_info_update() -> void:
-	_page_slide.router_info = router_info
+	if _page_slide:
+		_page_slide.router_info = router_info
 	if !router_info:
 		return
 	

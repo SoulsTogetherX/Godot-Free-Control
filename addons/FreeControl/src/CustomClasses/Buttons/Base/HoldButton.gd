@@ -55,8 +55,11 @@ signal press_end
 	set(val):
 		if disabled != val:
 			disabled = val
-			_bounds_check.disabled = val
-			_distance_check.disabled = val
+			
+		if _bounds_check:
+				_bounds_check.disabled = val
+		if _distance_check:
+				_distance_check.disabled = val
 ## Binary mask to choose which mouse buttons this button will respond to.
 ## [br][br]
 ## To allow both left-click and right-click, use [code]MOUSE_BUTTON_MASK_LEFT | MOUSE_BUTTON_MASK_RIGHT[/code].
@@ -81,13 +84,17 @@ signal press_end
 @export var release_when_outside : bool = true:
 	set(val):
 		release_when_outside = val
-		_bounds_check.release_when_outside = val
+		
+		if _bounds_check:
+			_bounds_check.release_when_outside = val
 ## If [code]true[/code], the button's held state is released and all checking is stopped
 ## if input moves outside of bounds.
 @export var cancel_when_outside : bool = true:
 	set(val):
 		cancel_when_outside = val
-		_bounds_check.cancel_when_outside = val
+		
+		if _bounds_check:
+			_bounds_check.cancel_when_outside = val
 
 @export_group("Release On Drag")
 ## The current check mode.
@@ -96,12 +103,16 @@ signal press_end
 @export var mode : DistanceCheck.CHECK_MODE = DistanceCheck.CHECK_MODE.BOTH:
 	set(val):
 		mode = val
-		_distance_check.mode = val
+		
+		if _distance_check:
+			_distance_check.mode = val
 ## The max pixels difference, between the start and current position, that can be tolerated.
 @export_range(0, 500, 0.001, "or_greater", "suffix:px") var distance : float = 30:
 	set(val):
 		distance = maxf(0, val)
-		_distance_check.distance = distance
+		
+		if _distance_check:
+			_distance_check.distance = distance
 #endregion
 
 
@@ -113,45 +124,15 @@ var _distance_check : DistanceCheck
 
 
 #region Private Virtual Methods
-func _init() -> void:
-	if _distance_check && is_instance_valid(_distance_check):
-		_distance_check.queue_free()
-	_distance_check = DistanceCheck.new()
-	_distance_check.name = "distance_check"
-	_distance_check.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	add_child(_distance_check)
-	
-	_distance_check.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_distance_check.cancel_when_outside = true
-	_distance_check.disabled = disabled
-	_distance_check.mode = mode
-	_distance_check.distance = distance
-	
-	
-	_distance_check.pos_exceeded.connect(force_release)
-	
-	
-	if _bounds_check && is_instance_valid(_bounds_check):
-		_bounds_check.queue_free()
-	_bounds_check = BoundsCheck.new()
-	_bounds_check.name = "bounds_check"
-	_bounds_check.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	add_child(_bounds_check)
-	
-	_bounds_check.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_bounds_check.disabled = disabled
-	_bounds_check.release_when_outside = release_when_outside
-	_bounds_check.cancel_when_outside = cancel_when_outside
-	
-	_bounds_check.end_vaild.connect(_on_end_vaild)
-	_bounds_check.end_invaild.connect(_on_end_invaild)
-	_bounds_check.start_check.connect(_on_start_check)
-	_bounds_check.end_check.connect(_on_end_check)
 func _validate_property(property: Dictionary) -> void:
 	if property.name == "button_pressed":
 		if !toggle_mode:
 			property.usage |= PROPERTY_USAGE_READ_ONLY
 
+func _notification(what: int) -> void:
+	match what:
+		NOTIFICATION_READY:
+			_handel_ready()
 
 func _gui_input(event: InputEvent) -> void:
 	if event is InputEventMouseMotion || event is InputEventMouseButton:
@@ -167,6 +148,40 @@ func _gui_input(event: InputEvent) -> void:
 
 
 #region Private Methods
+func _handel_ready() -> void:
+	if _distance_check:
+		_distance_check.queue_free()
+	_distance_check = DistanceCheck.new()
+	_distance_check.name = "distance_check"
+	_distance_check.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	add_child(_distance_check, false, INTERNAL_MODE_FRONT)
+	
+	_distance_check.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_distance_check.cancel_when_outside = true
+	_distance_check.disabled = disabled
+	_distance_check.mode = mode
+	_distance_check.distance = distance
+	
+	_distance_check.pos_exceeded.connect(force_release)
+	
+	
+	if _bounds_check:
+		_bounds_check.queue_free()
+	_bounds_check = BoundsCheck.new()
+	_bounds_check.name = "bounds_check"
+	_bounds_check.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	add_child(_bounds_check, false, INTERNAL_MODE_FRONT)
+	
+	_bounds_check.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_bounds_check.disabled = disabled
+	_bounds_check.release_when_outside = release_when_outside
+	_bounds_check.cancel_when_outside = cancel_when_outside
+	
+	_bounds_check.end_vaild.connect(_on_end_vaild)
+	_bounds_check.end_invaild.connect(_on_end_invaild)
+	_bounds_check.start_check.connect(_on_start_check)
+	_bounds_check.end_check.connect(_on_end_check)
+
 func _on_start_check() -> void:
 	press_start.emit()
 	
@@ -201,15 +216,17 @@ func _on_end_invaild() -> void:
 #region Public Methods
 ## Forcibly stops this node's check.
 func force_release() -> void:
-	_bounds_check.force_release()
-	_distance_check.force_release()
+	if _bounds_check:
+		_bounds_check.force_release()
+	if _distance_check:
+		_distance_check.force_release()
 	
 	_on_end_invaild()
 ## Returns if mouse or touch is being held (mouse or touch outside of limit without being released).
 ## [br][br]
 ## Also see [method force_release].
 func is_held() -> bool:
-	return _bounds_check.is_checking()
+	return _bounds_check && _bounds_check.is_checking()
 #endregion
 
 # Made by Xavier Alvarez. A part of the "FreeControl" Godot addon.

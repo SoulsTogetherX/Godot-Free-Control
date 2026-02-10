@@ -18,15 +18,14 @@ extends Container
 				router_info.changed_size.connect(_on_size_changed)
 				router_info.changed_idx.connect(_on_index_changed)
 			
-			if is_node_ready():
-				_on_info_update()
+			_on_info_update()
 
 @export_group("Appearence")
 ## The soild color of the highlight.
 @export var highlight_color : Color:
 	set(val):
 		highlight_color = val
-		if is_node_ready():
+		if _highlight:
 			_highlight.color = highlight_color
 
 @export_group("Animation")
@@ -57,13 +56,19 @@ var _highlight : ColorRect
 
 
 #region Virtual Methods
-func _init() -> void:
-	_highlight = ColorRect.new()
-	add_child(_highlight)
 func _notification(what: int) -> void:
 	match what:
+		NOTIFICATION_READY:
+			_handle_ready()
 		NOTIFICATION_SORT_CHILDREN:
 			_on_size_changed()
+#endregion
+
+
+#region Private Methods (Helper)
+func _handle_ready() -> void:
+	_highlight = ColorRect.new()
+	add_child(_highlight, false, Node.INTERNAL_MODE_BACK)
 #endregion
 
 

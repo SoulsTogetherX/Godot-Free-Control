@@ -20,7 +20,6 @@ static func create(
 	exit_animate : SwapContainer.ANIMATION_TYPE,
 	auto_clean : bool
 ) -> PageStackInfo:
-	
 	var info = PageStackInfo.new()
 	info._page = page
 	info._enter_animate = enter_animate

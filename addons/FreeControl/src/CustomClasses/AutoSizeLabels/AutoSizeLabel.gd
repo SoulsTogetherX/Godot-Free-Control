@@ -83,7 +83,6 @@ func _init() -> void:
 	clip_text = true
 	autowrap_mode = TextServer.AUTOWRAP_ARBITRARY
 	_state = LABEL_STATE.NONE
-
 func _validate_property(property: Dictionary) -> void:
 	if property.name in ["clip_text", "autowrap_mode", "text_overrun_behavior", "ellipsis_char"]:
 		property.usage &= ~PROPERTY_USAGE_EDITOR
@@ -116,7 +115,7 @@ func _set(property: StringName, value: Variant) -> bool:
 
 func _notification(what : int) -> void:
 	match what:
-		NOTIFICATION_RESIZED:
+		NOTIFICATION_VISIBILITY_CHANGED, NOTIFICATION_RESIZED:
 			_update_font_size_check()
 		NOTIFICATION_THEME_CHANGED:
 			_on_theme_update()
@@ -230,7 +229,7 @@ func _partition_ideal(start: int, end: int, fontFile : FontFile) -> int:
 	return _partition_ideal(start, mid, fontFile)
 
 func _update_font_size_check() -> void:
-	if is_node_ready() && !stop_resizing:
+	if is_visible_in_tree() && !stop_resizing:
 		update_font_size()
 #endregion
 

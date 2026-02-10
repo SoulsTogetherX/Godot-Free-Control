@@ -21,8 +21,7 @@ extends Container
 				router_info.changed_tabs_args.connect(_on_args_changed)
 				router_info.changed_idx.connect(_on_index_changed)
 			
-			if is_node_ready():
-				_on_info_update()
+			_on_info_update()
 #endregion
 
 
@@ -62,7 +61,7 @@ func _create_tabs() -> void:
 		tab.tab_pressed.connect(_on_tab_selected.bind(i))
 		
 		_tabs[i] = tab
-		add_child(tab)
+		add_child(tab, false, Node.INTERNAL_MODE_BACK)
 	_sort_tabs()
 #endregion
 

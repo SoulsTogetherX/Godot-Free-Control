@@ -40,8 +40,7 @@ const PAGE_HIDE_MODE = RouterSlideInfo.PAGE_HIDE_MODE
 						info.changed_page_scene.connect(_on_page_changed)
 						info.changed_page_idx.connect(_on_changed_page_idx)
 			
-			if is_node_ready():
-				_on_info_update()
+			_on_info_update()
 			
 #endregion
 
@@ -172,7 +171,7 @@ func _toggle_load(idx : int, toggle : bool) -> void:
 		if page_scene:
 			var page : Page = page_scene.instantiate()
 			_pages[idx] = page
-			add_child(page)
+			add_child(page, false, Node.INTERNAL_MODE_BACK)
 			fit_child_in_rect(page, get_page_rect(idx))
 		return
 	

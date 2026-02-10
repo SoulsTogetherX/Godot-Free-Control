@@ -141,7 +141,8 @@ static func scene_is_tab(scene : PackedScene) -> bool:
 	if node is BaseRouterSlideTab:
 		node.free()
 		return true
-	node.free()
+	if node:
+		node.free()
 	return false
 #endregion
 
