@@ -2,7 +2,7 @@
 
 A lightweight, Godot 4.5 addon that includes 20+ new control nodes best suited for dynamic UI design in any circumstances.
 
-[b]Note[/b]: It is recomended to delete any class you do not need to prevent bloat. You can delete a class by deleting it's respected folder in the `src` folder.
+[b]Note[/b]: It is recommended to delete any class you do not need to prevent bloat. You can delete a class by deleting its respective folder in the `src` folder.
 
 ## Contains
 
