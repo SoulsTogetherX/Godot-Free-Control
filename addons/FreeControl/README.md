@@ -2,6 +2,8 @@
 
 A Godot 4.5 addon that includes 20+ new control nodes best suited for dynamic UI and mobile UI design.
 
+[b]Note[/b]: It is recomended to delete any class you do not need to prevent bloat. You can delete a class by deleting it's respected folder in the `src` folder.
+
 ## Contains
 
 UI containers that support 2D transformations.
