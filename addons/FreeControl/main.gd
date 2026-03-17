@@ -50,3 +50,5 @@ func _get_all_files(path: String) -> PackedStringArray:
 		dir.list_dir_end()
 	return files
 #endregion
+
+# Made by Xavier Alvarez. A part of the "FreeControl" Godot addon.
