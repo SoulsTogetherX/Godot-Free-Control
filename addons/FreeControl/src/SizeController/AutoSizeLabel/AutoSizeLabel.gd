@@ -48,7 +48,7 @@ const MIN_FONT_SIZE := 1
 		val = clampi(val, MIN_FONT_SIZE, max_size)
 		
 		if min_size != val:
-			min_size = max_size
+			min_size = val
 			_update_font_size_check()
 
 @export_group("Options")
