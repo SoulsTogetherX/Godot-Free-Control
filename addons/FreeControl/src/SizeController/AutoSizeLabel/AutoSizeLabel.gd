@@ -34,7 +34,10 @@ const MIN_FONT_SIZE := 1
 ## Cannot be less than [member min_size]. If set to [code]-1[/code], the upper bound will be removed.
 @export var max_size : int = 100:
 	set(val):
-		val = -1 if val <= -1 else clampi(val, min_size, MAX_FONT_SIZE)
+		if val > -1:
+			val = clampi(val, min_size, MAX_FONT_SIZE)
+		else:
+			val = -1
 		
 		if max_size != val:
 			max_size = val
@@ -45,13 +48,17 @@ const MIN_FONT_SIZE := 1
 ## Cannot exceed [member max_size] or be less than [code]1[/code].
 @export var min_size : int = MIN_FONT_SIZE:
 	set(val):
-		val = clampi(val, MIN_FONT_SIZE, max_size)
+		val = maxi(val, MIN_FONT_SIZE)
+		if max_size > -1:
+			val = mini(val, max_size)
 		
 		if min_size != val:
-			min_size = max_size
+			min_size = val
 			_update_font_size_check()
 
 @export_group("Options")
+## Marks which axis will be prioritized when resizing the font.
+## If neither, then no resize will occur.
 @export_flags("x:1", "y:2") var resizing_on : int = 3:
 	set(val):
 		if resizing_on != val:
@@ -59,13 +66,16 @@ const MIN_FONT_SIZE := 1
 			_update_font_size_check()
 ## If [code]true[/code], this label will stop automatically resizing the text font
 ## to it's size.
-@export var stop_resizing : bool:
+@export var auto_resizing : bool:
 	set(val):
-		if stop_resizing != val:
-			stop_resizing = val
+		if auto_resizing != val:
+			auto_resizing = val
 			_update_font_size_check()
 ## If [code]false[/code], this label will not resize if the text is changed to
 ## another text with the same length.
+## [br][br]
+## [b]NOTE[/b]: This is for performance, but can cause sizing issues if
+## font is not monospaced.
 @export var resize_on_same_length : bool = false
 #endregion
 
@@ -145,7 +155,10 @@ func _check_smaller_than_max() -> bool:
 		MAX_FONT_DIMENSION >= paragraph_size.x &&
 		MAX_FONT_DIMENSION >= paragraph_size.y
 	)
-func _get_max_allow(fontFile : FontFile) -> int:
+func _get_expected_max_font(fontFile : FontFile) -> int:
+	if max_size >= 0:
+		return max_size
+	
 	var ret_size := _current_font_size
 	
 	while _check_smaller_than_max() && _check_smaller_than_ideal():
@@ -164,17 +177,14 @@ func _get_max_allow(fontFile : FontFile) -> int:
 
 #region Private Methods (Font)
 func _get_font_file() -> FontFile:
-	var fontFile : FontFile
 	if label_settings:
 		if !label_settings.font:
-			fontFile = get_theme_default_font()
-		else:
-			fontFile = label_settings.font
+			return get_theme_default_font()
+		return label_settings.font
 	elif has_theme_font("font"):
-		fontFile = get_theme_font("font")
-	else:
-		fontFile = get_theme_default_font()
-	return fontFile
+		return get_theme_font("font")
+	return get_theme_default_font()
+
 func _update_font_size() -> void:
 	_state = LABEL_STATE.NONE
 	if text.is_empty() || resizing_on == 0:
@@ -187,11 +197,15 @@ func _update_font_size() -> void:
 		text, fontFile, _current_font_size
 	)
 	
-	if _check_smaller_than_ideal():
-		var max_allow  := max_size if max_size >= 0 else _get_max_allow(fontFile)
-		_current_font_size = _partition_ideal(_current_font_size, max_allow, fontFile)
-	elif _check_greater_than_ideal():
-		_current_font_size = _partition_ideal(min_size, _current_font_size, fontFile)
+	var max_allowed_size := _get_expected_max_font(fontFile)
+	if (_current_font_size <= max_allowed_size && _check_smaller_than_ideal()):
+		_current_font_size = _partition_ideal(
+			_current_font_size, max_allowed_size + 1, fontFile
+		)
+	elif (_current_font_size >= min_size || _check_greater_than_ideal()):
+		_current_font_size = _partition_ideal(
+			min_size, mini(_current_font_size, max_allowed_size) + 1, fontFile
+		)
 	
 	_state |= LABEL_STATE.IGNORE
 	if label_settings:
@@ -208,7 +222,7 @@ func _on_theme_update() -> void:
 		return
 	_state = LABEL_STATE.NONE
 	
-	if !stop_resizing:
+	if !auto_resizing:
 		update_font_size()
 #endregion
 
@@ -230,7 +244,7 @@ func _partition_ideal(start: int, end: int, fontFile : FontFile) -> int:
 	return _partition_ideal(start, mid, fontFile)
 
 func _update_font_size_check() -> void:
-	if is_visible_in_tree() && !stop_resizing:
+	if is_visible_in_tree() && !auto_resizing:
 		update_font_size()
 #endregion
 
@@ -239,7 +253,7 @@ func _update_font_size_check() -> void:
 ## Queues the font size to update. This method runs on an automatic deffered call.
 ## Calling it multiple times before the deffered call runs does nothing.
 ## [br][br]
-## [b]NOTE[b]: This works even when [member stop_resizing] is [code]true[/code].
+## [b]NOTE[b]: This works even when [member auto_resizing] is [code]true[/code].
 func update_font_size() -> void:
 	if _state:
 		return
