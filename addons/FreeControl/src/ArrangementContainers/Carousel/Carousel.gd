@@ -740,7 +740,7 @@ func flick(from : Vector2, dir : Vector2) -> void:
 #region Public Methods (Value Access Methods)
 ## Returns if the carousel is currening scrolling via na animation
 func is_animating() -> bool:
-	return false
+	return _current_animation != ANIMATION_TYPE.NONE
 ## Returns if the carousel is currening being dragged by player input.
 func is_dragged() -> bool:
 	return _is_dragging
